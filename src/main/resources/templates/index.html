@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="/navbar.css">
+</head>
+<body>
+<div th:replace="fragments/navbar :: navbar"></div>
+
+<div>
+    <form th:action="@{/start-calculation}" method="post" enctype="multipart/form-data">
+        <label for="start_variance" class="form-label">Počáteční rozptyl:</label>
+        <input type="text" id="start_variance" name="start_variance"/>
+
+        <label for="constant_variance" class="form-label">Konstantní rozptyl:</label>
+        <input type="text" id="constant_variance" name="constant_variance"/>
+
+        <label for="last_variance" class="form-label">Váha minulého rozptylu:</label>
+        <input type="text" id="last_variance" name="last_variance"/>
+
+        <label for="last_shock" class="form-label">Váha minulého odhadu:</label>
+        <input type="text" id="last_shock" name="last_shock"/>
+
+        <label for="time_series_file" class="form-label">Soubor s časovou řadou (XLSX):</label>
+        <input type="file" id="time_series_file" name="time_series_file" accept=".xlsx,.xls"/>
+
+        <button type="submit" class="btn btn-primary w-100">Spustit výpočet</button>
+    </form>
+</div>
+</body>
+</html>

@@ -1,0 +1,39 @@
+nav {
+    background-color: #333;
+    padding: 10px;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+}
+
+a {
+    color: white;
+    text-decoration: none;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+a:hover {
+    color: #ff9800;
+}
+
+a.active {
+    color: #4caf50;
+    font-weight: bold;
+}
+
+li {
+    margin-left: 10px;
+    padding: 5px;
+    border-style: solid;
+    border-color: gray;
+}
+
+body {
+    margin: 0;
+}
