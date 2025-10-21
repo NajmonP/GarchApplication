@@ -1,0 +1,1 @@
+CREATE INDEX idx_time_series_value ON garch.time_series_value(value_id);
