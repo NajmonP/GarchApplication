@@ -1,5 +1,7 @@
 package com.example.garchapplication.controller;
 
+import com.example.garchapplication.service.GarchServiceImpl;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,6 +13,13 @@ import org.springframework.web.multipart.MultipartFile;
 @Controller
 @RequestMapping("/")
 class HomeController {
+
+    private final GarchServiceImpl garchService;
+
+    @Autowired
+    HomeController(GarchServiceImpl garchService) {
+        this.garchService = garchService;
+    }
 
     @GetMapping("/")
     String home() {
@@ -25,7 +34,7 @@ class HomeController {
             @RequestParam("last_shock") double lastShock,
             @RequestParam("time_series_file") MultipartFile timeSeriesFile
     ) {
-        // garchService.calculate(startVariance, constantVariance, lastVariance, lastShock, timeSeriesFile);
+        garchService.calculate(startVariance, constantVariance, lastVariance, lastShock, timeSeriesFile);
         return "redirect:/";
     }
 }
