@@ -1,18 +1,18 @@
-<!DOCTYPE html>
-<html lang="cs" xmlns:th="http://www.thymeleaf.org">
-<body>
-<div th:fragment="navbar">
+<div th:fragment="navbar" xmlns:th="http://www.thymeleaf.org">
     <nav>
         <ul>
-            <li><a>Domů</a></li>
-            <li><a>Časové řady</a></li>
-            <li><a>Konfigurace</a></li>
-            <li><a>Výpočty</a></li>
-            <li><a>Logy</a></li>
-            <li><a>Profil</a></li>
-            <li><a>Přihlásit se</a></li>
+            <li><a th:href="@{/}">Domů</a></li>
+            <li><a th:href="@{/time-series}">Časové řady</a></li>
+            <li th:if="${#authorization.expression('isAuthenticated()')}"><a th:href="@{/configuration}">Konfigurace</a></li>
+            <li th:if="${#authorization.expression('isAuthenticated()')}"><a th:href="@{/calculation}">Výpočty</a></li>
+            <li th:if="${#authorization.expression('hasRole(''ADMIN'')')}"><a th:href="@{/log}">Logy</a></li>
+            <li th:if="${#authorization.expression('isAuthenticated()')}"><a th:href="@{/profile}">Profil</a></li>
+            <li th:if="${#authorization.expression('isAuthenticated()')}">
+            <form th:action="@{/logout}" method="post">
+                <button type="submit">Odhlásit se</button>
+            </form>
+            </li>
+            <li th:if="${#authorization.expression('!isAuthenticated()')}"><a th:href="@{/login}">Přihlásit se</a></li>
         </ul>
     </nav>
 </div>
-</body>
-</html>

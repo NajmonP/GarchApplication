@@ -1,7 +1,7 @@
 CREATE SCHEMA IF NOT EXISTS garch;
 SET search_path TO garch, public;
 
-CREATE TYPE role_type AS ENUM ('user', 'admin');
+CREATE TYPE role_type AS ENUM ('USER', 'ADMIN');
 CREATE TYPE visibility_type AS ENUM ('private', 'public');
 CREATE TYPE entity_type AS ENUM ('time_series', 'garch_configuration', 'calculation');
 CREATE TYPE operation_type AS ENUM ('create', 'read', 'update', 'delete');
@@ -15,7 +15,7 @@ CREATE TABLE users
     password_hash   TEXT            NOT NULL,
     email           TEXT            NOT NULL UNIQUE,
     profile_pic_url TEXT,
-    role            garch.role_type NOT NULL DEFAULT 'user',
+    role            garch.role_type NOT NULL DEFAULT 'USER',
     created_at      TIMESTAMPTZ     NOT NULL DEFAULT now()
 );
 

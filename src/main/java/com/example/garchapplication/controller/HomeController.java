@@ -37,4 +37,9 @@ class HomeController {
         garchService.calculate(startVariance, constantVariance, lastVariance, lastShock, timeSeriesFile);
         return "redirect:/";
     }
+
+    @GetMapping("/403")
+    public String forbidden() {
+        return "403";
+    }
 }
