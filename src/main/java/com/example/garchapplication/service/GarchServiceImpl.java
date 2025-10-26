@@ -36,4 +36,9 @@ public class GarchServiceImpl implements GarchService {
             throw new MaxThresholdExceededException(sum);
         }
     }
+
+    @Override
+    public void calculateFromSelectedModel(Long modelId, MultipartFile timeSeriesFile) {
+
+    }
 }

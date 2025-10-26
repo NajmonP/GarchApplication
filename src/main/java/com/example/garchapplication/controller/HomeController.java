@@ -1,16 +1,15 @@
 package com.example.garchapplication.controller;
 
 import com.example.garchapplication.model.Configuration;
+import com.example.garchapplication.model.GarchModel;
 import com.example.garchapplication.service.ConfigurationService;
+import com.example.garchapplication.service.GarchModelService;
 import com.example.garchapplication.service.GarchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -21,11 +20,13 @@ class HomeController {
 
     private final GarchService garchService;
     private final ConfigurationService configurationService;
+    private final GarchModelService garchModelService;
 
     @Autowired
-    HomeController(GarchService garchService, ConfigurationService configurationService) {
+    HomeController(GarchService garchService, ConfigurationService configurationService, GarchModelService garchModelService) {
         this.garchService = garchService;
         this.configurationService = configurationService;
+        this.garchModelService = garchModelService;
     }
 
     @GetMapping("/")
@@ -35,8 +36,14 @@ class HomeController {
         return "index";
     }
 
-    @PostMapping(value = "/start-calculation", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public String startCalculation(
+    @GetMapping("/configuration/{configurationId}")
+    @ResponseBody
+    public List<GarchModel> getModelsByConfiguration(@PathVariable Long configurationId) {
+        return garchModelService.findAllByConfigurationId(configurationId);
+    }
+
+    @PostMapping(value = "/start-calculation-manual", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public String startCalculationManual(
             @RequestParam("start_variance") double startVariance,
             @RequestParam("constant_variance") double constantVariance,
             @RequestParam("last_variance[]") List<Double> lastVariance,
@@ -44,6 +51,16 @@ class HomeController {
             @RequestParam("time_series_file") MultipartFile timeSeriesFile
     ) {
         garchService.calculate(startVariance, constantVariance, lastVariance, lastShock, timeSeriesFile);
+        return "redirect:/";
+    }
+
+    @PostMapping(value = "/start-calculation-configuration", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public String startCalculationConfiguration(
+            @RequestParam("modelId") Long modelId,
+            @RequestParam("time_series_file") MultipartFile timeSeriesFile
+
+    ) {
+        garchService.calculateFromSelectedModel(modelId, timeSeriesFile);
         return "redirect:/";
     }
 
