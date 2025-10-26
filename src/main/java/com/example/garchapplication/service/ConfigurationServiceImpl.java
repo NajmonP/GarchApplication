@@ -11,6 +11,8 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -41,6 +43,19 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         this.garchModelRepository = garchModelRepository;
         this.modelVarianceWeightRepository = modelVarianceWeightRepository;
         this.modelShockWeightRepository = modelShockWeightRepository;
+    }
+
+    @Override
+    public List<Configuration> getAllConfigurationsByUser(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated() || authentication instanceof AnonymousAuthenticationToken) {
+            return new ArrayList<>();
+        }
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        Long userId = ((UserDetailsImpl) userDetails).getId();
+        User user = userService.getUserById(userId);
+
+        return configurationRepository.getConfigurationsByUser(user);
     }
 
     @Override

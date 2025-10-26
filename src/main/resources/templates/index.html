@@ -85,8 +85,8 @@
             <label for="configId" class="form-label">Vyber konfiguraci</label>
             <select id="configId" name="configId" required class="form-select">
                 <option value="" selected disabled>— vyber —</option>
-                <option th:each="cfg : ${configList}" th:value="${cfg.id}"
-                        th:text="${cfg.name + ' (id ' + cfg.id + ')'}">Konfigurace
+                <option th:each="configuration : ${configurationList}" th:value="${configuration.id}"
+                        th:text="${configuration.name + ' (id ' + configuration.id + ')'}">Konfigurace
                 </option>
             </select>
 

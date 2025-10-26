@@ -1,9 +1,12 @@
 package com.example.garchapplication.controller;
 
-import com.example.garchapplication.service.GarchServiceImpl;
+import com.example.garchapplication.model.Configuration;
+import com.example.garchapplication.service.ConfigurationService;
+import com.example.garchapplication.service.GarchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,15 +19,19 @@ import java.util.List;
 @RequestMapping("/")
 class HomeController {
 
-    private final GarchServiceImpl garchService;
+    private final GarchService garchService;
+    private final ConfigurationService configurationService;
 
     @Autowired
-    HomeController(GarchServiceImpl garchService) {
+    HomeController(GarchService garchService, ConfigurationService configurationService) {
         this.garchService = garchService;
+        this.configurationService = configurationService;
     }
 
     @GetMapping("/")
-    String home() {
+    String home(Model model) {
+        List<Configuration> configurationlist = configurationService.getAllConfigurationsByUser();
+        model.addAttribute("configurationList", configurationlist);
         return "index";
     }
 
