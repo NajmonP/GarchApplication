@@ -1,0 +1,7 @@
+.mb-3:has(#mode-config:checked) + .form-wrap .form-manual {
+    display: none;
+}
+
+.mb-3:has(#mode-manual:checked) + .form-wrap .form-config {
+    display: none;
+}

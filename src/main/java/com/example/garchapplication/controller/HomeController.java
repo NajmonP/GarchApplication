@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 @Controller
 @RequestMapping("/")
 class HomeController {
@@ -30,8 +32,8 @@ class HomeController {
     public String startCalculation(
             @RequestParam("start_variance") double startVariance,
             @RequestParam("constant_variance") double constantVariance,
-            @RequestParam("last_variance") double lastVariance,
-            @RequestParam("last_shock") double lastShock,
+            @RequestParam("last_variance[]") List<Double> lastVariance,
+            @RequestParam("last_shock[]") List<Double> lastShock,
             @RequestParam("time_series_file") MultipartFile timeSeriesFile
     ) {
         garchService.calculate(startVariance, constantVariance, lastVariance, lastShock, timeSeriesFile);

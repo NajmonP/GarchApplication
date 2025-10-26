@@ -16,19 +16,19 @@ public class User {
     @Column(name = "username", unique = true, nullable = false)
     private String username;
 
-    @Column(name= "password_hash", nullable = false)
+    @Column(name = "password_hash", nullable = false)
     private String hashedPassword;
 
-    @Column(name= "email", unique = true, nullable = false)
+    @Column(name = "email", unique = true, nullable = false)
     private String email;
 
-    @Column(name="profile_pic_url")
+    @Column(name = "profile_pic_url")
     private String profilePictureUrl;
 
-    @Column(name="role", nullable = false)
+    @Column(name = "role", nullable = false)
     private String role;
 
-    @Column(name="created_at", nullable = false)
+    @Column(name = "created_at", nullable = false)
     private Date created;
 
     public long getId() {

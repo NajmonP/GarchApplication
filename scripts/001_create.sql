@@ -3,7 +3,7 @@ SET search_path TO garch, public;
 
 CREATE TYPE role_type AS ENUM ('USER', 'ADMIN');
 CREATE TYPE visibility_type AS ENUM ('private', 'public');
-CREATE TYPE entity_type AS ENUM ('time_series', 'garch_configuration', 'calculation');
+CREATE TYPE entity_type AS ENUM ('time_series', 'configuration', 'calculation');
 CREATE TYPE operation_type AS ENUM ('create', 'read', 'update', 'delete');
 
 
@@ -34,7 +34,7 @@ CREATE TABLE time_series
     visibility     TEXT        NOT NULL DEFAULT 'private'
 );
 
----------- ----------
+---------- time_series_value ----------
 CREATE TABLE time_series_value
 (
     value_id       BIGSERIAL PRIMARY KEY,
@@ -43,35 +43,45 @@ CREATE TABLE time_series_value
     ts             INTEGER          NOT NULL
 );
 
----------- GARCH configuration ----------
-CREATE TABLE garch_configuration
+---------- configuration ----------
+CREATE TABLE configuration
 (
-    configuration_id  BIGSERIAL PRIMARY KEY,
-    user_id           BIGINT           NOT NULL REFERENCES users (user_id) ON DELETE CASCADE,
+    configuration_id BIGSERIAL PRIMARY KEY,
+    user_id          BIGINT       NOT NULL REFERENCES users (user_id) ON DELETE CASCADE,
+    name             TEXT         NOT NULL,
+    created_at       TIMESTAMPTZ  NOT NULL DEFAULT now(),
+    UNIQUE (user_id, name)
+);
+
+---------- GARCH model ----------
+CREATE TABLE garch_model
+(
+    model_id  BIGSERIAL PRIMARY KEY,
+    configuration_id   BIGINT           NOT NULL REFERENCES configuration (configuration_id) ON DELETE CASCADE,
     name              TEXT             NOT NULL,
     start_variance    DOUBLE PRECISION NOT NULL,
     constant_variance DOUBLE PRECISION NOT NULL,
-    created_at        TIMESTAMPTZ      NOT NULL DEFAULT now()
+    UNIQUE (configuration_id, name)
 );
 
----------- configuration_shock_weight ----------
-CREATE TABLE configuration_shock_weight
+---------- model_shock_weight ----------
+CREATE TABLE model_shock_weight
 (
-    configuration_shock_weight_id BIGSERIAL PRIMARY KEY,
-    configuration_id              BIGINT           NOT NULL REFERENCES garch_configuration (configuration_id) ON DELETE CASCADE,
+    model_shock_weight_id BIGSERIAL PRIMARY KEY,
+    model_id              BIGINT           NOT NULL REFERENCES garch_model (model_id) ON DELETE CASCADE,
     order_no                      INTEGER          NOT NULL,
     value                         DOUBLE PRECISION NOT NULL,
-    UNIQUE (configuration_id, order_no)
+    UNIQUE (model_id, order_no)
 );
 
----------- configuration_variance_weight ----------
-CREATE TABLE configuration_variance_weight
+---------- model_variance_weight ----------
+CREATE TABLE model_variance_weight
 (
-    configuration_variance_weight_id BIGSERIAL PRIMARY KEY,
-    configuration_id                 BIGINT           NOT NULL REFERENCES garch_configuration (configuration_id) ON DELETE CASCADE,
+    model_variance_weight_id BIGSERIAL PRIMARY KEY,
+    model_id                 BIGINT           NOT NULL REFERENCES garch_model (model_id) ON DELETE CASCADE,
     order_no                         INTEGER          NOT NULL,
     value                            DOUBLE PRECISION NOT NULL,
-    UNIQUE (configuration_id, order_no)
+    UNIQUE (model_id, order_no)
 );
 
 ---------- calculation ----------
@@ -79,12 +89,10 @@ CREATE TABLE calculation
 (
     calculation_id        BIGSERIAL PRIMARY KEY,
     user_id               BIGINT           NOT NULL REFERENCES users (user_id) ON DELETE CASCADE,
-    configuration_id      BIGINT           REFERENCES garch_configuration (configuration_id) ON DELETE SET NULL,
+    model_id      BIGINT           REFERENCES garch_model (model_id) ON DELETE SET NULL,
     run_at                TIMESTAMPTZ      NOT NULL DEFAULT now(),
-    -- vstupní a výsledná časová řada
     input_time_series_id  BIGINT           NOT NULL REFERENCES time_series (time_series_id) ON DELETE RESTRICT,
     result_time_series_id BIGINT           REFERENCES time_series (time_series_id) ON DELETE SET NULL,
-    -- parametry použité při běhu (pro auditovatelnost, denormalizace)
     start_variance        DOUBLE PRECISION NOT NULL,
     constant_variance     DOUBLE PRECISION NOT NULL
 );

@@ -1,13 +1,36 @@
 package com.example.garchapplication.controller;
 
+import com.example.garchapplication.service.ConfigurationService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 @Controller
 class ConfigurationController {
 
+    private final ConfigurationService configurationService;
+
+    @Autowired
+    public ConfigurationController(ConfigurationService configurationService) {
+        this.configurationService = configurationService;
+    }
+
     @GetMapping("/configuration")
     public String configuration() {
         return "configuration";
+    }
+
+    @PostMapping(value = "/configuration/add-configuration", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public String addConfiguration(
+            @RequestParam("configuration") MultipartFile configurationFile
+    ) throws IOException {
+        configurationService.addConfiguration(configurationFile);
+        return "redirect:/configuration";
     }
 }
