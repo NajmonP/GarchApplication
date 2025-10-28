@@ -2,9 +2,11 @@ package com.example.garchapplication.controller;
 
 import com.example.garchapplication.model.Configuration;
 import com.example.garchapplication.model.GarchModel;
+import com.example.garchapplication.model.TimeSeries;
 import com.example.garchapplication.service.ConfigurationService;
 import com.example.garchapplication.service.GarchModelService;
-import com.example.garchapplication.service.GarchService;
+import com.example.garchapplication.service.CalculationService;
+import com.example.garchapplication.service.TimeSeriesService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -18,21 +20,26 @@ import java.util.List;
 @RequestMapping("/")
 class HomeController {
 
-    private final GarchService garchService;
+    private final CalculationService calculationService;
     private final ConfigurationService configurationService;
     private final GarchModelService garchModelService;
+    private final TimeSeriesService timeSeriesService;
 
     @Autowired
-    HomeController(GarchService garchService, ConfigurationService configurationService, GarchModelService garchModelService) {
-        this.garchService = garchService;
+    HomeController(CalculationService calculationService, ConfigurationService configurationService, GarchModelService garchModelService, TimeSeriesService timeSeriesService) {
+        this.calculationService = calculationService;
         this.configurationService = configurationService;
         this.garchModelService = garchModelService;
+        this.timeSeriesService = timeSeriesService;
     }
 
     @GetMapping("/")
     String home(Model model) {
         List<Configuration> configurationlist = configurationService.getAllConfigurationsByUser();
+        List<TimeSeries> timeSeriesList = timeSeriesService.getTimeSeriesByUser();
+
         model.addAttribute("configurationList", configurationlist);
+        model.addAttribute("timeSeriesList", timeSeriesList);
         return "index";
     }
 
@@ -50,7 +57,7 @@ class HomeController {
             @RequestParam("last_shock[]") List<Double> lastShock,
             @RequestParam("time_series_file") MultipartFile timeSeriesFile
     ) {
-        garchService.calculate(startVariance, constantVariance, lastVariance, lastShock, timeSeriesFile);
+        calculationService.calculate(startVariance, constantVariance, lastVariance, lastShock, timeSeriesFile);
         return "redirect:/";
     }
 
@@ -60,7 +67,7 @@ class HomeController {
             @RequestParam("time_series_file") MultipartFile timeSeriesFile
 
     ) {
-        garchService.calculateFromSelectedModel(modelId, timeSeriesFile);
+        calculationService.calculateFromSelectedModel(modelId, timeSeriesFile);
         return "redirect:/";
     }
 

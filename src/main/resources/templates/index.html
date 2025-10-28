@@ -80,13 +80,20 @@
 
         <form class="form-config" th:action="@{/start-calculation-configuration}" method="post" enctype="multipart/form-data">
             <input type="hidden" name="mode" value="config"/>
-            <!--<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>-->
 
             <label for="configurationId" class="form-label">Vyber konfiguraci</label>
             <select id="configurationId" name="configurationId" required class="form-select">
                 <option value="" selected disabled>— vyber —</option>
                 <option th:each="configuration : ${configurationList}" th:value="${configuration.id}"
                         th:text="${configuration.name + ' (id ' + configuration.id + ')'}">Konfigurace
+                </option>
+            </select>
+
+            <label for="timeSeriesId" class="form-label">Vyber model</label>
+            <select id="timeSeriesId" name="timeSeriesId" required class="form-select">
+                <option value="" selected disabled>— vyber —</option>
+                <option th:each="timeSeries : ${timeSeriesList}" th:value="${timeSeries.id}"
+                        th:text="${timeSeries.name + ' (id ' + timeSeries.id + ')'}">timeSeries
                 </option>
             </select>
 

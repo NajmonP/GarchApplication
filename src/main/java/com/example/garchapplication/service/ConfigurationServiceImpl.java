@@ -116,6 +116,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Long userId = ((UserDetailsImpl) userDetails).getId();
         User user = userService.getUserById(userId);
+
         Configuration configuration = new Configuration();
         configuration.setName(configurationName);
         configuration.setUser(user);

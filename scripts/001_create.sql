@@ -31,7 +31,8 @@ CREATE TABLE time_series
     skewness       DOUBLE PRECISION,
     kurtosis       DOUBLE PRECISION,
     created_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
-    visibility     TEXT        NOT NULL DEFAULT 'private'
+    visibility     TEXT        NOT NULL DEFAULT 'private',
+    UNIQUE (user_id, name)
 );
 
 ---------- time_series_value ----------
@@ -40,24 +41,24 @@ CREATE TABLE time_series_value
     value_id       BIGSERIAL PRIMARY KEY,
     time_series_id BIGINT           NOT NULL REFERENCES time_series (time_series_id) ON DELETE CASCADE,
     value          DOUBLE PRECISION NOT NULL,
-    ts             INTEGER          NOT NULL
+    order_no       INTEGER          NOT NULL
 );
 
 ---------- configuration ----------
 CREATE TABLE configuration
 (
     configuration_id BIGSERIAL PRIMARY KEY,
-    user_id          BIGINT       NOT NULL REFERENCES users (user_id) ON DELETE CASCADE,
-    name             TEXT         NOT NULL,
-    created_at       TIMESTAMPTZ  NOT NULL DEFAULT now(),
+    user_id          BIGINT      NOT NULL REFERENCES users (user_id) ON DELETE CASCADE,
+    name             TEXT        NOT NULL,
+    created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
     UNIQUE (user_id, name)
 );
 
 ---------- GARCH model ----------
 CREATE TABLE garch_model
 (
-    model_id  BIGSERIAL PRIMARY KEY,
-    configuration_id   BIGINT           NOT NULL REFERENCES configuration (configuration_id) ON DELETE CASCADE,
+    model_id          BIGSERIAL PRIMARY KEY,
+    configuration_id  BIGINT           NOT NULL REFERENCES configuration (configuration_id) ON DELETE CASCADE,
     name              TEXT             NOT NULL,
     start_variance    DOUBLE PRECISION NOT NULL,
     constant_variance DOUBLE PRECISION NOT NULL,
@@ -69,8 +70,8 @@ CREATE TABLE model_shock_weight
 (
     model_shock_weight_id BIGSERIAL PRIMARY KEY,
     model_id              BIGINT           NOT NULL REFERENCES garch_model (model_id) ON DELETE CASCADE,
-    order_no                      INTEGER          NOT NULL,
-    value                         DOUBLE PRECISION NOT NULL,
+    order_no              INTEGER          NOT NULL,
+    value                 DOUBLE PRECISION NOT NULL,
     UNIQUE (model_id, order_no)
 );
 
@@ -79,8 +80,8 @@ CREATE TABLE model_variance_weight
 (
     model_variance_weight_id BIGSERIAL PRIMARY KEY,
     model_id                 BIGINT           NOT NULL REFERENCES garch_model (model_id) ON DELETE CASCADE,
-    order_no                         INTEGER          NOT NULL,
-    value                            DOUBLE PRECISION NOT NULL,
+    order_no                 INTEGER          NOT NULL,
+    value                    DOUBLE PRECISION NOT NULL,
     UNIQUE (model_id, order_no)
 );
 
@@ -89,7 +90,7 @@ CREATE TABLE calculation
 (
     calculation_id        BIGSERIAL PRIMARY KEY,
     user_id               BIGINT           NOT NULL REFERENCES users (user_id) ON DELETE CASCADE,
-    model_id      BIGINT           REFERENCES garch_model (model_id) ON DELETE SET NULL,
+    model_id              BIGINT           REFERENCES garch_model (model_id) ON DELETE SET NULL,
     run_at                TIMESTAMPTZ      NOT NULL DEFAULT now(),
     input_time_series_id  BIGINT           NOT NULL REFERENCES time_series (time_series_id) ON DELETE RESTRICT,
     result_time_series_id BIGINT           REFERENCES time_series (time_series_id) ON DELETE SET NULL,

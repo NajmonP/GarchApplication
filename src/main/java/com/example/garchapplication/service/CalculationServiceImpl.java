@@ -9,7 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 @Service
-public class GarchServiceImpl implements GarchService {
+public class CalculationServiceImpl implements CalculationService {
 
     private static final double SUM_MAXIMUM_THRESHOLD = 1.0;
     private static final double MINIMUM_VALUE = 0.0;

@@ -6,7 +6,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 @Service
-public interface GarchService {
+public interface CalculationService {
     void calculate(double startVariance, double constantVariance, List<Double> lastVariance, List<Double> lastShock, MultipartFile timeSeriesFile);
 
     void calculateFromSelectedModel(Long modelId, MultipartFile timeSeriesFile);
