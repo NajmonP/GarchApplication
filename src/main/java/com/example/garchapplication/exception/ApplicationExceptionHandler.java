@@ -26,4 +26,10 @@ public class ApplicationExceptionHandler {
         redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         return "redirect:/";
     }
+
+    @ExceptionHandler(MissingTimeSeriesException.class)
+    public String MissingTimeSeriesException(MissingTimeSeriesException ex, RedirectAttributes redirectAttributes) {
+        redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        return "redirect:/";
+    }
 }

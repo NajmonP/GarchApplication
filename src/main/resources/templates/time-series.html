@@ -10,7 +10,8 @@
 <div th:replace="~{fragments/navbar :: navbar}"></div>
 
 <h1>Time series</h1>
-<form th:action="@{time-series/add-time-series}" method="post" enctype="multipart/form-data">
+<form th:action="@{time-series/add-time-series}" th:if="${#authorization.expression('isAuthenticated()')}"
+      method="post" enctype="multipart/form-data">
     <label for="time-series" class="form-label">Kofigurační soubor (XLSX):</label>
     <input type="file" id="time-series" name="time-series" accept=".xlsx,.xls" required/>
 

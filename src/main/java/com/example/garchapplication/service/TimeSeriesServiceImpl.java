@@ -1,12 +1,14 @@
 package com.example.garchapplication.service;
 
+import com.example.garchapplication.calculation.CalculationProcess;
+import com.example.garchapplication.dto.CalculationSetupDTO;
+import com.example.garchapplication.dto.GarchModelDTO;
 import com.example.garchapplication.model.TimeSeries;
 import com.example.garchapplication.model.TimeSeriesValue;
 import com.example.garchapplication.model.User;
 import com.example.garchapplication.repository.TimeSeriesRepository;
 import com.example.garchapplication.repository.TimeSeriesValueRepository;
 import com.example.garchapplication.security.UserDetailsImpl;
-import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -21,7 +23,10 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.sql.Date;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class TimeSeriesServiceImpl implements TimeSeriesService {
@@ -58,13 +63,14 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
             String timeSeriesName = sheet.getRow(0).getCell(1).getStringCellValue();
 
             TimeSeries timeSeries = saveTimeSeries(timeSeriesName);
-            for(int i = 2; i < sheet.getLastRowNum(); i++) {
-                saveTimeSeriesValue(timeSeries, sheet.getRow(i), i);
+            for (int i = 2; i <= sheet.getLastRowNum(); i++) {
+                double value = sheet.getRow(i).getCell(0).getNumericCellValue();
+                saveTimeSeriesValue(timeSeries, value, i);
             }
         }
     }
 
-    private TimeSeries saveTimeSeries(String timeSeriesName){
+    public TimeSeries saveTimeSeries(String timeSeriesName) {
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Long userId = ((UserDetailsImpl) userDetails).getId();
         User user = userService.getUserById(userId);
@@ -79,11 +85,32 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
         return timeSeries;
     }
 
-    private void saveTimeSeriesValue(TimeSeries timeSeries, Row row, int rowNum) {
+    public void saveTimeSeriesValue(TimeSeries timeSeries, double value, int rowNum) {
         TimeSeriesValue timeSeriesValue = new TimeSeriesValue();
         timeSeriesValue.setTimeSeries(timeSeries);
-        timeSeriesValue.setValue(row.getCell(0).getNumericCellValue());
-        timeSeriesValue.setOrderNo(rowNum-1);
+        timeSeriesValue.setValue(value);
+        timeSeriesValue.setOrderNo(rowNum - 1);
         timeSeriesValueRepository.save(timeSeriesValue);
+    }
+
+    @Override
+    public Map<Long, Double> getTimeSeriesFromFile(MultipartFile timeSeriesFile, GarchModelDTO garchModelDTO) throws IOException {
+        Map<Long, Double> loadedTimeSeries = new HashMap<>();
+        try (Workbook workbook = new XSSFWorkbook(timeSeriesFile.getInputStream())) {
+            Sheet sheet = workbook.getSheetAt(0);
+            String timeSeriesName = sheet.getRow(0).getCell(1).getStringCellValue();
+
+            for (int i = 2; i <= sheet.getLastRowNum(); i++) {
+                double value = sheet.getRow(i).getCell(0).getNumericCellValue();
+                loadedTimeSeries.put((long) (i - 1), value);
+            }
+        }
+        return loadedTimeSeries;
+    }
+
+    @Override
+    public Map<Long, Double> getTimeSeriesFromDatabase(Long timeSeriesId, GarchModelDTO garchModelDTO) {
+        List<TimeSeriesValue> timeSeriesValueList = timeSeriesValueRepository.findAllByTimeSeriesId(timeSeriesId);
+        return timeSeriesValueList.stream().collect(Collectors.toMap(TimeSeriesValue::getId, TimeSeriesValue::getValue));
     }
 }

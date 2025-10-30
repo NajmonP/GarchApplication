@@ -34,7 +34,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         <input class="form-check-input" type="radio" 
                                name="modelId" id="model-${model.id}" value="${model.id}" required>
                         <label class="form-check-label" for="model-${model.id}">
-                            ${model.modelName || "Model"} (ID: ${model.id})
+                            ${model.name || "Model"} (ID: ${model.id})
                         </label>
                     `;
 

@@ -14,6 +14,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @Controller
@@ -55,19 +56,21 @@ class HomeController {
             @RequestParam("constant_variance") double constantVariance,
             @RequestParam("last_variance[]") List<Double> lastVariance,
             @RequestParam("last_shock[]") List<Double> lastShock,
-            @RequestParam("time_series_file") MultipartFile timeSeriesFile
-    ) {
-        calculationService.calculate(startVariance, constantVariance, lastVariance, lastShock, timeSeriesFile);
+            @RequestParam(value = "time_series_file", required = false) MultipartFile timeSeriesFile,
+            @RequestParam(value = "timeSeriesId", required = false) Long timeSeriesId
+    ) throws IOException {
+        calculationService.calculate(startVariance, constantVariance, lastVariance, lastShock, timeSeriesFile, timeSeriesId);
         return "redirect:/";
     }
 
     @PostMapping(value = "/start-calculation-configuration", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public String startCalculationConfiguration(
             @RequestParam("modelId") Long modelId,
-            @RequestParam("time_series_file") MultipartFile timeSeriesFile
+            @RequestParam(value = "time_series_file", required = false) MultipartFile timeSeriesFile,
+            @RequestParam(value = "timeSeriesId", required = false) Long timeSeriesId
 
-    ) {
-        calculationService.calculateFromSelectedModel(modelId, timeSeriesFile);
+    ) throws IOException {
+        calculationService.calculateFromSelectedModel(modelId, timeSeriesFile, timeSeriesId);
         return "redirect:/";
     }
 
