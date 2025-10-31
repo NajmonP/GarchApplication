@@ -1,6 +1,6 @@
 package com.example.garchapplication.repository;
 
-import com.example.garchapplication.model.User;
+import com.example.garchapplication.model.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

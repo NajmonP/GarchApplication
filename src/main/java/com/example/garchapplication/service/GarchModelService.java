@@ -1,7 +1,7 @@
 package com.example.garchapplication.service;
 
-import com.example.garchapplication.dto.GarchModelDTO;
-import com.example.garchapplication.model.GarchModel;
+import com.example.garchapplication.model.dto.GarchModelDTO;
+import com.example.garchapplication.model.entity.GarchModel;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

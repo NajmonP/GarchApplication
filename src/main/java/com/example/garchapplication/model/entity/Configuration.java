@@ -1,4 +1,4 @@
-package com.example.garchapplication.model;
+package com.example.garchapplication.model.entity;
 
 import jakarta.persistence.*;
 

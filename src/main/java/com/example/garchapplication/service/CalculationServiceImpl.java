@@ -1,27 +1,21 @@
 package com.example.garchapplication.service;
 
-import com.example.garchapplication.calculation.CalculationProcess;
-import com.example.garchapplication.dto.CalculationSetupDTO;
-import com.example.garchapplication.dto.GarchModelDTO;
+import com.example.garchapplication.Processes.CalculationProcess;
+import com.example.garchapplication.model.dto.CalculationSetupDTO;
+import com.example.garchapplication.model.dto.GarchModelDTO;
+import com.example.garchapplication.model.dto.TimeSeriesDTO;
 import com.example.garchapplication.exception.InvalidConstatVarianceException;
 import com.example.garchapplication.exception.InvalidLastValueException;
 import com.example.garchapplication.exception.MaxThresholdExceededException;
 import com.example.garchapplication.exception.MissingTimeSeriesException;
-import com.example.garchapplication.model.*;
-import com.example.garchapplication.repository.*;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 public class CalculationServiceImpl implements CalculationService {
@@ -75,7 +69,7 @@ public class CalculationServiceImpl implements CalculationService {
 
     private void startCalculationBasedOnInput(MultipartFile timeSeriesFile, Long timeSeriesId, GarchModelDTO garchModelDTO) throws IOException {
         Map<Long, Double> predictedVolatility = new HashMap<>();
-        Map<Long, Double> loadedTimeSeries = new HashMap<>();
+        TimeSeriesDTO loadedTimeSeries;
         
         if (timeSeriesFile != null && !timeSeriesFile.isEmpty()) {
             loadedTimeSeries = timeSeriesService.getTimeSeriesFromFile(timeSeriesFile, garchModelDTO);
@@ -84,7 +78,7 @@ public class CalculationServiceImpl implements CalculationService {
         } else {
             throw new MissingTimeSeriesException();
         }
-        CalculationSetupDTO calculationSetupDTO = new CalculationSetupDTO(loadedTimeSeries, garchModelDTO);
+        CalculationSetupDTO calculationSetupDTO = new CalculationSetupDTO(loadedTimeSeries.timeSeries(), garchModelDTO);
         CalculationProcess calculationProcess = new CalculationProcess(calculationSetupDTO);
         predictedVolatility = calculationProcess.startCalculation();
     }

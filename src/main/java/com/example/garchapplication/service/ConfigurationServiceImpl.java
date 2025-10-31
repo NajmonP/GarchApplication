@@ -1,7 +1,7 @@
 package com.example.garchapplication.service;
 
-import com.example.garchapplication.dto.GarchModelDTO;
-import com.example.garchapplication.model.*;
+import com.example.garchapplication.model.dto.GarchModelDTO;
+import com.example.garchapplication.model.entity.*;
 import com.example.garchapplication.repository.ConfigurationRepository;
 import com.example.garchapplication.repository.GarchModelRepository;
 import com.example.garchapplication.repository.ModelShockWeightRepository;

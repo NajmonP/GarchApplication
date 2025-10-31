@@ -1,7 +1,6 @@
 package com.example.garchapplication.repository;
 
-import com.example.garchapplication.model.ModelShockWeight;
-import com.example.garchapplication.model.ModelVarianceWeight;
+import com.example.garchapplication.model.entity.ModelVarianceWeight;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

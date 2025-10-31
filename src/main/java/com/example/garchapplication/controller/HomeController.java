@@ -1,8 +1,8 @@
 package com.example.garchapplication.controller;
 
-import com.example.garchapplication.model.Configuration;
-import com.example.garchapplication.model.GarchModel;
-import com.example.garchapplication.model.TimeSeries;
+import com.example.garchapplication.model.entity.Configuration;
+import com.example.garchapplication.model.entity.GarchModel;
+import com.example.garchapplication.model.entity.TimeSeries;
 import com.example.garchapplication.service.ConfigurationService;
 import com.example.garchapplication.service.GarchModelService;
 import com.example.garchapplication.service.CalculationService;

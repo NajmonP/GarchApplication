@@ -1,11 +1,10 @@
 package com.example.garchapplication.service;
 
-import com.example.garchapplication.calculation.CalculationProcess;
-import com.example.garchapplication.dto.CalculationSetupDTO;
-import com.example.garchapplication.dto.GarchModelDTO;
-import com.example.garchapplication.model.TimeSeries;
-import com.example.garchapplication.model.TimeSeriesValue;
-import com.example.garchapplication.model.User;
+import com.example.garchapplication.model.dto.GarchModelDTO;
+import com.example.garchapplication.model.dto.TimeSeriesDTO;
+import com.example.garchapplication.model.entity.TimeSeries;
+import com.example.garchapplication.model.entity.TimeSeriesValue;
+import com.example.garchapplication.model.entity.User;
 import com.example.garchapplication.repository.TimeSeriesRepository;
 import com.example.garchapplication.repository.TimeSeriesValueRepository;
 import com.example.garchapplication.security.UserDetailsImpl;
@@ -94,23 +93,26 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
     }
 
     @Override
-    public Map<Long, Double> getTimeSeriesFromFile(MultipartFile timeSeriesFile, GarchModelDTO garchModelDTO) throws IOException {
+    public TimeSeriesDTO getTimeSeriesFromFile(MultipartFile timeSeriesFile, GarchModelDTO garchModelDTO) throws IOException {
         Map<Long, Double> loadedTimeSeries = new HashMap<>();
+        String timeSeriesName;
         try (Workbook workbook = new XSSFWorkbook(timeSeriesFile.getInputStream())) {
             Sheet sheet = workbook.getSheetAt(0);
-            String timeSeriesName = sheet.getRow(0).getCell(1).getStringCellValue();
+            timeSeriesName = sheet.getRow(0).getCell(1).getStringCellValue();
 
             for (int i = 2; i <= sheet.getLastRowNum(); i++) {
                 double value = sheet.getRow(i).getCell(0).getNumericCellValue();
                 loadedTimeSeries.put((long) (i - 1), value);
             }
         }
-        return loadedTimeSeries;
+        return new TimeSeriesDTO(timeSeriesName, loadedTimeSeries);
     }
 
     @Override
-    public Map<Long, Double> getTimeSeriesFromDatabase(Long timeSeriesId, GarchModelDTO garchModelDTO) {
+    public TimeSeriesDTO getTimeSeriesFromDatabase(Long timeSeriesId, GarchModelDTO garchModelDTO) {
         List<TimeSeriesValue> timeSeriesValueList = timeSeriesValueRepository.findAllByTimeSeriesId(timeSeriesId);
-        return timeSeriesValueList.stream().collect(Collectors.toMap(TimeSeriesValue::getId, TimeSeriesValue::getValue));
+        Map<Long, Double> timeSeries = timeSeriesValueList.stream().collect(Collectors.toMap(TimeSeriesValue::getId, TimeSeriesValue::getValue));
+        String name = timeSeriesRepository.findById(timeSeriesId).get().getName();
+        return new TimeSeriesDTO(name,  timeSeries);
     }
 }

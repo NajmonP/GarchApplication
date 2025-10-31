@@ -1,6 +1,6 @@
-package com.example.garchapplication.calculation;
+package com.example.garchapplication.Processes;
 
-import com.example.garchapplication.dto.CalculationSetupDTO;
+import com.example.garchapplication.model.dto.CalculationSetupDTO;
 
 import java.util.*;
 

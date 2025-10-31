@@ -1,7 +1,6 @@
 package com.example.garchapplication.service;
 
-import com.example.garchapplication.model.Configuration;
-import com.example.garchapplication.model.GarchModel;
+import com.example.garchapplication.model.entity.Configuration;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 

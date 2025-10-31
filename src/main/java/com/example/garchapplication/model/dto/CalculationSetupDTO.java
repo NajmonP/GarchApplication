@@ -1,4 +1,4 @@
-package com.example.garchapplication.dto;
+package com.example.garchapplication.model.dto;
 
 import java.util.Map;
 

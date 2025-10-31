@@ -1,6 +1,6 @@
 package com.example.garchapplication.service;
 
-import com.example.garchapplication.model.User;
+import com.example.garchapplication.model.entity.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

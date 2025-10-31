@@ -1,6 +1,6 @@
 package com.example.garchapplication.service;
 
-import com.example.garchapplication.model.User;
+import com.example.garchapplication.model.entity.User;
 import com.example.garchapplication.repository.UserRepository;
 import com.example.garchapplication.security.UserDetailsImpl;
 import org.springframework.beans.factory.annotation.Autowired;

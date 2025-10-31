@@ -1,6 +1,6 @@
 package com.example.garchapplication.security;
 
-import com.example.garchapplication.model.User;
+import com.example.garchapplication.model.entity.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
