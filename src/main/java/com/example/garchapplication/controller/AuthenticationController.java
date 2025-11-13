@@ -10,4 +10,10 @@ class AuthenticationController {
     public String login() {
         return "login";
     }
+
+
+    @GetMapping("/403")
+    public String forbidden() {
+        return "403";
+    }
 }

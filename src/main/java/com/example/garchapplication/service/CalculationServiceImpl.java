@@ -4,7 +4,7 @@ import com.example.garchapplication.Processes.CalculationProcess;
 import com.example.garchapplication.model.dto.CalculationSetupDTO;
 import com.example.garchapplication.model.dto.GarchModelDTO;
 import com.example.garchapplication.model.dto.TimeSeriesDTO;
-import com.example.garchapplication.exception.InvalidConstatVarianceException;
+import com.example.garchapplication.exception.InvalidConstantVarianceException;
 import com.example.garchapplication.exception.InvalidLastValueException;
 import com.example.garchapplication.exception.MaxThresholdExceededException;
 import com.example.garchapplication.exception.MissingTimeSeriesException;
@@ -17,6 +17,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Implementation of {@link CalculationService}.
+ * Handles validation, loading of time series data, and initialization of the GARCH calculation process.
+ */
 @Service
 public class CalculationServiceImpl implements CalculationService {
 
@@ -32,16 +36,30 @@ public class CalculationServiceImpl implements CalculationService {
         this.garchModelService = garchModelService;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public void calculate(double startVariance, double constantVariance, List<Double> lastVariance, List<Double> lastShock, MultipartFile timeSeriesFile, Long timeSeriesId) throws IOException {
-        validateInput(constantVariance, lastVariance, lastShock);
-        GarchModelDTO garchModelDTO = new GarchModelDTO("manual", startVariance, constantVariance, lastVariance, lastShock);
-        startCalculationBasedOnInput(timeSeriesFile, timeSeriesId, garchModelDTO);
+    public void calculate(GarchModelDTO garchModelDTO, MultipartFile timeSeriesFile, Long timeSeriesId) throws IOException {
+        validateInput(garchModelDTO.constantVariance(), garchModelDTO.lastVariances(), garchModelDTO.lastShocks());
+        startCalculationBasedOnInput(garchModelDTO, timeSeriesFile, timeSeriesId);
     }
 
-    public void validateInput(double constantVariance, List<Double> lastVariance, List<Double> lastShock) {
+    /**
+     * Validates input parameters before performing the calculation.
+     * <br>
+     * Ensures all variances and shocks are positive and the sum does not exceed a threshold.
+     *
+     * @param constantVariance the constant variance
+     * @param lastVariance     list of last variances weight
+     * @param lastShock        list of last shocks weight
+     * @throws InvalidConstantVarianceException if the constant variance is below the minimum allowed value
+     * @throws InvalidLastValueException        if any of the previous values are non-positive
+     * @throws MaxThresholdExceededException    if the total sum exceeds {@link #SUM_MAXIMUM_THRESHOLD}
+     */
+    private void validateInput(double constantVariance, List<Double> lastVariance, List<Double> lastShock) {
         if (constantVariance < MINIMUM_VALUE) {
-            throw new InvalidConstatVarianceException();
+            throw new InvalidConstantVarianceException();
         }
         double sum = 0.0;
         for (double variance : lastVariance) {
@@ -61,20 +79,27 @@ public class CalculationServiceImpl implements CalculationService {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void calculateFromSelectedModel(Long modelId, MultipartFile timeSeriesFile, Long timeSeriesId) throws IOException {
         GarchModelDTO garchModelDTO = garchModelService.extractGarchModelDTO(modelId);
-        startCalculationBasedOnInput(timeSeriesFile, timeSeriesId, garchModelDTO);
+        startCalculationBasedOnInput(garchModelDTO, timeSeriesFile, timeSeriesId);
     }
 
-    private void startCalculationBasedOnInput(MultipartFile timeSeriesFile, Long timeSeriesId, GarchModelDTO garchModelDTO) throws IOException {
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void startCalculationBasedOnInput(GarchModelDTO garchModelDTO, MultipartFile timeSeriesFile, Long timeSeriesId) throws IOException {
         Map<Long, Double> predictedVolatility = new HashMap<>();
         TimeSeriesDTO loadedTimeSeries;
-        
+
         if (timeSeriesFile != null && !timeSeriesFile.isEmpty()) {
-            loadedTimeSeries = timeSeriesService.getTimeSeriesFromFile(timeSeriesFile, garchModelDTO);
+            loadedTimeSeries = timeSeriesService.getTimeSeriesFromFile(timeSeriesFile);
         } else if (timeSeriesId != null) {
-            loadedTimeSeries = timeSeriesService.getTimeSeriesFromDatabase(timeSeriesId, garchModelDTO);
+            loadedTimeSeries = timeSeriesService.getTimeSeriesFromDatabase(timeSeriesId);
         } else {
             throw new MissingTimeSeriesException();
         }

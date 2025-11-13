@@ -15,8 +15,8 @@ public class ApplicationExceptionHandler {
         return "redirect:/";
     }
 
-    @ExceptionHandler(InvalidConstatVarianceException.class)
-    public String InvalidConstatVarianceException(InvalidConstatVarianceException ex, RedirectAttributes redirectAttributes) {
+    @ExceptionHandler(InvalidConstantVarianceException.class)
+    public String InvalidConstatVarianceException(InvalidConstantVarianceException ex, RedirectAttributes redirectAttributes) {
         redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         return "redirect:/";
     }

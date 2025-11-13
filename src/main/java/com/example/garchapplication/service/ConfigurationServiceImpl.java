@@ -11,6 +11,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -33,11 +34,10 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private final ModelVarianceWeightRepository modelVarianceWeightRepository;
     private final ModelShockWeightRepository modelShockWeightRepository;
 
-    private final int MODEL_ROWS = 5;
+    private static final int MODEL_ROWS = 5;
 
     @Autowired
-    private ConfigurationServiceImpl(ConfigurationRepository configurationRepository, UserService userService, GarchModelRepository garchModelRepository, ModelVarianceWeightRepository modelVarianceWeightRepository, ModelShockWeightRepository modelShockWeightRepository) {
-
+    public ConfigurationServiceImpl(ConfigurationRepository configurationRepository, UserService userService, GarchModelRepository garchModelRepository, ModelVarianceWeightRepository modelVarianceWeightRepository, ModelShockWeightRepository modelShockWeightRepository) {
         this.configurationRepository = configurationRepository;
         this.userService = userService;
         this.garchModelRepository = garchModelRepository;
@@ -45,6 +45,9 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         this.modelShockWeightRepository = modelShockWeightRepository;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<Configuration> getAllConfigurationsByUser(){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -58,7 +61,11 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         return configurationRepository.getConfigurationsByUser(user);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void addConfiguration(MultipartFile configurationFile) throws IOException {
         try (Workbook workbook = new XSSFWorkbook(configurationFile.getInputStream())) {
             Sheet sheet = workbook.getSheetAt(0);
@@ -70,15 +77,21 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             for (GarchModelDTO garchModelDTO : garchModelDTOs) {
                 GarchModel garchModel = saveModel(garchModelDTO, configuration);
                 for (int i = 0; i < garchModelDTO.lastVariances().size(); i++) {
-                    saveModelVarianceWeight(garchModelDTO, garchModel, i);
+                    saveModelVarianceWeight(garchModel, garchModelDTO.lastVariances().get(i), i);
                 }
                 for (int i = 0; i < garchModelDTO.lastShocks().size(); i++) {
-                    saveModelShockWeight(garchModelDTO, garchModel, i);
+                    saveModelShockWeight(garchModel,garchModelDTO.lastShocks().get(i), i);
                 }
             }
         }
     }
 
+    /**
+     * Extracts all GARCH models from sheet of provided configuration file.
+     *
+     * @param sheet sheet to extract GARCH models from
+     * @return list of GARCH models
+     */
     private List<GarchModelDTO> extractGarchModelsFromFileSheet(Sheet sheet) {
         List<GarchModelDTO> garchModelDTOs = new ArrayList<>();
 
@@ -112,6 +125,12 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         return garchModelDTOs;
     }
 
+    /**
+     * Adds new configuration to database.
+     *
+     * @param configurationName name of the configuration acquired from configuration file
+     * @return instance of saved configuration for purpose of saving related GARCH models
+     */
     private Configuration saveConfiguration(String configurationName) {
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Long userId = ((UserDetailsImpl) userDetails).getId();
@@ -126,6 +145,13 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         return configuration;
     }
 
+    /**
+     * Adds new GARCH model of given configuration to database.
+     *
+     * @param garchModelDTO GARCH model to be saved into database
+     * @param configuration configuration that GARCH model belongs to
+     * @return instance of saved GARCH model for purpose of saving related model variance and shock weights
+     */
     private GarchModel saveModel(GarchModelDTO garchModelDTO, Configuration configuration) {
         GarchModel garchModel = new GarchModel();
         garchModel.setConfiguration(configuration);
@@ -137,19 +163,33 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         return garchModel;
     }
 
-    private void saveModelVarianceWeight(GarchModelDTO garchModelDTO, GarchModel garchModel, int index) {
+    /**
+     * Adds variance weight of the given GARCH model to database.
+     *
+     * @param garchModel GARCH model that variance weight belongs to
+     * @param value value of the variance weight
+     * @param index order of the variance weight
+     */
+    private void saveModelVarianceWeight(GarchModel garchModel, double value,  int index) {
         ModelVarianceWeight modelVarianceWeight = new ModelVarianceWeight();
         modelVarianceWeight.setGarchModel(garchModel);
         modelVarianceWeight.setOrder(index + 1);
-        modelVarianceWeight.setValue(garchModelDTO.lastVariances().get(index));
+        modelVarianceWeight.setValue(value);
         modelVarianceWeightRepository.save(modelVarianceWeight);
     }
 
-    private void saveModelShockWeight(GarchModelDTO garchModelDTO, GarchModel garchModel, int index) {
+    /**
+     * Adds shock weight of the given GARCH model to database.
+     *
+     * @param garchModel GARCH model that shock weight belongs
+     * @param value value of the shock weight
+     * @param index order of the shock weight
+     */
+    private void saveModelShockWeight(GarchModel garchModel, double value, int index) {
         ModelShockWeight modelShockWeight = new ModelShockWeight();
         modelShockWeight.setGarchModel(garchModel);
         modelShockWeight.setOrder(index + 1);
-        modelShockWeight.setValue(garchModelDTO.lastShocks().get(index));
+        modelShockWeight.setValue(value);
         modelShockWeightRepository.save(modelShockWeight);
     }
 }

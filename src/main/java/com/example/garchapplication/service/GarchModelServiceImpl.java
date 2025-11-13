@@ -33,6 +33,9 @@ public class GarchModelServiceImpl implements GarchModelService {
         return garchModelRepository.findAllByConfigurationId(configurationId);
     }
 
+    /**
+    * {@inheritDoc}
+     */
     @Override
     public GarchModelDTO extractGarchModelDTO(Long modelId) {
         GarchModel garchModel = garchModelRepository.findById(modelId).orElse(null);

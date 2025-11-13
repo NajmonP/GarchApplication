@@ -15,7 +15,20 @@ public interface TimeSeriesService {
 
     List<TimeSeries> getTimeSeriesByUser();
 
-    TimeSeriesDTO getTimeSeriesFromFile(MultipartFile timeSeriesFile, GarchModelDTO garchModelDTO) throws IOException;
+    /**
+     * Loads time series data from uploaded time series file.
+     *
+     * @param timeSeriesFile uploaded time series file from user input
+     * @return DTO of uploaded time series
+     * @throws IOException if reading the uploaded time series file fails
+     */
+    TimeSeriesDTO getTimeSeriesFromFile(MultipartFile timeSeriesFile) throws IOException;
 
-    TimeSeriesDTO getTimeSeriesFromDatabase(Long timeSeriesId, GarchModelDTO garchModelDTO);
+    /**
+     * Loads time series data from database based on user input.
+     *
+     * @param timeSeriesId ID of selected time series
+     * @return DTO of selected time series
+     */
+    TimeSeriesDTO getTimeSeriesFromDatabase(Long timeSeriesId);
 }

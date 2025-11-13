@@ -1,5 +1,6 @@
 package com.example.garchapplication.controller;
 
+import com.example.garchapplication.service.ConfigurationService;
 import com.example.garchapplication.service.TimeSeriesService;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -24,6 +25,15 @@ public class TimeSeriesController {
         return "time-series";
     }
 
+    /**
+     * Handles POST requests to add new time series file.
+     * <br>
+     * The uploaded XLSX file is processed and saved using {@link TimeSeriesService}.
+     *
+     * @param timeSeriesFile the uploaded XLSX time series file
+     * @return redirect to time series page
+     * @throws IOException if reading or processing the uploaded file fails
+     */
     @PostMapping(value = "/time-series/add-time-series", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public String addTimeSeries(
             @RequestParam("time-series") MultipartFile timeSeriesFile

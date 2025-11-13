@@ -26,6 +26,15 @@ class ConfigurationController {
         return "configuration";
     }
 
+    /**
+     * Handles POST requests to add a new configuration file containing GARCH models.
+     * <br>
+     * The uploaded XLSX file is processed and saved using {@link ConfigurationService}.
+     *
+     * @param configurationFile the uploaded XLSX configuration file containing GARCH models
+     * @return redirect to the configuration page
+     * @throws IOException if reading or processing the uploaded file fails
+     */
     @PostMapping(value = "/configuration/add-configuration", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public String addConfiguration(
             @RequestParam("configuration") MultipartFile configurationFile

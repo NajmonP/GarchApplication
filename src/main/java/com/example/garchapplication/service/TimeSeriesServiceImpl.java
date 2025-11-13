@@ -1,6 +1,5 @@
 package com.example.garchapplication.service;
 
-import com.example.garchapplication.model.dto.GarchModelDTO;
 import com.example.garchapplication.model.dto.TimeSeriesDTO;
 import com.example.garchapplication.model.entity.TimeSeries;
 import com.example.garchapplication.model.entity.TimeSeriesValue;
@@ -41,7 +40,6 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
         this.timeSeriesValueRepository = timeSeriesValueRepository;
     }
 
-
     @Override
     public List<TimeSeries> getTimeSeriesByUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -55,6 +53,12 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
         return timeSeriesRepository.getTimeSeriesByUser(user);
     }
 
+    /**
+     * Saves time series and values data from uploaded to file into database.
+     *
+     * @param timeSeriesFile uploaded time series file
+     * @throws IOException if reading the uploaded time series file fails
+     */
     @Override
     public void addTimeSeries(MultipartFile timeSeriesFile) throws IOException {
         try (Workbook workbook = new XSSFWorkbook(timeSeriesFile.getInputStream())) {
@@ -69,6 +73,12 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
         }
     }
 
+    /**
+     * Saves time series into database.
+     *
+     * @param timeSeriesName name of new time series
+     * @return saved time series stored in database
+     */
     public TimeSeries saveTimeSeries(String timeSeriesName) {
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Long userId = ((UserDetailsImpl) userDetails).getId();
@@ -84,6 +94,13 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
         return timeSeries;
     }
 
+    /**
+     * Save time series value into database.
+     *
+     * @param timeSeries time series of given value
+     * @param value value of next time series observation
+     * @param rowNum index of given value
+     */
     public void saveTimeSeriesValue(TimeSeries timeSeries, double value, int rowNum) {
         TimeSeriesValue timeSeriesValue = new TimeSeriesValue();
         timeSeriesValue.setTimeSeries(timeSeries);
@@ -92,8 +109,11 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
         timeSeriesValueRepository.save(timeSeriesValue);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public TimeSeriesDTO getTimeSeriesFromFile(MultipartFile timeSeriesFile, GarchModelDTO garchModelDTO) throws IOException {
+    public TimeSeriesDTO getTimeSeriesFromFile(MultipartFile timeSeriesFile) throws IOException {
         Map<Long, Double> loadedTimeSeries = new HashMap<>();
         String timeSeriesName;
         try (Workbook workbook = new XSSFWorkbook(timeSeriesFile.getInputStream())) {
@@ -108,8 +128,11 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
         return new TimeSeriesDTO(timeSeriesName, loadedTimeSeries);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public TimeSeriesDTO getTimeSeriesFromDatabase(Long timeSeriesId, GarchModelDTO garchModelDTO) {
+    public TimeSeriesDTO getTimeSeriesFromDatabase(Long timeSeriesId) {
         List<TimeSeriesValue> timeSeriesValueList = timeSeriesValueRepository.findAllByTimeSeriesId(timeSeriesId);
         Map<Long, Double> timeSeries = timeSeriesValueList.stream().collect(Collectors.toMap(TimeSeriesValue::getId, TimeSeriesValue::getValue));
         String name = timeSeriesRepository.findById(timeSeriesId).get().getName();
