@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface TimeSeriesValueRepository extends JpaRepository<TimeSeriesValue, Long> {
-    List<TimeSeriesValue> findAllByTimeSeriesId(Long timeSeriesId);
+    public List<TimeSeriesValue> findAllByTimeSeriesIdOrderByOrderNo(Long timeSeriesId);
 }

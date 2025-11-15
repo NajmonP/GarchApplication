@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface ModelVarianceWeightRepository extends JpaRepository<ModelVarianceWeight, Long> {
-    public List<ModelVarianceWeight> findAllByGarchModelId(Long modelId);
+    public List<ModelVarianceWeight> findAllByGarchModelIdOrderByOrderNoAsc(Long modelId);
 }

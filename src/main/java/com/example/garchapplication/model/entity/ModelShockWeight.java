@@ -16,7 +16,7 @@ public class ModelShockWeight {
     private GarchModel garchModel;
 
     @Column(name = "order_no ", nullable = false)
-    private int order;
+    private int orderNo;
 
     @Column(name = "value", nullable = false)
     private double value;
@@ -37,12 +37,12 @@ public class ModelShockWeight {
         this.garchModel = garchModel;
     }
 
-    public int getOrder() {
-        return order;
+    public int getOrderNo() {
+        return orderNo;
     }
 
-    public void setOrder(int order) {
-        this.order = order;
+    public void setOrderNo(int orderNo) {
+        this.orderNo = orderNo;
     }
 
     public double getValue() {

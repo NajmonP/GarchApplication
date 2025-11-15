@@ -133,7 +133,7 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
      */
     @Override
     public TimeSeriesDTO getTimeSeriesFromDatabase(Long timeSeriesId) {
-        List<TimeSeriesValue> timeSeriesValueList = timeSeriesValueRepository.findAllByTimeSeriesId(timeSeriesId);
+        List<TimeSeriesValue> timeSeriesValueList = timeSeriesValueRepository.findAllByTimeSeriesIdOrderByOrderNo(timeSeriesId);
         Map<Long, Double> timeSeries = timeSeriesValueList.stream().collect(Collectors.toMap(TimeSeriesValue::getId, TimeSeriesValue::getValue));
         String name = timeSeriesRepository.findById(timeSeriesId).get().getName();
         return new TimeSeriesDTO(name,  timeSeries);
