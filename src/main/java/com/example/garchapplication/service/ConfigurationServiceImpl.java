@@ -3,6 +3,7 @@ package com.example.garchapplication.service;
 import com.example.garchapplication.model.dto.GarchModelDTO;
 import com.example.garchapplication.model.entity.*;
 import com.example.garchapplication.repository.ConfigurationRepository;
+import com.example.garchapplication.security.AuthenticationHandler;
 import com.example.garchapplication.security.UserDetailsImpl;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -19,7 +20,9 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.sql.Date;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ConfigurationServiceImpl implements ConfigurationService {
@@ -27,13 +30,14 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private final UserService userService;
     private final GarchModelService garchModelService;
     private final ConfigurationRepository configurationRepository;
-
+    private final AuthenticationHandler authenticationHandler;
 
     @Autowired
-    public ConfigurationServiceImpl(ConfigurationRepository configurationRepository, UserService userService, GarchModelServiceImpl garchModelService) {
+    public ConfigurationServiceImpl(ConfigurationRepository configurationRepository, UserService userService, GarchModelServiceImpl garchModelService, AuthenticationHandler authenticationHandler) {
         this.configurationRepository = configurationRepository;
         this.userService = userService;
         this.garchModelService = garchModelService;
+        this.authenticationHandler = authenticationHandler;
     }
 
     /**
@@ -41,10 +45,13 @@ public class ConfigurationServiceImpl implements ConfigurationService {
      */
     @Override
     public List<Configuration> getAllConfigurationsByUser(){
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated() || authentication instanceof AnonymousAuthenticationToken) {
-            return new ArrayList<>();
+        Optional<Authentication> optionalAuthentication = authenticationHandler.getAuthentication();
+
+        if(optionalAuthentication.isEmpty()){
+            return Collections.emptyList();
         }
+
+        Authentication authentication = optionalAuthentication.get();
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         Long userId = ((UserDetailsImpl) userDetails).getId();
         User user = userService.getUserById(userId);
@@ -84,9 +91,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
      * @return instance of saved configuration for purpose of saving related GARCH models
      */
     private Configuration saveConfiguration(String configurationName) {
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Long userId = ((UserDetailsImpl) userDetails).getId();
-        User user = userService.getUserById(userId);
+        User user = authenticationHandler.getUserEntity();
 
         Configuration configuration = new Configuration();
         configuration.setName(configurationName);
