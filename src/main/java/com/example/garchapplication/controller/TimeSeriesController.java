@@ -1,6 +1,5 @@
 package com.example.garchapplication.controller;
 
-import com.example.garchapplication.service.ConfigurationService;
 import com.example.garchapplication.service.TimeSeriesService;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -38,7 +37,7 @@ public class TimeSeriesController {
     public String addTimeSeries(
             @RequestParam("time-series") MultipartFile timeSeriesFile
     ) throws IOException {
-        timeSeriesService.addTimeSeries(timeSeriesFile);
+        timeSeriesService.addTimeSeriesFromFile(timeSeriesFile);
         return "redirect:/time-series";
     }
 }

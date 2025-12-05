@@ -72,6 +72,14 @@
                 </div>
             </div>
 
+            <label for="timeSeriesIdManual" class="form-label">Vyber časovou řadu</label>
+            <select id="timeSeriesIdManual" name="timeSeriesId" class="form-select">
+                <option value="" selected disabled>— vyber —</option>
+                <option th:each="timeSeries : ${timeSeriesList}" th:value="${timeSeries.id}"
+                        th:text="${timeSeries.name + ' (id ' + timeSeries.id + ')'}">timeSeries
+                </option>
+            </select>
+
             <label for="time_series_file" class="form-label">Soubor s časovou řadou (XLSX):</label>
             <input type="file" id="time_series_file" name="time_series_file" accept=".xlsx,.xls"/>
 

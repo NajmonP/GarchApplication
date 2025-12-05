@@ -1,6 +1,9 @@
 package com.example.garchapplication.model.entity;
 
+import com.example.garchapplication.model.enums.CalculationStatus;
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.sql.Date;
 
@@ -16,9 +19,10 @@ public class Calculation {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToOne
-    @JoinColumn(name = "model_id", nullable = false)
-    private GarchModel garchModel;
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "status", nullable = false, columnDefinition = "garch.calculation_status")
+    private CalculationStatus status;
 
     @Column(name = "run_at", nullable = false)
     private Date runAt;
@@ -28,7 +32,7 @@ public class Calculation {
     private TimeSeries inputTimeSeries;
 
     @OneToOne
-    @JoinColumn(name = "result_time_series_id", nullable = false, unique = true)
+    @JoinColumn(name = "result_time_series_id")
     private TimeSeries resultTimeSeries;
 
     @Column(name = "start_variance", nullable = false)
@@ -53,12 +57,12 @@ public class Calculation {
         this.user = user;
     }
 
-    public GarchModel getGarchModel() {
-        return garchModel;
+    public CalculationStatus getStatus() {
+        return status;
     }
 
-    public void setGarchModel(GarchModel garchModel) {
-        this.garchModel = garchModel;
+    public void setStatus(CalculationStatus status) {
+        this.status = status;
     }
 
     public Date getRunAt() {

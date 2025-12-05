@@ -9,14 +9,22 @@ import com.example.garchapplication.exception.InvalidLastValueException;
 import com.example.garchapplication.exception.MaxThresholdExceededException;
 import com.example.garchapplication.exception.MissingTimeSeriesException;
 import com.example.garchapplication.model.entity.Calculation;
+import com.example.garchapplication.model.entity.RunShockWeight;
+import com.example.garchapplication.model.entity.RunVarianceWeight;
+import com.example.garchapplication.model.entity.TimeSeries;
+import com.example.garchapplication.model.enums.CalculationStatus;
+import com.example.garchapplication.repository.CalculationRepository;
+import com.example.garchapplication.repository.RunShockWeightRepository;
+import com.example.garchapplication.repository.RunVarianceWeightRepository;
 import com.example.garchapplication.security.AuthenticationHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.HashMap;
+import java.sql.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -31,16 +39,22 @@ public class CalculationServiceImpl implements CalculationService {
     private final TimeSeriesService timeSeriesService;
     private final GarchModelService garchModelService;
     private final AuthenticationHandler authenticationHandler;
+    private final RunVarianceWeightRepository runVarianceWeightRepository;
+    private final RunShockWeightRepository runShockWeightRepository;
+    private final CalculationRepository calculationRepository;
 
     private static final double SUM_MAXIMUM_THRESHOLD = 1.0;
     private static final double MINIMUM_VALUE = 0.0;
     private static final String RESULT_NAME = "result";
 
     @Autowired
-    public CalculationServiceImpl(TimeSeriesService timeSeriesService, GarchModelService garchModelService, AuthenticationHandler authenticationHandler) {
+    public CalculationServiceImpl(TimeSeriesService timeSeriesService, GarchModelService garchModelService, AuthenticationHandler authenticationHandler, RunVarianceWeightRepository runVarianceWeightRepository, RunShockWeightRepository runShockWeightRepository, CalculationRepository calculationRepository) {
         this.timeSeriesService = timeSeriesService;
         this.garchModelService = garchModelService;
         this.authenticationHandler = authenticationHandler;
+        this.runVarianceWeightRepository = runVarianceWeightRepository;
+        this.runShockWeightRepository = runShockWeightRepository;
+        this.calculationRepository = calculationRepository;
     }
 
     /**
@@ -52,7 +66,7 @@ public class CalculationServiceImpl implements CalculationService {
         TimeSeriesDTO result = startCalculationBasedOnInput(garchModelDTO, timeSeriesFile, timeSeriesId);
 
         Optional<Authentication> authenticationOptional = authenticationHandler.getAuthentication();
-        authenticationOptional.ifPresent(authentication -> saveResult(result, garchModelDTO, authentication));
+        authenticationOptional.ifPresent(authentication -> saveCalculation(result, garchModelDTO, timeSeriesFile, timeSeriesId));
 
     }
 
@@ -99,7 +113,7 @@ public class CalculationServiceImpl implements CalculationService {
         TimeSeriesDTO result = startCalculationBasedOnInput(garchModelDTO, timeSeriesFile, timeSeriesId);
 
         Optional<Authentication> authenticationOptional = authenticationHandler.getAuthentication();
-        authenticationOptional.ifPresent(authentication -> saveResult(result, garchModelDTO, authentication));
+        authenticationOptional.ifPresent(authentication -> saveCalculation(result, garchModelDTO, timeSeriesFile, timeSeriesId));
 
     }
 
@@ -113,7 +127,7 @@ public class CalculationServiceImpl implements CalculationService {
         if (timeSeriesFile != null && !timeSeriesFile.isEmpty()) {
             loadedTimeSeries = timeSeriesService.getTimeSeriesFromFile(timeSeriesFile);
         } else if (timeSeriesId != null) {
-            loadedTimeSeries = timeSeriesService.getTimeSeriesFromDatabase(timeSeriesId);
+            loadedTimeSeries = timeSeriesService.getTimeSeriesDTOFromDatabase(timeSeriesId);
         } else {
             throw new MissingTimeSeriesException();
         }
@@ -126,7 +140,55 @@ public class CalculationServiceImpl implements CalculationService {
     }
 
     @Override
-    public void saveResult(TimeSeriesDTO timeSeriesDTO, GarchModelDTO garchModelDTO, Authentication authentication) {
+    @Transactional(rollbackFor = Exception.class)
+    public void saveCalculation(TimeSeriesDTO timeSeriesDTO, GarchModelDTO garchModelDTO, MultipartFile timeSeriesFile, Long timeSeriesId) {
         Calculation calculation = new Calculation();
+        calculation.setRunAt(new Date(System.currentTimeMillis()));
+        calculation.setUser(authenticationHandler.getUserEntity());
+        calculation.setStartVariance(garchModelDTO.startVariance());
+        calculation.setConstantVariance(garchModelDTO.constantVariance());
+
+        if (timeSeriesFile != null && !timeSeriesFile.isEmpty()) {
+            calculation.setStatus(CalculationStatus.MISSING_INPUT_SERIES);
+            calculation.setInputTimeSeries(null);
+        } else {
+            calculation.setStatus(CalculationStatus.OK);
+            calculation.setInputTimeSeries(timeSeriesService.getTimeSeriesFromDatabase(timeSeriesId));
+        }
+
+        calculationRepository.save(calculation);
+
+        String newName = RESULT_NAME + "_" + calculation.getId();
+        TimeSeriesDTO renamed = new TimeSeriesDTO(newName, timeSeriesDTO.timeSeries());
+
+        TimeSeries resultTimeSeries = timeSeriesService.addTimeSeriesFromDTO(renamed);
+        calculation.setResultTimeSeries(resultTimeSeries);
+
+        // update
+        calculationRepository.save(calculation);
+
+        for (int i = 0; i < garchModelDTO.lastVariances().size(); i++) {
+            saveRunVarianceWeight(calculation, garchModelDTO.lastVariances().get(i), i);
+        }
+
+        for (int i = 0; i < garchModelDTO.lastShocks().size(); i++) {
+            saveRunShockWeight(calculation, garchModelDTO.lastShocks().get(i), i);
+        }
+    }
+
+    private void saveRunVarianceWeight(Calculation calculation, double value, int index) {
+        RunVarianceWeight runVarianceWeight = new RunVarianceWeight();
+        runVarianceWeight.setCalculation(calculation);
+        runVarianceWeight.setOrderNo(index + 1);
+        runVarianceWeight.setValue(value);
+        runVarianceWeightRepository.save(runVarianceWeight);
+    }
+
+    private void saveRunShockWeight(Calculation calculation, double value, int index) {
+        RunShockWeight runShockWeight = new RunShockWeight();
+        runShockWeight.setCalculation(calculation);
+        runShockWeight.setOrderNo(index + 1);
+        runShockWeight.setValue(value);
+        runShockWeightRepository.save(runShockWeight);
     }
 }

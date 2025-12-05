@@ -1,10 +1,12 @@
 CREATE SCHEMA IF NOT EXISTS garch;
-SET search_path TO garch, public;
+SET
+search_path TO garch, public;
 
 CREATE TYPE role_type AS ENUM ('USER', 'ADMIN');
 CREATE TYPE visibility_type AS ENUM ('private', 'public');
 CREATE TYPE entity_type AS ENUM ('time_series', 'configuration', 'calculation');
 CREATE TYPE operation_type AS ENUM ('create', 'read', 'update', 'delete');
+CREATE TYPE calculation_status AS ENUM ('OK', 'MISSING_INPUT_SERIES', 'MISSING_OUTPUT_SERIES', 'BROKEN');
 
 
 ---------- users ----------
@@ -89,13 +91,13 @@ CREATE TABLE model_variance_weight
 CREATE TABLE calculation
 (
     calculation_id        BIGSERIAL PRIMARY KEY,
-    user_id               BIGINT           NOT NULL REFERENCES users (user_id) ON DELETE CASCADE,
-    model_id              BIGINT           REFERENCES garch_model (model_id) ON DELETE SET NULL,
-    run_at                TIMESTAMPTZ      NOT NULL DEFAULT now(),
-    input_time_series_id  BIGINT           NOT NULL REFERENCES time_series (time_series_id) ON DELETE RESTRICT,
-    result_time_series_id BIGINT           REFERENCES time_series (time_series_id) ON DELETE SET NULL,
-    start_variance        DOUBLE PRECISION NOT NULL,
-    constant_variance     DOUBLE PRECISION NOT NULL
+    user_id               BIGINT                   NOT NULL REFERENCES users (user_id) ON DELETE CASCADE,
+    status                garch.calculation_status NOT NULL DEFAULT 'OK',
+    run_at                TIMESTAMPTZ              NOT NULL DEFAULT now(),
+    input_time_series_id  BIGINT                   REFERENCES time_series (time_series_id) ON DELETE RESTRICT,
+    result_time_series_id BIGINT                   REFERENCES time_series (time_series_id) ON DELETE SET NULL,
+    start_variance        DOUBLE PRECISION         NOT NULL,
+    constant_variance     DOUBLE PRECISION         NOT NULL
 );
 
 ---------- run_shock_weight ----------

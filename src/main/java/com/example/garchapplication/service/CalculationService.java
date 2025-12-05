@@ -5,8 +5,8 @@ import com.example.garchapplication.exception.InvalidLastValueException;
 import com.example.garchapplication.exception.MaxThresholdExceededException;
 import com.example.garchapplication.model.dto.GarchModelDTO;
 import com.example.garchapplication.model.dto.TimeSeriesDTO;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import com.example.garchapplication.Processes.CalculationProcess;
 import com.example.garchapplication.exception.MissingTimeSeriesException;
@@ -27,7 +27,7 @@ public interface CalculationService {
      *
      * @param garchModelDTO  GARCH model object made of user input
      * @param timeSeriesFile an optional uploaded time series file (may be null)
-     * @param timeSeriesId   an optional uploaded time series file (may be null)
+     * @param timeSeriesId   an optional ID of an existing time series (may be null)
      * @throws IOException                      if reading the uploaded time series file fails
      * @throws InvalidConstantVarianceException if the constant variance is below the minimum allowed value
      * @throws InvalidLastValueException        if any of the previous values are non-positive
@@ -40,7 +40,7 @@ public interface CalculationService {
      *
      * @param modelId        ID of selected GARCH model
      * @param timeSeriesFile an optional uploaded time series file (may be null)
-     * @param timeSeriesId   an optional uploaded time series file (may be null)
+     * @param timeSeriesId   an optional ID of an existing time series (may be null)
      * @throws IOException if reading the uploaded time series file fails
      */
     void calculateFromSelectedModel(Long modelId, MultipartFile timeSeriesFile, Long timeSeriesId) throws IOException;
@@ -50,7 +50,7 @@ public interface CalculationService {
      *
      * @param garchModelDTO  GARCH model object sent from calculate methods
      * @param timeSeriesFile an optional uploaded time series file (may be null)
-     * @param timeSeriesId   an optional uploaded time series file (may be null)
+     * @param timeSeriesId   an optional ID of an existing time series (may be null)
      * @return DTO of time series representing the result of the calculation
      * @throws MissingTimeSeriesException if timeSeriesFile and timeSeriesId are both null
      * @throws IOException                if reading the uploaded time series file fails
@@ -62,7 +62,9 @@ public interface CalculationService {
      *
      * @param timeSeriesDTO time series representing result of the calculation
      * @param garchModelDTO GARCH model used in calculation
-     * @param authentication Authentication object of logged user
+     * @param timeSeriesFile an optional uploaded time series file (may be null)
+     * @param timeSeriesId an optional ID of an existing time series (may be null)
      */
-    void saveResult(TimeSeriesDTO timeSeriesDTO, GarchModelDTO garchModelDTO, Authentication authentication);
+    @Transactional(rollbackFor = Exception.class)
+    void saveCalculation(TimeSeriesDTO timeSeriesDTO, GarchModelDTO garchModelDTO, MultipartFile timeSeriesFile, Long timeSeriesId);
 }

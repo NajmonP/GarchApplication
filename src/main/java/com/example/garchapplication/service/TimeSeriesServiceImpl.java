@@ -12,12 +12,10 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -45,7 +43,7 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
     public List<TimeSeries> getTimeSeriesByUser() {
         Optional<Authentication> optionalAuthentication = authenticationHandler.getAuthentication();
 
-        if(optionalAuthentication.isEmpty()){
+        if (optionalAuthentication.isEmpty()) {
             return Collections.emptyList();
         }
 
@@ -58,13 +56,11 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
     }
 
     /**
-     * Saves time series and values data from uploaded to file into database.
-     *
-     * @param timeSeriesFile uploaded time series file
-     * @throws IOException if reading the uploaded time series file fails
+     * {@inheritDoc}
      */
     @Override
-    public void addTimeSeries(MultipartFile timeSeriesFile) throws IOException {
+    @Transactional(rollbackFor = Exception.class)
+    public void addTimeSeriesFromFile(MultipartFile timeSeriesFile) throws IOException {
         try (Workbook workbook = new XSSFWorkbook(timeSeriesFile.getInputStream())) {
             Sheet sheet = workbook.getSheetAt(0);
             String timeSeriesName = sheet.getRow(0).getCell(1).getStringCellValue();
@@ -72,9 +68,26 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
             TimeSeries timeSeries = saveTimeSeries(timeSeriesName);
             for (int i = 2; i <= sheet.getLastRowNum(); i++) {
                 double value = sheet.getRow(i).getCell(0).getNumericCellValue();
-                saveTimeSeriesValue(timeSeries, value, i);
+                saveTimeSeriesValue(timeSeries, value, i - 1);
             }
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public TimeSeries addTimeSeriesFromDTO(TimeSeriesDTO timeSeriesDTO) {
+        TimeSeries timeSeries = saveTimeSeries(timeSeriesDTO.name());
+
+        Map<Long, Double> timeSeriesValues = timeSeriesDTO.timeSeries();
+
+        for (int i = 1; i <= timeSeriesValues.size(); i++) {
+            saveTimeSeriesValue(timeSeries, timeSeriesValues.get((long) i), i);
+        }
+
+        return timeSeries;
     }
 
     /**
@@ -100,14 +113,14 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
      * Save time series value into database.
      *
      * @param timeSeries time series of given value
-     * @param value value of next time series observation
-     * @param rowNum index of given value
+     * @param value      value of next time series observation
+     * @param rowNum     index of given value
      */
     public void saveTimeSeriesValue(TimeSeries timeSeries, double value, int rowNum) {
         TimeSeriesValue timeSeriesValue = new TimeSeriesValue();
         timeSeriesValue.setTimeSeries(timeSeries);
         timeSeriesValue.setValue(value);
-        timeSeriesValue.setOrderNo(rowNum - 1);
+        timeSeriesValue.setOrderNo(rowNum);
         timeSeriesValueRepository.save(timeSeriesValue);
     }
 
@@ -134,10 +147,18 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
      * {@inheritDoc}
      */
     @Override
-    public TimeSeriesDTO getTimeSeriesFromDatabase(Long timeSeriesId) {
+    public TimeSeriesDTO getTimeSeriesDTOFromDatabase(Long timeSeriesId) {
         List<TimeSeriesValue> timeSeriesValueList = timeSeriesValueRepository.findAllByTimeSeriesIdOrderByOrderNo(timeSeriesId);
         Map<Long, Double> timeSeries = timeSeriesValueList.stream().collect(Collectors.toMap(TimeSeriesValue::getId, TimeSeriesValue::getValue));
         String name = timeSeriesRepository.findById(timeSeriesId).get().getName();
-        return new TimeSeriesDTO(name,  timeSeries);
+        return new TimeSeriesDTO(name, timeSeries);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public TimeSeries getTimeSeriesFromDatabase(Long timeSeriesId) {
+        return timeSeriesRepository.findById(timeSeriesId).get();
     }
 }

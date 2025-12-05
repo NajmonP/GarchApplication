@@ -1,9 +1,9 @@
 package com.example.garchapplication.service;
 
-import com.example.garchapplication.model.dto.GarchModelDTO;
 import com.example.garchapplication.model.dto.TimeSeriesDTO;
 import com.example.garchapplication.model.entity.TimeSeries;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -11,7 +11,24 @@ import java.util.List;
 
 @Service
 public interface TimeSeriesService {
-    void addTimeSeries(MultipartFile timeSeriesFile) throws IOException;
+
+    /**
+     * Saves time series and values data from uploaded to file into database.
+     *
+     * @param timeSeriesFile uploaded time series file
+     * @throws IOException if reading the uploaded time series file fails
+     */
+    @Transactional(rollbackFor = Exception.class)
+    void addTimeSeriesFromFile(MultipartFile timeSeriesFile) throws IOException;
+
+    /**
+     * Saves time series and values data from given time series DTO.
+     *
+     * @param timeSeriesDTO DTO of given time series
+     * @return object of saved time series
+     */
+    @Transactional(rollbackFor = Exception.class)
+    TimeSeries addTimeSeriesFromDTO(TimeSeriesDTO timeSeriesDTO);
 
     List<TimeSeries> getTimeSeriesByUser();
 
@@ -25,10 +42,18 @@ public interface TimeSeriesService {
     TimeSeriesDTO getTimeSeriesFromFile(MultipartFile timeSeriesFile) throws IOException;
 
     /**
-     * Loads time series data from database based on user input.
+     * Loads time series data from database based on user input and maps the result into DTO.
      *
      * @param timeSeriesId ID of selected time series
      * @return DTO of selected time series
      */
-    TimeSeriesDTO getTimeSeriesFromDatabase(Long timeSeriesId);
+    TimeSeriesDTO getTimeSeriesDTOFromDatabase(Long timeSeriesId);
+
+    /**
+     * Loads time series data from database based on user input.
+     *
+     * @param timeSeriesId ID of selected time series
+     * @return selected time series
+     */
+    TimeSeries getTimeSeriesFromDatabase(Long timeSeriesId);
 }
