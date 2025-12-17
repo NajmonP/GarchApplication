@@ -105,11 +105,11 @@ public class TimeSeries {
         this.kurtosis = kurtosis;
     }
 
-    public Date getCreatedAt() {
+    public Date getCreated() {
         return created;
     }
 
-    public void setCreatedAt(Date created) {
+    public void setCreated(Date created) {
         this.created = created;
     }
 

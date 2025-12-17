@@ -8,23 +8,23 @@ import com.example.garchapplication.exception.InvalidConstantVarianceException;
 import com.example.garchapplication.exception.InvalidLastValueException;
 import com.example.garchapplication.exception.MaxThresholdExceededException;
 import com.example.garchapplication.exception.MissingTimeSeriesException;
-import com.example.garchapplication.model.entity.Calculation;
-import com.example.garchapplication.model.entity.RunShockWeight;
-import com.example.garchapplication.model.entity.RunVarianceWeight;
-import com.example.garchapplication.model.entity.TimeSeries;
+import com.example.garchapplication.model.entity.*;
 import com.example.garchapplication.model.enums.CalculationStatus;
 import com.example.garchapplication.repository.CalculationRepository;
 import com.example.garchapplication.repository.RunShockWeightRepository;
 import com.example.garchapplication.repository.RunVarianceWeightRepository;
 import com.example.garchapplication.security.AuthenticationHandler;
+import com.example.garchapplication.security.UserDetailsImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.sql.Date;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -42,19 +42,21 @@ public class CalculationServiceImpl implements CalculationService {
     private final RunVarianceWeightRepository runVarianceWeightRepository;
     private final RunShockWeightRepository runShockWeightRepository;
     private final CalculationRepository calculationRepository;
+    private final UserService userService;
 
     private static final double SUM_MAXIMUM_THRESHOLD = 1.0;
     private static final double MINIMUM_VALUE = 0.0;
     private static final String RESULT_NAME = "result";
 
     @Autowired
-    public CalculationServiceImpl(TimeSeriesService timeSeriesService, GarchModelService garchModelService, AuthenticationHandler authenticationHandler, RunVarianceWeightRepository runVarianceWeightRepository, RunShockWeightRepository runShockWeightRepository, CalculationRepository calculationRepository) {
+    public CalculationServiceImpl(TimeSeriesService timeSeriesService, GarchModelService garchModelService, AuthenticationHandler authenticationHandler, RunVarianceWeightRepository runVarianceWeightRepository, RunShockWeightRepository runShockWeightRepository, CalculationRepository calculationRepository, UserService userService) {
         this.timeSeriesService = timeSeriesService;
         this.garchModelService = garchModelService;
         this.authenticationHandler = authenticationHandler;
         this.runVarianceWeightRepository = runVarianceWeightRepository;
         this.runShockWeightRepository = runShockWeightRepository;
         this.calculationRepository = calculationRepository;
+        this.userService = userService;
     }
 
     /**
@@ -190,5 +192,21 @@ public class CalculationServiceImpl implements CalculationService {
         runShockWeight.setOrderNo(index + 1);
         runShockWeight.setValue(value);
         runShockWeightRepository.save(runShockWeight);
+    }
+
+    @Override
+    public List<Calculation> getAllCalculationsByUser() {
+        Optional<Authentication> optionalAuthentication = authenticationHandler.getAuthentication();
+
+        if(optionalAuthentication.isEmpty()){
+            return Collections.emptyList();
+        }
+
+        Authentication authentication = optionalAuthentication.get();
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        Long userId = ((UserDetailsImpl) userDetails).getId();
+        User user = userService.getUserById(userId);
+
+        return calculationRepository.getCalculationsByUser(user);
     }
 }

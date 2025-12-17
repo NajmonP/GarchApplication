@@ -1,15 +1,18 @@
 package com.example.garchapplication.controller;
 
+import com.example.garchapplication.model.entity.Configuration;
 import com.example.garchapplication.service.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 
 @Controller
 class ConfigurationController {
@@ -22,7 +25,10 @@ class ConfigurationController {
     }
 
     @GetMapping("/configuration")
-    public String configuration() {
+    public String configuration(Model model) {
+        List<Configuration> configurationlist = configurationService.getAllConfigurationsByUser();
+
+        model.addAttribute("configurationList", configurationlist);
         return "configuration";
     }
 

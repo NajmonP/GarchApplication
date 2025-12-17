@@ -5,6 +5,7 @@ import com.example.garchapplication.exception.InvalidLastValueException;
 import com.example.garchapplication.exception.MaxThresholdExceededException;
 import com.example.garchapplication.model.dto.GarchModelDTO;
 import com.example.garchapplication.model.dto.TimeSeriesDTO;
+import com.example.garchapplication.model.entity.Calculation;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -12,6 +13,7 @@ import com.example.garchapplication.Processes.CalculationProcess;
 import com.example.garchapplication.exception.MissingTimeSeriesException;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Service interface responsible for performing GARCH model calculations.
@@ -67,4 +69,6 @@ public interface CalculationService {
      */
     @Transactional(rollbackFor = Exception.class)
     void saveCalculation(TimeSeriesDTO timeSeriesDTO, GarchModelDTO garchModelDTO, MultipartFile timeSeriesFile, Long timeSeriesId);
+
+    List<Calculation> getAllCalculationsByUser();
 }

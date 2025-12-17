@@ -10,6 +10,18 @@
 <div th:replace="~{fragments/navbar :: navbar}"></div>
 
 <h1>Time series</h1>
+
+<div class="row">
+    <div class="card shadow-sm col-6 mb-3" th:each="timeSeries : ${timeSeriesList}">
+        <div class="card-body">
+            <p><strong>Id:</strong> <span th:text="${timeSeries.id}"></span></p>
+            <p><strong>Název:</strong> <span th:text="${timeSeries.name}"></span></p>
+            <p><strong>Vytvořeno:</strong> <span th:text="${timeSeries.created}"></span></p>
+            <p><strong>Vytvořil:</strong> <span th:text="${timeSeries.user.username}"></span></p>
+        </div>
+    </div>
+</div>
+
 <form th:action="@{time-series/add-time-series}" th:if="${#authorization.expression('isAuthenticated()')}"
       method="post" enctype="multipart/form-data">
     <label for="time-series" class="form-label">Kofigurační soubor (XLSX):</label>

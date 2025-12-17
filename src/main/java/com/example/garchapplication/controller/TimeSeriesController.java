@@ -1,14 +1,17 @@
 package com.example.garchapplication.controller;
 
+import com.example.garchapplication.model.entity.TimeSeries;
 import com.example.garchapplication.service.TimeSeriesService;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 
 @Controller
 public class TimeSeriesController {
@@ -20,7 +23,10 @@ public class TimeSeriesController {
     }
 
     @GetMapping("/time-series")
-    public String timeSeries() {
+    public String timeSeries(Model model) {
+        List<TimeSeries> timeSeriesList = timeSeriesService.getTimeSeriesByUser();
+
+        model.addAttribute("timeSeriesList", timeSeriesList);
         return "time-series";
     }
 

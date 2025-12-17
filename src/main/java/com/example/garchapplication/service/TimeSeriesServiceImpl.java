@@ -102,7 +102,7 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
         TimeSeries timeSeries = new TimeSeries();
         timeSeries.setUser(user);
         timeSeries.setName(timeSeriesName);
-        timeSeries.setCreatedAt(new Date(System.currentTimeMillis()));
+        timeSeries.setCreated(new Date(System.currentTimeMillis()));
         timeSeries.setVisibility("private");
 
         timeSeriesRepository.save(timeSeries);
