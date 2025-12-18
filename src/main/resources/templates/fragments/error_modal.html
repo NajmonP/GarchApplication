@@ -1,18 +1,13 @@
 <div th:fragment="errorModal" xmlns:th="http://www.thymeleaf.org">
-    <div class="modal fade" id="errorModal" tabindex="-1"
-         aria-labelledby="errorModalLabel" aria-hidden="true"
-         th:if="${errorMessage}">
+    <div class="modal fade" id="errorModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title" id="errorModalLabel">Chyba</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zavřít"></button>
+                <div class="modal-header">
+                    <h5 class="modal-title">Chyba</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <p th:text="${errorMessage}">Nastala chyba.</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">OK</button>
+                    <p id="errorModalMessage"></p>
                 </div>
             </div>
         </div>

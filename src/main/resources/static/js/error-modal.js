@@ -1,6 +1,13 @@
 (function () {
-    var modalEl = document.getElementById('errorModal');
-    if (!modalEl || typeof bootstrap === 'undefined') return;
-    var modal = new bootstrap.Modal(modalEl);
-    modal.show();
+    window.showErrorModal = function (message) {
+        const modalEl = document.getElementById("errorModal");
+        const msgEl = document.getElementById("errorModalMessage");
+
+        if (!modalEl || !msgEl || typeof bootstrap === "undefined") return;
+
+        msgEl.textContent = message ?? "Došlo k chybě.";
+
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+    };
 })();

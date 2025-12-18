@@ -1,6 +1,9 @@
 package com.example.garchapplication.controller;
 
+import com.example.garchapplication.mapper.TimeSeriesChartMapper;
+import com.example.garchapplication.model.dto.ChartOfTimeSeriesDTO;
 import com.example.garchapplication.model.dto.GarchModelDTO;
+import com.example.garchapplication.model.dto.TimeSeriesDTO;
 import com.example.garchapplication.model.entity.Configuration;
 import com.example.garchapplication.model.entity.GarchModel;
 import com.example.garchapplication.model.entity.TimeSeries;
@@ -77,8 +80,9 @@ class HomeController {
      * @return a redirect to the home page after calculation completion
      * @throws IOException if reading the uploaded time series file fails
      */
-    @PostMapping(value = "/start-calculation-manual", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public String startCalculationManual(
+    @PostMapping(value = "/start-calculation-manual", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public ChartOfTimeSeriesDTO startCalculationManual(
             @RequestParam("start_variance") double startVariance,
             @RequestParam("constant_variance") double constantVariance,
             @RequestParam("last_variance[]") List<Double> lastVariance,
@@ -87,8 +91,9 @@ class HomeController {
             @RequestParam(value = "timeSeriesId", required = false) Long timeSeriesId
     ) throws IOException {
         GarchModelDTO garchModelDTO = new GarchModelDTO("name", startVariance, constantVariance, lastVariance, lastShock);
-        calculationService.calculate(garchModelDTO, timeSeriesFile, timeSeriesId);
-        return "redirect:/";
+
+        TimeSeriesDTO result = calculationService.calculate(garchModelDTO, timeSeriesFile, timeSeriesId);
+        return TimeSeriesChartMapper.toChart(result);
     }
 
     /**
@@ -102,14 +107,15 @@ class HomeController {
      * @return a redirect to the home page after calculation completion
      * @throws IOException if reading the uploaded time series file fails
      */
-    @PostMapping(value = "/start-calculation-configuration", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public String startCalculationConfiguration(
+    @PostMapping(value = "/start-calculation-configuration", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public ChartOfTimeSeriesDTO startCalculationConfiguration(
             @RequestParam("modelId") Long modelId,
             @RequestParam(value = "time_series_file", required = false) MultipartFile timeSeriesFile,
             @RequestParam(value = "timeSeriesId", required = false) Long timeSeriesId
 
     ) throws IOException {
-        calculationService.calculateFromSelectedModel(modelId, timeSeriesFile, timeSeriesId);
-        return "redirect:/";
+        TimeSeriesDTO result = calculationService.calculateFromSelectedModel(modelId, timeSeriesFile, timeSeriesId);
+        return TimeSeriesChartMapper.toChart(result);
     }
 }

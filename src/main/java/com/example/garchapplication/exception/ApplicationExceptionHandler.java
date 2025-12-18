@@ -1,35 +1,30 @@
 package com.example.garchapplication.exception;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @ControllerAdvice
 public class ApplicationExceptionHandler {
 
     @ExceptionHandler(MaxThresholdExceededException.class)
-    public String MaxThresholdExceeded(MaxThresholdExceededException ex,
-                                       RedirectAttributes redirectAttributes) {
+    public ResponseEntity<String> MaxThresholdExceeded(MaxThresholdExceededException ex) {
         String errorMessage = ex.getMessage() + " Součet vah: " + ex.getSum();
-        redirectAttributes.addFlashAttribute("errorMessage", errorMessage);
-        return "redirect:/";
+        return ResponseEntity.badRequest().body(errorMessage);
     }
 
     @ExceptionHandler(InvalidConstantVarianceException.class)
-    public String InvalidConstatVarianceException(InvalidConstantVarianceException ex, RedirectAttributes redirectAttributes) {
-        redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
-        return "redirect:/";
+    public ResponseEntity<String> InvalidConstatVarianceException(InvalidConstantVarianceException ex) {
+        return ResponseEntity.badRequest().body(ex.getMessage());
     }
 
     @ExceptionHandler(InvalidLastValueException.class)
-    public String InvalidLastValueException(InvalidLastValueException ex, RedirectAttributes redirectAttributes) {
-        redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
-        return "redirect:/";
+    public ResponseEntity<String> InvalidLastValueException(InvalidLastValueException ex) {
+        return ResponseEntity.badRequest().body(ex.getMessage());
     }
 
     @ExceptionHandler(MissingTimeSeriesException.class)
-    public String MissingTimeSeriesException(MissingTimeSeriesException ex, RedirectAttributes redirectAttributes) {
-        redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
-        return "redirect:/";
+    public ResponseEntity<String> MissingTimeSeriesException(MissingTimeSeriesException ex) {
+        return ResponseEntity.badRequest().body(ex.getMessage());
     }
 }
