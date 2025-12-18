@@ -4,38 +4,29 @@ import com.example.garchapplication.model.dto.GarchModelDTO;
 import com.example.garchapplication.model.entity.*;
 import com.example.garchapplication.repository.ConfigurationRepository;
 import com.example.garchapplication.security.AuthenticationHandler;
-import com.example.garchapplication.security.UserDetailsImpl;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.sql.Date;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class ConfigurationServiceImpl implements ConfigurationService {
 
-    private final UserService userService;
     private final GarchModelService garchModelService;
     private final ConfigurationRepository configurationRepository;
     private final AuthenticationHandler authenticationHandler;
 
     @Autowired
-    public ConfigurationServiceImpl(ConfigurationRepository configurationRepository, UserService userService, GarchModelServiceImpl garchModelService, AuthenticationHandler authenticationHandler) {
+    public ConfigurationServiceImpl(ConfigurationRepository configurationRepository, GarchModelServiceImpl garchModelService, AuthenticationHandler authenticationHandler) {
         this.configurationRepository = configurationRepository;
-        this.userService = userService;
         this.garchModelService = garchModelService;
         this.authenticationHandler = authenticationHandler;
     }
@@ -45,17 +36,11 @@ public class ConfigurationServiceImpl implements ConfigurationService {
      */
     @Override
     public List<Configuration> getAllConfigurationsByUser(){
-        Optional<Authentication> optionalAuthentication = authenticationHandler.getAuthentication();
+        User user = authenticationHandler.getUserEntity();
 
-        if(optionalAuthentication.isEmpty()){
+        if(user == null){
             return Collections.emptyList();
         }
-
-        Authentication authentication = optionalAuthentication.get();
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        Long userId = ((UserDetailsImpl) userDetails).getId();
-        User user = userService.getUserById(userId);
-
         return configurationRepository.getConfigurationsByUser(user);
     }
 

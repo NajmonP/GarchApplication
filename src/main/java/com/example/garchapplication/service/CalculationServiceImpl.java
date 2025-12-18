@@ -14,10 +14,7 @@ import com.example.garchapplication.repository.CalculationRepository;
 import com.example.garchapplication.repository.RunShockWeightRepository;
 import com.example.garchapplication.repository.RunVarianceWeightRepository;
 import com.example.garchapplication.security.AuthenticationHandler;
-import com.example.garchapplication.security.UserDetailsImpl;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,7 +24,6 @@ import java.sql.Date;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * Implementation of {@link CalculationService}.
@@ -42,34 +38,33 @@ public class CalculationServiceImpl implements CalculationService {
     private final RunVarianceWeightRepository runVarianceWeightRepository;
     private final RunShockWeightRepository runShockWeightRepository;
     private final CalculationRepository calculationRepository;
-    private final UserService userService;
 
     private static final double SUM_MAXIMUM_THRESHOLD = 1.0;
     private static final double MINIMUM_VALUE = 0.0;
     private static final String RESULT_NAME = "result";
 
     @Autowired
-    public CalculationServiceImpl(TimeSeriesService timeSeriesService, GarchModelService garchModelService, AuthenticationHandler authenticationHandler, RunVarianceWeightRepository runVarianceWeightRepository, RunShockWeightRepository runShockWeightRepository, CalculationRepository calculationRepository, UserService userService) {
+    public CalculationServiceImpl(TimeSeriesService timeSeriesService, GarchModelService garchModelService, AuthenticationHandler authenticationHandler, RunVarianceWeightRepository runVarianceWeightRepository, RunShockWeightRepository runShockWeightRepository, CalculationRepository calculationRepository) {
         this.timeSeriesService = timeSeriesService;
         this.garchModelService = garchModelService;
         this.authenticationHandler = authenticationHandler;
         this.runVarianceWeightRepository = runVarianceWeightRepository;
         this.runShockWeightRepository = runShockWeightRepository;
         this.calculationRepository = calculationRepository;
-        this.userService = userService;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void calculate(GarchModelDTO garchModelDTO, MultipartFile timeSeriesFile, Long timeSeriesId) throws IOException {
+    public TimeSeriesDTO calculate(GarchModelDTO garchModelDTO, MultipartFile timeSeriesFile, Long timeSeriesId) throws IOException {
         validateInput(garchModelDTO.constantVariance(), garchModelDTO.lastVariances(), garchModelDTO.lastShocks());
         TimeSeriesDTO result = startCalculationBasedOnInput(garchModelDTO, timeSeriesFile, timeSeriesId);
-
-        Optional<Authentication> authenticationOptional = authenticationHandler.getAuthentication();
-        authenticationOptional.ifPresent(authentication -> saveCalculation(result, garchModelDTO, timeSeriesFile, timeSeriesId));
-
+        User user = authenticationHandler.getUserEntity();
+        if (user != null) {
+            saveCalculation(result, garchModelDTO, timeSeriesFile, timeSeriesId, user);
+        }
+        return result;
     }
 
     /**
@@ -110,13 +105,9 @@ public class CalculationServiceImpl implements CalculationService {
      * {@inheritDoc}
      */
     @Override
-    public void calculateFromSelectedModel(Long modelId, MultipartFile timeSeriesFile, Long timeSeriesId) throws IOException {
+    public TimeSeriesDTO calculateFromSelectedModel(Long modelId, MultipartFile timeSeriesFile, Long timeSeriesId) throws IOException {
         GarchModelDTO garchModelDTO = garchModelService.extractGarchModelDTO(modelId);
-        TimeSeriesDTO result = startCalculationBasedOnInput(garchModelDTO, timeSeriesFile, timeSeriesId);
-
-        Optional<Authentication> authenticationOptional = authenticationHandler.getAuthentication();
-        authenticationOptional.ifPresent(authentication -> saveCalculation(result, garchModelDTO, timeSeriesFile, timeSeriesId));
-
+        return calculate(garchModelDTO, timeSeriesFile, timeSeriesId);
     }
 
     /**
@@ -143,10 +134,10 @@ public class CalculationServiceImpl implements CalculationService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void saveCalculation(TimeSeriesDTO timeSeriesDTO, GarchModelDTO garchModelDTO, MultipartFile timeSeriesFile, Long timeSeriesId) {
+    public void saveCalculation(TimeSeriesDTO timeSeriesDTO, GarchModelDTO garchModelDTO, MultipartFile timeSeriesFile, Long timeSeriesId, User user) {
         Calculation calculation = new Calculation();
         calculation.setRunAt(new Date(System.currentTimeMillis()));
-        calculation.setUser(authenticationHandler.getUserEntity());
+        calculation.setUser(user);
         calculation.setStartVariance(garchModelDTO.startVariance());
         calculation.setConstantVariance(garchModelDTO.constantVariance());
 
@@ -196,17 +187,11 @@ public class CalculationServiceImpl implements CalculationService {
 
     @Override
     public List<Calculation> getAllCalculationsByUser() {
-        Optional<Authentication> optionalAuthentication = authenticationHandler.getAuthentication();
+        User user = authenticationHandler.getUserEntity();
 
-        if(optionalAuthentication.isEmpty()){
+        if (user == null) {
             return Collections.emptyList();
         }
-
-        Authentication authentication = optionalAuthentication.get();
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        Long userId = ((UserDetailsImpl) userDetails).getId();
-        User user = userService.getUserById(userId);
-
         return calculationRepository.getCalculationsByUser(user);
     }
 }

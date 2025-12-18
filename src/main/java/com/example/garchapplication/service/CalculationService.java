@@ -6,6 +6,7 @@ import com.example.garchapplication.exception.MaxThresholdExceededException;
 import com.example.garchapplication.model.dto.GarchModelDTO;
 import com.example.garchapplication.model.dto.TimeSeriesDTO;
 import com.example.garchapplication.model.entity.Calculation;
+import com.example.garchapplication.model.entity.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -35,7 +36,7 @@ public interface CalculationService {
      * @throws InvalidLastValueException        if any of the previous values are non-positive
      * @throws MaxThresholdExceededException    if the total sum exceeds SUM_MAXIMUM_THRESHOLD
      */
-    void calculate(GarchModelDTO garchModelDTO, MultipartFile timeSeriesFile, Long timeSeriesId) throws IOException;
+    TimeSeriesDTO calculate(GarchModelDTO garchModelDTO, MultipartFile timeSeriesFile, Long timeSeriesId) throws IOException;
 
     /**
      * Starting point of calculation based on selected GARCH model.
@@ -45,7 +46,7 @@ public interface CalculationService {
      * @param timeSeriesId   an optional ID of an existing time series (may be null)
      * @throws IOException if reading the uploaded time series file fails
      */
-    void calculateFromSelectedModel(Long modelId, MultipartFile timeSeriesFile, Long timeSeriesId) throws IOException;
+    TimeSeriesDTO calculateFromSelectedModel(Long modelId, MultipartFile timeSeriesFile, Long timeSeriesId) throws IOException;
 
     /**
      * Starts calculation process by creating new instance of {@link CalculationProcess}
@@ -66,9 +67,10 @@ public interface CalculationService {
      * @param garchModelDTO GARCH model used in calculation
      * @param timeSeriesFile an optional uploaded time series file (may be null)
      * @param timeSeriesId an optional ID of an existing time series (may be null)
+     * @param user object or logged user
      */
     @Transactional(rollbackFor = Exception.class)
-    void saveCalculation(TimeSeriesDTO timeSeriesDTO, GarchModelDTO garchModelDTO, MultipartFile timeSeriesFile, Long timeSeriesId);
+    void saveCalculation(TimeSeriesDTO timeSeriesDTO, GarchModelDTO garchModelDTO, MultipartFile timeSeriesFile, Long timeSeriesId, User user);
 
     List<Calculation> getAllCalculationsByUser();
 }

@@ -7,13 +7,10 @@ import com.example.garchapplication.model.entity.User;
 import com.example.garchapplication.repository.TimeSeriesRepository;
 import com.example.garchapplication.repository.TimeSeriesValueRepository;
 import com.example.garchapplication.security.AuthenticationHandler;
-import com.example.garchapplication.security.UserDetailsImpl;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,14 +23,12 @@ import java.util.stream.Collectors;
 @Service
 public class TimeSeriesServiceImpl implements TimeSeriesService {
 
-    private final UserService userService;
     private final TimeSeriesRepository timeSeriesRepository;
     private final TimeSeriesValueRepository timeSeriesValueRepository;
     private final AuthenticationHandler authenticationHandler;
 
     @Autowired
-    public TimeSeriesServiceImpl(UserService userService, TimeSeriesRepository timeSeriesRepository, TimeSeriesValueRepository timeSeriesValueRepository, AuthenticationHandler authenticationHandler) {
-        this.userService = userService;
+    public TimeSeriesServiceImpl(TimeSeriesRepository timeSeriesRepository, TimeSeriesValueRepository timeSeriesValueRepository, AuthenticationHandler authenticationHandler) {
         this.timeSeriesRepository = timeSeriesRepository;
         this.timeSeriesValueRepository = timeSeriesValueRepository;
         this.authenticationHandler = authenticationHandler;
@@ -41,17 +36,11 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
 
     @Override
     public List<TimeSeries> getTimeSeriesByUser() {
-        Optional<Authentication> optionalAuthentication = authenticationHandler.getAuthentication();
+        User user = authenticationHandler.getUserEntity();
 
-        if (optionalAuthentication.isEmpty()) {
+        if (user == null) {
             return Collections.emptyList();
         }
-
-        Authentication authentication = optionalAuthentication.get();
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        Long userId = ((UserDetailsImpl) userDetails).getId();
-        User user = userService.getUserById(userId);
-
         return timeSeriesRepository.getTimeSeriesByUser(user);
     }
 
@@ -149,7 +138,10 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
     @Override
     public TimeSeriesDTO getTimeSeriesDTOFromDatabase(Long timeSeriesId) {
         List<TimeSeriesValue> timeSeriesValueList = timeSeriesValueRepository.findAllByTimeSeriesIdOrderByOrderNo(timeSeriesId);
-        Map<Long, Double> timeSeries = timeSeriesValueList.stream().collect(Collectors.toMap(TimeSeriesValue::getId, TimeSeriesValue::getValue));
+        Map<Long, Double> timeSeries = new HashMap<>();
+        for(int i = 0; i < timeSeriesValueList.size(); i++){
+            timeSeries.put((long)i, timeSeriesValueList.get(i).getValue());
+        }
         String name = timeSeriesRepository.findById(timeSeriesId).get().getName();
         return new TimeSeriesDTO(name, timeSeries);
     }

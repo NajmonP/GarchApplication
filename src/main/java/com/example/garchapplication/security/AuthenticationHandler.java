@@ -43,13 +43,20 @@ public class AuthenticationHandler {
      * @return User entity
      */
     public User getUserEntity(){
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Long userId = ((UserDetailsImpl) userDetails).getId();
-        return userService.getUserById(userId);
-    }
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return null;
+        }
 
-    public User getUserEntity(Authentication authentication){
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        Object principal = auth.getPrincipal();
+
+        if (principal instanceof String s) {
+            if("anonymousUser".equals(s)){
+                return null;
+            }
+        }
+
+        UserDetails userDetails = (UserDetails) principal;
         Long userId = ((UserDetailsImpl) userDetails).getId();
         return userService.getUserById(userId);
     }
