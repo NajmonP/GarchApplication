@@ -59,8 +59,11 @@ public class CalculationProcess {
      */
     private Map<Long, Double> predictVolatility() {
         Map<Long, Double> predictedVolatility = new HashMap<>();
-        predictedVolatility.put(1L, startVariance);
-        predictNextVolatility(predictedVolatility, 2L);
+        long startIndex = Math.max(lastVariancesList.size(), lastShocksList.size());
+        for (int i = 0; i < startIndex; i++) {
+            predictedVolatility.put((long) i, startVariance);
+        }
+        predictNextVolatility(predictedVolatility, startIndex);
         return predictedVolatility;
     }
 
@@ -70,25 +73,19 @@ public class CalculationProcess {
      * Recursion is stopped when size of predictedVolatility map reaches the size of time series in class attribute.
      *
      * @param predictedVolatility future variances predictions map
-     * @param index tracks the recursion and represents new key to future variances predictions map
+     * @param index               tracks the recursion and represents new key to future variances predictions map
      */
     private void predictNextVolatility(Map<Long, Double> predictedVolatility, Long index) {
         double nextVariance = constantVariance;
-        long lastVarianceIndex = index - 1;
-        long lastShockIndex = index - 1;
+        long currentIndex = index;
         for (Double lastVariance : lastVariancesList) {
-            if (lastVarianceIndex < 1) {
-                break;
-            }
-            nextVariance += lastVariance * Math.pow(timeSeries.get(lastVarianceIndex), 2);
-            lastVarianceIndex--;
+            nextVariance += lastVariance * Math.pow(timeSeries.get(currentIndex - 1), 2);
+            currentIndex--;
         }
+        currentIndex = index;
         for (Double lastShock : lastShocksList) {
-            if (lastShockIndex < 1) {
-                break;
-            }
-            nextVariance += lastShock * predictedVolatility.get(lastShockIndex);
-            lastShockIndex--;
+            nextVariance += lastShock * predictedVolatility.get(currentIndex - 1);
+            currentIndex--;
         }
 
         predictedVolatility.put(index, nextVariance);

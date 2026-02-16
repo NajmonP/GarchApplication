@@ -72,8 +72,8 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
 
         Map<Long, Double> timeSeriesValues = timeSeriesDTO.timeSeries();
 
-        for (int i = 1; i <= timeSeriesValues.size(); i++) {
-            saveTimeSeriesValue(timeSeries, timeSeriesValues.get((long) i), i);
+        for (int i = 0; i < timeSeriesValues.size(); i++) {
+            saveTimeSeriesValue(timeSeries, timeSeriesValues.get((long) i), i+1);
         }
 
         return timeSeries;
