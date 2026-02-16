@@ -126,7 +126,7 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
 
             for (int i = 2; i <= sheet.getLastRowNum(); i++) {
                 double value = sheet.getRow(i).getCell(0).getNumericCellValue();
-                loadedTimeSeries.put((long) (i - 1), value);
+                loadedTimeSeries.put((long) (i - 2), value);
             }
         }
         return new TimeSeriesDTO(timeSeriesName, loadedTimeSeries);
