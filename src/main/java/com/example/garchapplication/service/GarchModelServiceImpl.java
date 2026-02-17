@@ -1,5 +1,7 @@
 package com.example.garchapplication.service;
 
+import com.example.garchapplication.mapper.GarchModelMapper;
+import com.example.garchapplication.model.dto.GarchModelCalculationDTO;
 import com.example.garchapplication.model.dto.GarchModelDTO;
 import com.example.garchapplication.model.entity.Configuration;
 import com.example.garchapplication.model.entity.GarchModel;
@@ -32,43 +34,38 @@ public class GarchModelServiceImpl implements GarchModelService {
         this.modelShockWeightRepository = modelShockWeightRepository;
     }
 
-
-    @Override
-    public List<GarchModel> findAllByConfigurationId(Long configurationId) {
-        return garchModelRepository.findAllByConfigurationId(configurationId);
-    }
-
     /**
     * {@inheritDoc}
      */
     @Override
-    public GarchModelDTO extractGarchModelDTO(Long modelId) {
+    public GarchModelCalculationDTO extractGarchModelCalculationDTO(Long modelId) {
         GarchModel garchModel = garchModelRepository.findById(modelId).orElse(null);
-        String modelName = garchModel.getName();
 
         List<ModelVarianceWeight> modelVarianceWeightList = modelVarianceWeightRepository.findAllByGarchModelIdOrderByOrderNoAsc(garchModel.getId());
         List<ModelShockWeight> modelShockWeightList = modelShockWeightRepository.findAllByGarchModelIdOrderByOrderNoAsc(garchModel.getId());
 
-        double startVariance = garchModel.getStartVariance();
-        double constantVariance = garchModel.getConstantVariance();
-        List<Double> lastVariances = new ArrayList<>();
-        List<Double> lastShocks = new ArrayList<>();
-        for (ModelVarianceWeight modelVarianceWeight : modelVarianceWeightList) {
-            lastVariances.add(modelVarianceWeight.getValue());
-        }
-        for (ModelShockWeight modelShockWeight : modelShockWeightList) {
-            lastShocks.add(modelShockWeight.getValue());
-        }
-
-        return new GarchModelDTO(modelName, startVariance, constantVariance, lastVariances, lastShocks);
+        return GarchModelMapper.toGarchModelCalculationDTO(garchModel, modelVarianceWeightList, modelShockWeightList);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public List<GarchModelDTO> extractGarchModelsFromFileSheet(Sheet sheet) {
-        List<GarchModelDTO> garchModelDTOs = new ArrayList<>();
+    public GarchModelDTO extractGarchModelDTO(Long modelId){
+        GarchModel garchModel = garchModelRepository.findById(modelId).orElse(null);
+
+        List<ModelVarianceWeight> modelVarianceWeightList = modelVarianceWeightRepository.findAllByGarchModelIdOrderByOrderNoAsc(garchModel.getId());
+        List<ModelShockWeight> modelShockWeightList = modelShockWeightRepository.findAllByGarchModelIdOrderByOrderNoAsc(garchModel.getId());
+
+        return GarchModelMapper.toGarchModelDTO(garchModel, modelVarianceWeightList, modelShockWeightList);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<GarchModelCalculationDTO> extractGarchModelsFromFileSheet(Sheet sheet) {
+        List<GarchModelCalculationDTO> garchModelCalculationDTOS = new ArrayList<>();
 
         for (int i = 1; i < sheet.getLastRowNum(); i += MODEL_ROWS) {
             String modelName = "";
@@ -94,22 +91,22 @@ public class GarchModelServiceImpl implements GarchModelService {
                     }
                 }
             }
-            garchModelDTOs.add(new GarchModelDTO(modelName, startVariance, constantVariance, lastVariances, lastShocks));
+            garchModelCalculationDTOS.add(new GarchModelCalculationDTO(modelName, startVariance, constantVariance, lastVariances, lastShocks));
         }
 
-        return garchModelDTOs;
+        return garchModelCalculationDTOS;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public GarchModel saveModel(GarchModelDTO garchModelDTO, Configuration configuration) {
+    public GarchModel saveModel(GarchModelCalculationDTO garchModelCalculationDTO, Configuration configuration) {
         GarchModel garchModel = new GarchModel();
         garchModel.setConfiguration(configuration);
-        garchModel.setName(garchModelDTO.name());
-        garchModel.setStartVariance(garchModelDTO.startVariance());
-        garchModel.setConstantVariance(garchModelDTO.constantVariance());
+        garchModel.setName(garchModelCalculationDTO.name());
+        garchModel.setStartVariance(garchModelCalculationDTO.startVariance());
+        garchModel.setConstantVariance(garchModelCalculationDTO.constantVariance());
         garchModelRepository.save(garchModel);
 
         return garchModel;

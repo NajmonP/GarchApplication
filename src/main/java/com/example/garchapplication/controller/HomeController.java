@@ -2,10 +2,9 @@ package com.example.garchapplication.controller;
 
 import com.example.garchapplication.mapper.TimeSeriesChartMapper;
 import com.example.garchapplication.model.dto.ChartOfTimeSeriesDTO;
-import com.example.garchapplication.model.dto.GarchModelDTO;
+import com.example.garchapplication.model.dto.GarchModelCalculationDTO;
 import com.example.garchapplication.model.dto.TimeSeriesDTO;
 import com.example.garchapplication.model.entity.Configuration;
-import com.example.garchapplication.model.entity.GarchModel;
 import com.example.garchapplication.model.entity.TimeSeries;
 import com.example.garchapplication.service.ConfigurationService;
 import com.example.garchapplication.service.GarchModelService;
@@ -27,14 +26,12 @@ class HomeController {
 
     private final CalculationService calculationService;
     private final ConfigurationService configurationService;
-    private final GarchModelService garchModelService;
     private final TimeSeriesService timeSeriesService;
 
     @Autowired
     HomeController(CalculationService calculationService, ConfigurationService configurationService, GarchModelService garchModelService, TimeSeriesService timeSeriesService) {
         this.calculationService = calculationService;
         this.configurationService = configurationService;
-        this.garchModelService = garchModelService;
         this.timeSeriesService = timeSeriesService;
     }
 
@@ -52,18 +49,6 @@ class HomeController {
         model.addAttribute("configurationList", configurationlist);
         model.addAttribute("timeSeriesList", timeSeriesList);
         return "index";
-    }
-
-    /**
-     * Displays all GARCH models of selected configuration.
-     *
-     * @param configurationId ID of selected configuration
-     * @return List of all GARCH models of selected configuration
-     */
-    @GetMapping("/configuration/{configurationId}")
-    @ResponseBody
-    public List<GarchModel> getModelsByConfiguration(@PathVariable Long configurationId) {
-        return garchModelService.findAllByConfigurationId(configurationId);
     }
 
     /**
@@ -90,9 +75,9 @@ class HomeController {
             @RequestParam(value = "time_series_file", required = false) MultipartFile timeSeriesFile,
             @RequestParam(value = "timeSeriesId", required = false) Long timeSeriesId
     ) throws IOException {
-        GarchModelDTO garchModelDTO = new GarchModelDTO("name", startVariance, constantVariance, lastVariance, lastShock);
+        GarchModelCalculationDTO garchModelCalculationDTO = new GarchModelCalculationDTO( "name", startVariance, constantVariance, lastVariance, lastShock);
 
-        TimeSeriesDTO result = calculationService.calculate(garchModelDTO, timeSeriesFile, timeSeriesId);
+        TimeSeriesDTO result = calculationService.calculate(garchModelCalculationDTO, timeSeriesFile, timeSeriesId);
         return TimeSeriesChartMapper.toChart(result);
     }
 

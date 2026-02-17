@@ -1,6 +1,8 @@
 package com.example.garchapplication.service;
 
+import com.example.garchapplication.model.dto.GarchModelDTO;
 import com.example.garchapplication.model.entity.Configuration;
+import com.example.garchapplication.model.entity.GarchModel;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -13,6 +15,10 @@ import java.util.List;
  */
 @Service
 public interface ConfigurationService {
+    public List<GarchModel> findAllByConfigurationId(Long configurationId);
+
+    public List<GarchModelDTO> extractGarchModelDTOsByConfigurationId(Long configurationId);
+
     /**
      * Process of adding new user configuration and its GARCH models to database.
      *

@@ -3,21 +3,21 @@ package com.example.garchapplication.model.dto;
 import java.util.List;
 
 /**
- * Data Transfer Object (DTO) representing a GARCH model.
+ * Data Transfer Object (DTO) representing a persisted GARCH model.
  * <p>
- * Each GARCH model is stored in the database as a {@code garch_model} entity,
- * with its corresponding variance and shock weights represented by
- * {@code model_variance_weight} and {@code model_shock_weight} entities.
- * <br>
- * This DTO is used to transfer all relevant GARCH model data together,
- * instead of sending the {@code GarchModel} entity along with separate
- * lists of {@code ModelShockWeight} and {@code ModelVarianceWeight} entities.
+ * This object is used when a GARCH model is loaded from the database
+ * and returned to the client. It contains the database identifier
+ * together with all parameters required for volatility calculation.
+ * <p>
+ * Unlike {@link GarchModelCalculationDTO}, this DTO represents
+ * an already stored model and therefore always contains a non-null identifier.
  *
+ * @param id id of GARCH model
  * @param name name of GARCH model
  * @param startVariance first variance from which the calculation starts
  * @param constantVariance the constant variance
  * @param lastVariances list of variances weight
  * @param lastShocks list of shocks weight
  */
-public record GarchModelDTO(String name, double startVariance, double constantVariance,
-                     List<Double> lastVariances, List<Double> lastShocks) {}
+public record GarchModelDTO(long id, String name, double startVariance, double constantVariance,
+                            List<Double> lastVariances, List<Double> lastShocks) {}

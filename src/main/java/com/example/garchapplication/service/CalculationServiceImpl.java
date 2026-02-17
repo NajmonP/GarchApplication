@@ -2,7 +2,7 @@ package com.example.garchapplication.service;
 
 import com.example.garchapplication.Processes.CalculationProcess;
 import com.example.garchapplication.model.dto.CalculationSetupDTO;
-import com.example.garchapplication.model.dto.GarchModelDTO;
+import com.example.garchapplication.model.dto.GarchModelCalculationDTO;
 import com.example.garchapplication.model.dto.TimeSeriesDTO;
 import com.example.garchapplication.exception.InvalidConstantVarianceException;
 import com.example.garchapplication.exception.InvalidLastValueException;
@@ -57,12 +57,12 @@ public class CalculationServiceImpl implements CalculationService {
      * {@inheritDoc}
      */
     @Override
-    public TimeSeriesDTO calculate(GarchModelDTO garchModelDTO, MultipartFile timeSeriesFile, Long timeSeriesId) throws IOException {
-        validateInput(garchModelDTO.constantVariance(), garchModelDTO.lastVariances(), garchModelDTO.lastShocks());
-        TimeSeriesDTO result = startCalculationBasedOnInput(garchModelDTO, timeSeriesFile, timeSeriesId);
+    public TimeSeriesDTO calculate(GarchModelCalculationDTO garchModelCalculationDTO, MultipartFile timeSeriesFile, Long timeSeriesId) throws IOException {
+        validateInput(garchModelCalculationDTO.constantVariance(), garchModelCalculationDTO.lastVariances(), garchModelCalculationDTO.lastShocks());
+        TimeSeriesDTO result = startCalculationBasedOnInput(garchModelCalculationDTO, timeSeriesFile, timeSeriesId);
         User user = authenticationHandler.getUserEntity();
         if (user != null) {
-            saveCalculation(result, garchModelDTO, timeSeriesFile, timeSeriesId, user);
+            saveCalculation(result, garchModelCalculationDTO, timeSeriesFile, timeSeriesId, user);
         }
         return result;
     }
@@ -106,15 +106,15 @@ public class CalculationServiceImpl implements CalculationService {
      */
     @Override
     public TimeSeriesDTO calculateFromSelectedModel(Long modelId, MultipartFile timeSeriesFile, Long timeSeriesId) throws IOException {
-        GarchModelDTO garchModelDTO = garchModelService.extractGarchModelDTO(modelId);
-        return calculate(garchModelDTO, timeSeriesFile, timeSeriesId);
+        GarchModelCalculationDTO garchModelCalculationDTO = garchModelService.extractGarchModelCalculationDTO(modelId);
+        return calculate(garchModelCalculationDTO, timeSeriesFile, timeSeriesId);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public TimeSeriesDTO startCalculationBasedOnInput(GarchModelDTO garchModelDTO, MultipartFile timeSeriesFile, Long timeSeriesId) throws IOException {
+    public TimeSeriesDTO startCalculationBasedOnInput(GarchModelCalculationDTO garchModelCalculationDTO, MultipartFile timeSeriesFile, Long timeSeriesId) throws IOException {
         TimeSeriesDTO loadedTimeSeries;
 
         if (timeSeriesFile != null && !timeSeriesFile.isEmpty()) {
@@ -125,7 +125,7 @@ public class CalculationServiceImpl implements CalculationService {
             throw new MissingTimeSeriesException();
         }
 
-        CalculationSetupDTO calculationSetupDTO = new CalculationSetupDTO(loadedTimeSeries.timeSeries(), garchModelDTO);
+        CalculationSetupDTO calculationSetupDTO = new CalculationSetupDTO(loadedTimeSeries.timeSeries(), garchModelCalculationDTO);
         CalculationProcess calculationProcess = new CalculationProcess(calculationSetupDTO);
         Map<Long, Double> predictedVolatility = calculationProcess.startCalculation();
 
@@ -134,12 +134,12 @@ public class CalculationServiceImpl implements CalculationService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void saveCalculation(TimeSeriesDTO timeSeriesDTO, GarchModelDTO garchModelDTO, MultipartFile timeSeriesFile, Long timeSeriesId, User user) {
+    public void saveCalculation(TimeSeriesDTO timeSeriesDTO, GarchModelCalculationDTO garchModelCalculationDTO, MultipartFile timeSeriesFile, Long timeSeriesId, User user) {
         Calculation calculation = new Calculation();
         calculation.setRunAt(new Date(System.currentTimeMillis()));
         calculation.setUser(user);
-        calculation.setStartVariance(garchModelDTO.startVariance());
-        calculation.setConstantVariance(garchModelDTO.constantVariance());
+        calculation.setStartVariance(garchModelCalculationDTO.startVariance());
+        calculation.setConstantVariance(garchModelCalculationDTO.constantVariance());
 
         if (timeSeriesFile != null && !timeSeriesFile.isEmpty()) {
             calculation.setStatus(CalculationStatus.MISSING_INPUT_SERIES);
@@ -160,12 +160,12 @@ public class CalculationServiceImpl implements CalculationService {
         // update
         calculationRepository.save(calculation);
 
-        for (int i = 0; i < garchModelDTO.lastVariances().size(); i++) {
-            saveRunVarianceWeight(calculation, garchModelDTO.lastVariances().get(i), i);
+        for (int i = 0; i < garchModelCalculationDTO.lastVariances().size(); i++) {
+            saveRunVarianceWeight(calculation, garchModelCalculationDTO.lastVariances().get(i), i);
         }
 
-        for (int i = 0; i < garchModelDTO.lastShocks().size(); i++) {
-            saveRunShockWeight(calculation, garchModelDTO.lastShocks().get(i), i);
+        for (int i = 0; i < garchModelCalculationDTO.lastShocks().size(); i++) {
+            saveRunShockWeight(calculation, garchModelCalculationDTO.lastShocks().get(i), i);
         }
     }
 

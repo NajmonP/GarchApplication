@@ -10,6 +10,7 @@
 <div th:replace="~{fragments/navbar :: navbar}"></div>
 
 <h1>Configuration</h1>
+
 <div class="row">
     <div class="card shadow-sm col-6 mb-3" th:each="configuration : ${configurationList}">
         <div class="card-body">
@@ -17,8 +18,17 @@
             <p><strong>Název:</strong> <span th:text="${configuration.name}"></span></p>
             <p><strong>Vytvořeno:</strong> <span th:text="${configuration.created}"></span></p>
         </div>
+
         <div class="card-footer d-flex justify-content-between align-items-center">
-            <p>Zobraz modely</p>
+            <button type="button"
+                    class="btn btn-outline-primary btn-sm show-models-btn"
+                    th:attr="data-configuration-id=${configuration.id}">
+                Zobraz modely
+            </button>
+        </div>
+
+        <div class="px-3 pb-3">
+            <div class="models-container d-none"></div>
         </div>
     </div>
 </div>
@@ -29,5 +39,35 @@
 
     <button type="submit" class="btn btn-primary w-100">Vložit</button>
 </form>
+
+<template id="tpl-model-item">
+    <li class="list-group-item">
+        <div class="d-flex justify-content-between align-items-start">
+            <div class="w-100">
+                <div class="fw-semibold">
+                    <span class="js-model-name"></span>
+                    <span class="text-muted"> (ID: <span class="js-model-id"></span>)</span>
+                </div>
+
+                <div class="text-muted small mt-1">
+                    Počáteční rozptyl: <span class="js-start-variance"></span>
+                    • Konstantní rozptyl: <span class="js-constant-variance"></span>
+                </div>
+
+                <div class="text-muted small mt-1">
+                    Váhy minulých rozptylů: [<span class="js-last-variances"></span>]
+                </div>
+
+                <div class="text-muted small">
+                    Váhy minulých šoků: [<span class="js-last-shocks"></span>]
+                </div>
+            </div>
+        </div>
+    </li>
+</template>
+
+
+<script src="/js/configuration-models.js"></script>
+
 </body>
 </html>

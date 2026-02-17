@@ -1,8 +1,10 @@
 package com.example.garchapplication.service;
 
+import com.example.garchapplication.model.dto.GarchModelCalculationDTO;
 import com.example.garchapplication.model.dto.GarchModelDTO;
 import com.example.garchapplication.model.entity.*;
 import com.example.garchapplication.repository.ConfigurationRepository;
+import com.example.garchapplication.repository.GarchModelRepository;
 import com.example.garchapplication.security.AuthenticationHandler;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -14,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.sql.Date;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -22,12 +25,14 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     private final GarchModelService garchModelService;
     private final ConfigurationRepository configurationRepository;
+    private final GarchModelRepository garchModelRepository;
     private final AuthenticationHandler authenticationHandler;
 
     @Autowired
-    public ConfigurationServiceImpl(ConfigurationRepository configurationRepository, GarchModelServiceImpl garchModelService, AuthenticationHandler authenticationHandler) {
+    public ConfigurationServiceImpl(ConfigurationRepository configurationRepository, GarchModelServiceImpl garchModelService, GarchModelRepository garchModelRepository, AuthenticationHandler authenticationHandler) {
         this.configurationRepository = configurationRepository;
         this.garchModelService = garchModelService;
+        this.garchModelRepository = garchModelRepository;
         this.authenticationHandler = authenticationHandler;
     }
 
@@ -35,13 +40,29 @@ public class ConfigurationServiceImpl implements ConfigurationService {
      * {@inheritDoc}
      */
     @Override
-    public List<Configuration> getAllConfigurationsByUser(){
+    public List<Configuration> getAllConfigurationsByUser() {
         User user = authenticationHandler.getUserEntity();
 
-        if(user == null){
+        if (user == null) {
             return Collections.emptyList();
         }
         return configurationRepository.getConfigurationsByUser(user);
+    }
+
+
+    @Override
+    public List<GarchModel> findAllByConfigurationId(Long configurationId) {
+        return garchModelRepository.findAllByConfigurationId(configurationId);
+    }
+
+    @Override
+    public List<GarchModelDTO> extractGarchModelDTOsByConfigurationId(Long configurationId) {
+        List<GarchModel> garchModelList = findAllByConfigurationId(configurationId);
+        List<GarchModelDTO> garchModelDTOList = new ArrayList<>();
+        garchModelList.forEach(garchModel -> {
+            garchModelDTOList.add(garchModelService.extractGarchModelDTO(garchModel.getId()));
+        });
+        return garchModelDTOList;
     }
 
     /**
@@ -54,16 +75,16 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             Sheet sheet = workbook.getSheetAt(0);
 
             String configurationName = sheet.getRow(0).getCell(1).getStringCellValue();
-            List<GarchModelDTO> garchModelDTOs = garchModelService.extractGarchModelsFromFileSheet(sheet);
+            List<GarchModelCalculationDTO> garchModelCalculationDTOS = garchModelService.extractGarchModelsFromFileSheet(sheet);
             Configuration configuration = saveConfiguration(configurationName);
 
-            for (GarchModelDTO garchModelDTO : garchModelDTOs) {
-                GarchModel garchModel = garchModelService.saveModel(garchModelDTO, configuration);
-                for (int i = 0; i < garchModelDTO.lastVariances().size(); i++) {
-                    garchModelService.saveModelVarianceWeight(garchModel, garchModelDTO.lastVariances().get(i), i);
+            for (GarchModelCalculationDTO garchModelCalculationDTO : garchModelCalculationDTOS) {
+                GarchModel garchModel = garchModelService.saveModel(garchModelCalculationDTO, configuration);
+                for (int i = 0; i < garchModelCalculationDTO.lastVariances().size(); i++) {
+                    garchModelService.saveModelVarianceWeight(garchModel, garchModelCalculationDTO.lastVariances().get(i), i);
                 }
-                for (int i = 0; i < garchModelDTO.lastShocks().size(); i++) {
-                    garchModelService.saveModelShockWeight(garchModel,garchModelDTO.lastShocks().get(i), i);
+                for (int i = 0; i < garchModelCalculationDTO.lastShocks().size(); i++) {
+                    garchModelService.saveModelShockWeight(garchModel, garchModelCalculationDTO.lastShocks().get(i), i);
                 }
             }
         }

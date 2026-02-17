@@ -1,5 +1,6 @@
 package com.example.garchapplication.service;
 
+import com.example.garchapplication.model.dto.GarchModelCalculationDTO;
 import com.example.garchapplication.model.dto.GarchModelDTO;
 import com.example.garchapplication.model.entity.Configuration;
 import com.example.garchapplication.model.entity.GarchModel;
@@ -13,12 +14,21 @@ import java.util.List;
  */
 @Service
 public interface GarchModelService {
-    List<GarchModel> findAllByConfigurationId(Long configurationId);
+    /**
+     * Loads GARCH model and its parameters from database based on given ID.
+     * <br>
+     * Data is loaded from {@code garch_model} entity and its parameters from {@code model_variance_weight}
+     * and {@code model_shock_weight} entities.
+     *
+     * @param modelId ID of selected GARCH model
+     * @return CalculationDTO of selected GARCH model
+     */
+    GarchModelCalculationDTO extractGarchModelCalculationDTO(Long modelId);
 
     /**
      * Loads GARCH model and its parameters from database based on given ID.
      * <br>
-     * Data is loaded from {@code garch_model} entity and its paramteres from {@code model_variance_weight}
+     * Data is loaded from {@code garch_model} entity and its parameters from {@code model_variance_weight}
      * and {@code model_shock_weight} entities.
      *
      * @param modelId ID of selected GARCH model
@@ -26,23 +36,22 @@ public interface GarchModelService {
      */
     GarchModelDTO extractGarchModelDTO(Long modelId);
 
-
     /**
      * Extracts all GARCH models from sheet of provided configuration file.
      *
      * @param sheet sheet to extract GARCH models from
      * @return list of GARCH models
      */
-    List<GarchModelDTO> extractGarchModelsFromFileSheet(Sheet sheet);
+    List<GarchModelCalculationDTO> extractGarchModelsFromFileSheet(Sheet sheet);
 
     /**
      * Adds new GARCH model of given configuration to database.
      *
-     * @param garchModelDTO GARCH model to be saved into database
+     * @param garchModelCalculationDTO GARCH model to be saved into database
      * @param configuration configuration that GARCH model belongs to
      * @return instance of saved GARCH model for purpose of saving related model variance and shock weights
      */
-    GarchModel saveModel(GarchModelDTO garchModelDTO, Configuration configuration);
+    GarchModel saveModel(GarchModelCalculationDTO garchModelCalculationDTO, Configuration configuration);
 
     /**
      * Adds variance weight of the given GARCH model to database.

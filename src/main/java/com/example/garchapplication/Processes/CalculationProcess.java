@@ -16,10 +16,10 @@ public class CalculationProcess {
     private final Map<Long, Double> timeSeries;
 
     public CalculationProcess(CalculationSetupDTO calculationSetupDTO) {
-        this.startVariance = calculationSetupDTO.garchModelDTO().startVariance();
-        this.constantVariance = calculationSetupDTO.garchModelDTO().constantVariance();
-        this.lastVariancesList = calculationSetupDTO.garchModelDTO().lastVariances();
-        this.lastShocksList = calculationSetupDTO.garchModelDTO().lastShocks();
+        this.startVariance = calculationSetupDTO.garchModelCalculationDTO().startVariance();
+        this.constantVariance = calculationSetupDTO.garchModelCalculationDTO().constantVariance();
+        this.lastVariancesList = calculationSetupDTO.garchModelCalculationDTO().lastVariances();
+        this.lastShocksList = calculationSetupDTO.garchModelCalculationDTO().lastShocks();
         this.timeSeries = calculationSetupDTO.timeSeries();
     }
 
