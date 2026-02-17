@@ -9,4 +9,6 @@ import java.util.List;
 @Repository
 public interface ModelShockWeightRepository extends JpaRepository<ModelShockWeight,Long> {
     public List<ModelShockWeight> findAllByGarchModelIdOrderByOrderNoAsc(Long modelId);
+
+    public void deleteByGarchModelId(Long modelId);
 }

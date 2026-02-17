@@ -1,6 +1,7 @@
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", () => {
     initModelPickerForCalculation();
     initModelListingForConfigCards();
+    initSaveModelChanges();
 });
 
 // =======================
@@ -8,16 +9,7 @@ document.addEventListener("DOMContentLoaded", function () {
 // =======================
 
 function clearElement(el) {
-    while (el.firstChild) {
-        el.removeChild(el.firstChild);
-    }
-}
-
-function formatWeights(arr, digits = 4) {
-    if (!Array.isArray(arr) || arr.length === 0) return "—";
-    return arr
-        .map(x => (typeof x === "number" ? x.toFixed(digits) : String(x)))
-        .join(", ");
+    while (el.firstChild) el.removeChild(el.firstChild);
 }
 
 function createParagraph(text, className = "") {
@@ -27,20 +19,56 @@ function createParagraph(text, className = "") {
     return p;
 }
 
+function formatWeights(arr, digits = 4) {
+    if (!Array.isArray(arr) || arr.length === 0) return "—";
+    return arr
+        .map(x => (typeof x === "number" ? x.toFixed(digits) : String(x)))
+        .join(", ");
+}
+
+function parseWeights(str) {
+    if (!str) return [];
+    return str
+        .split(",")
+        .map(s => s.trim())
+        .filter(s => s.length > 0)
+        .map(s => Number(s.replace(",", ".")))
+        .filter(n => Number.isFinite(n));
+}
+
+function readNumber(id) {
+    const el = document.getElementById(id);
+    if (!el) return NaN;
+    const raw = (el.value ?? "").trim().replace(",", ".");
+    return raw === "" ? NaN : Number(raw);
+}
+
+// CSRF headers for fetch (Spring Security)
+function csrfHeaders() {
+    const form = document.getElementById("csrfForm");
+    if (!form) return {};
+
+    const tokenInput = form.querySelector('input[type="hidden"][name]');
+    const headerName = document.getElementById("csrfHeaderName")?.value;
+
+    const token = tokenInput?.value;
+    if (!headerName || !token) return {};
+
+    return { [headerName]: token };
+}
+
 // =======================
-// Model picker (radio list)
+// Model picker (radio list) - for calculation
 // =======================
 
 function initModelPickerForCalculation() {
     const configSelect = document.getElementById("configurationId");
     const modelList = document.getElementById("modelList");
-
     if (!configSelect || !modelList) return;
 
     configSelect.addEventListener("change", async function () {
         const configurationId = this.value;
         clearElement(modelList);
-
         if (!configurationId) return;
 
         try {
@@ -50,9 +78,7 @@ function initModelPickerForCalculation() {
             const models = await response.json();
 
             if (!models || models.length === 0) {
-                modelList.appendChild(
-                    createParagraph("Žádné modely pro tuto konfiguraci.", "text-muted mt-2")
-                );
+                modelList.appendChild(createParagraph("Žádné modely pro tuto konfiguraci.", "text-muted mt-2"));
                 return;
             }
 
@@ -73,21 +99,19 @@ function initModelPickerForCalculation() {
                 input.required = true;
                 input.classList.add("form-check-input");
 
-                const label = document.createElement("label");
-                label.setAttribute("for", input.id);
-                label.classList.add("form-check-label");
-                label.textContent = model.name ?? "Model";
+                const lbl = document.createElement("label");
+                lbl.setAttribute("for", input.id);
+                lbl.classList.add("form-check-label");
+                lbl.textContent = model.name ?? "Model";
 
                 wrapper.appendChild(input);
-                wrapper.appendChild(label);
+                wrapper.appendChild(lbl);
                 modelList.appendChild(wrapper);
             });
 
-        } catch (error) {
-            console.error(error);
-            modelList.appendChild(
-                createParagraph("Nepodařilo se načíst modely.", "text-danger mt-2")
-            );
+        } catch (e) {
+            console.error(e);
+            modelList.appendChild(createParagraph("Nepodařilo se načíst modely.", "text-danger mt-2"));
         }
     });
 }
@@ -121,70 +145,216 @@ function initModelListingForConfigCards() {
                 return;
             }
 
-            container.classList.remove("d-none");
-            clearElement(container);
+            await loadModelsIntoContainer(configurationId, container, this, template);
+        });
+    });
+}
 
-            this.disabled = true;
-            const originalText = this.textContent;
-            this.textContent = "Načítám...";
+async function loadModelsIntoContainer(configurationId, container, toggleBtn, template) {
+    container.classList.remove("d-none");
+    clearElement(container);
 
-            try {
-                const response = await fetch(`/configuration/${configurationId}`);
-                if (!response.ok) throw new Error("Chyba při načítání modelů.");
+    toggleBtn.disabled = true;
+    const originalText = toggleBtn.textContent;
+    toggleBtn.textContent = "Načítám...";
 
-                const models = await response.json();
+    try {
+        const response = await fetch(`/configuration/${configurationId}`);
+        if (!response.ok) throw new Error("Chyba při načítání modelů.");
 
-                if (!models || models.length === 0) {
-                    container.appendChild(
-                        createParagraph("Žádné modely pro tuto konfiguraci.", "text-muted mt-2 mb-0")
-                    );
-                } else {
+        const models = await response.json();
 
-                    const title = document.createElement("div");
-                    title.classList.add("fw-semibold", "mt-2");
-                    title.textContent = "Modely:";
-                    container.appendChild(title);
+        if (!models || models.length === 0) {
+            container.appendChild(createParagraph("Žádné modely pro tuto konfiguraci.", "text-muted mt-2 mb-0"));
+        } else {
+            const title = document.createElement("div");
+            title.classList.add("fw-semibold", "mt-2");
+            title.textContent = "Modely:";
+            container.appendChild(title);
 
-                    const list = document.createElement("ul");
-                    list.classList.add("list-group", "mt-2");
+            const list = document.createElement("ul");
+            list.classList.add("list-group", "mt-2");
 
-                    models.forEach(model => {
-                        const clone = template.content.cloneNode(true);
-                        const li = clone.querySelector("li");
+            models.forEach(model => {
+                const li = buildModelListItem(template, model, configurationId);
+                list.appendChild(li);
+            });
 
-                        // vyplnění template přes textContent
-                        const nameEl = li.querySelector(".js-model-name");
-                        const idEl = li.querySelector(".js-model-id");
-                        const startEl = li.querySelector(".js-start-variance");
-                        const constEl = li.querySelector(".js-constant-variance");
-                        const varEl = li.querySelector(".js-last-variances");
-                        const shockEl = li.querySelector(".js-last-shocks");
+            container.appendChild(list);
+        }
 
-                        if (nameEl) nameEl.textContent = model.name ?? "Model";
-                        if (idEl) idEl.textContent = model.id ?? "—";
-                        if (startEl) startEl.textContent = model.startVariance ?? "—";
-                        if (constEl) constEl.textContent = model.constantVariance ?? "—";
-                        if (varEl) varEl.textContent = formatWeights(model.lastVariances);
-                        if (shockEl) shockEl.textContent = formatWeights(model.lastShocks);
+        container.dataset.loaded = "true";
+        toggleBtn.textContent = "Skrýt modely";
 
-                        list.appendChild(clone);
-                    });
+    } catch (e) {
+        console.error(e);
+        container.appendChild(createParagraph("Nepodařilo se načíst modely.", "text-danger mt-2 mb-0"));
+        toggleBtn.textContent = originalText;
+    } finally {
+        toggleBtn.disabled = false;
+    }
+}
 
-                    container.appendChild(list);
-                }
+function buildModelListItem(template, model, configurationId) {
+    const clone = template.content.cloneNode(true);
+    const li = clone.querySelector("li");
 
-                container.dataset.loaded = "true";
-                this.textContent = "Skrýt modely";
+    li.querySelector(".js-model-name").textContent = model.name ?? "Model";
+    li.querySelector(".js-model-id").textContent = model.id ?? "—";
+    li.querySelector(".js-start-variance").textContent = model.startVariance ?? "—";
+    li.querySelector(".js-constant-variance").textContent = model.constantVariance ?? "—";
+    li.querySelector(".js-last-variances").textContent = formatWeights(model.lastVariances);
+    li.querySelector(".js-last-shocks").textContent = formatWeights(model.lastShocks);
 
-            } catch (e) {
-                console.error(e);
-                container.appendChild(
-                    createParagraph("Nepodařilo se načíst modely.", "text-danger mt-2 mb-0")
-                );
-                this.textContent = originalText;
-            } finally {
-                this.disabled = false;
+    li.dataset.modelId = model.id;
+    li.dataset.configurationId = configurationId;
+    li.dataset.modelName = model.name ?? "";
+    li.dataset.startVariance = model.startVariance ?? "";
+    li.dataset.constantVariance = model.constantVariance ?? "";
+    li.dataset.lastVariances = Array.isArray(model.lastVariances) ? model.lastVariances.join(",") : "";
+    li.dataset.lastShocks = Array.isArray(model.lastShocks) ? model.lastShocks.join(",") : "";
+
+    const editBtn = li.querySelector(".js-edit-model-btn");
+    const deleteBtn = li.querySelector(".js-delete-model-btn");
+
+    if (editBtn) editBtn.addEventListener("click", () => openEditModelModal(li));
+    if (deleteBtn) deleteBtn.addEventListener("click", () => handleDeleteModel(li));
+
+    return li;
+}
+
+// =======================
+// Edit / Delete model actions (modal + endpoints)
+// =======================
+
+function openEditModelModal(li) {
+    document.getElementById("editModelError")?.classList.add("d-none");
+    document.getElementById("editModelSuccess")?.classList.add("d-none");
+
+    document.getElementById("editModelId").value = li.dataset.modelId ?? "";
+    document.getElementById("editModelName").value = li.dataset.modelName ?? "";
+    document.getElementById("editStartVariance").value = li.dataset.startVariance ?? "";
+    document.getElementById("editConstantVariance").value = li.dataset.constantVariance ?? "";
+    document.getElementById("editLastVariances").value = li.dataset.lastVariances ?? "";
+    document.getElementById("editLastShocks").value = li.dataset.lastShocks ?? "";
+}
+
+async function handleDeleteModel(li) {
+    const modelId = li.dataset.modelId;
+    const configurationId = li.dataset.configurationId;
+    if (!modelId || !configurationId) return;
+
+    if (!confirm("Opravdu chceš smazat tento model?")) return;
+
+    try {
+        const response = await fetch(`/model/${modelId}`, {
+            method: "DELETE",
+            headers: {
+                ...csrfHeaders()
             }
         });
+
+        if (!response.ok) {
+            const text = await response.text().catch(() => "");
+            console.error("DELETE failed:", response.status, response.statusText, text);
+            throw new Error(`Delete failed: ${response.status}`);
+        }
+
+        await refreshModels(configurationId);
+    } catch (e) {
+        console.error(e);
+        alert("Nepodařilo se smazat model.");
+    }
+}
+
+async function refreshModels(configurationId) {
+    const btn = document.querySelector(`.show-models-btn[data-configuration-id="${configurationId}"]`);
+    if (!btn) return;
+
+    const card = btn.closest(".card");
+    const container = card ? card.querySelector(".models-container") : null;
+    const template = document.getElementById("tpl-model-item");
+    if (!container || !template) return;
+
+    container.dataset.loaded = "false";
+    await loadModelsIntoContainer(configurationId, container, btn, template);
+}
+
+// =======================
+// Save button in modal
+// =======================
+
+function initSaveModelChanges() {
+    const saveBtn = document.getElementById("btnSaveModelChanges");
+    if (!saveBtn) return;
+
+    saveBtn.addEventListener("click", async () => {
+        const id = document.getElementById("editModelId")?.value?.trim();
+        const name = document.getElementById("editModelName")?.value ?? "";
+
+        const startVariance = readNumber("editStartVariance");
+        const constantVariance = readNumber("editConstantVariance");
+
+        const lastVariancesStr = document.getElementById("editLastVariances")?.value ?? "";
+        const lastShocksStr = document.getElementById("editLastShocks")?.value ?? "";
+
+        console.log("editStartVariance raw:", document.getElementById("editStartVariance")?.value);
+        console.log("editConstantVariance raw:", document.getElementById("editConstantVariance")?.value);
+        console.log("parsed numbers:", startVariance, constantVariance);
+
+        const errorBox = document.getElementById("editModelError");
+        const successBox = document.getElementById("editModelSuccess");
+        if (errorBox) { errorBox.classList.add("d-none"); errorBox.textContent = ""; }
+        if (successBox) successBox.classList.add("d-none");
+
+        if (!id || !Number.isFinite(startVariance) || !Number.isFinite(constantVariance)) {
+            if (errorBox) {
+                errorBox.textContent = "Zkontroluj vyplnění: startVariance a constantVariance musí být čísla.";
+                errorBox.classList.remove("d-none");
+            }
+            return;
+        }
+
+        const payload = {
+            name,
+            startVariance,
+            constantVariance,
+            lastVariances: parseWeights(lastVariancesStr),
+            lastShocks: parseWeights(lastShocksStr)
+        };
+
+        const li = document.querySelector(`li[data-model-id="${id}"]`);
+        const configurationId = li?.dataset.configurationId;
+
+        try {
+            const response = await fetch(`/model/${id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    ...csrfHeaders()
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const text = await response.text().catch(() => "");
+                console.error("UPDATE failed:", response.status, response.statusText, text);
+                throw new Error(`Update failed: ${response.status}`);
+            }
+
+            if (successBox) successBox.classList.remove("d-none");
+            if (configurationId) await refreshModels(configurationId);
+
+            const modalEl = document.getElementById("garchModelEditModal");
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+
+        } catch (e) {
+            console.error(e);
+            if (errorBox) {
+                errorBox.textContent = "Nepodařilo se uložit změny modelu.";
+                errorBox.classList.remove("d-none");
+            }
+        }
     });
 }

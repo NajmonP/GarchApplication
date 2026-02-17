@@ -14,6 +14,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -101,7 +102,8 @@ public class GarchModelServiceImpl implements GarchModelService {
      * {@inheritDoc}
      */
     @Override
-    public GarchModel saveModel(GarchModelCalculationDTO garchModelCalculationDTO, Configuration configuration) {
+    @Transactional(rollbackFor = Exception.class)
+    public void saveModel(GarchModelCalculationDTO garchModelCalculationDTO, Configuration configuration) {
         GarchModel garchModel = new GarchModel();
         garchModel.setConfiguration(configuration);
         garchModel.setName(garchModelCalculationDTO.name());
@@ -109,14 +111,25 @@ public class GarchModelServiceImpl implements GarchModelService {
         garchModel.setConstantVariance(garchModelCalculationDTO.constantVariance());
         garchModelRepository.save(garchModel);
 
-        return garchModel;
+        for(int i = 0; i < garchModelCalculationDTO.lastVariances().size(); i++){
+            double value = garchModelCalculationDTO.lastVariances().get(i);
+            saveModelVarianceWeight(garchModel, value, i);
+        }
+
+        for(int i = 0; i < garchModelCalculationDTO.lastShocks().size(); i++){
+            double value = garchModelCalculationDTO.lastShocks().get(i);
+            saveModelShockWeight(garchModel, value, i);
+        }
     }
 
     /**
-     * {@inheritDoc}
+     * Adds variance weight of the given GARCH model to database.
+     *
+     * @param garchModel GARCH model that variance weight belongs to
+     * @param value value of the variance weight
+     * @param index order of the variance weight
      */
-    @Override
-    public void saveModelVarianceWeight(GarchModel garchModel, double value,  int index) {
+    private void saveModelVarianceWeight(GarchModel garchModel, double value,  int index) {
         ModelVarianceWeight modelVarianceWeight = new ModelVarianceWeight();
         modelVarianceWeight.setGarchModel(garchModel);
         modelVarianceWeight.setOrderNo(index + 1);
@@ -125,14 +138,85 @@ public class GarchModelServiceImpl implements GarchModelService {
     }
 
     /**
-    * {@inheritDoc}
+     * Adds shock weight of the given GARCH model to database.
+     *
+     * @param garchModel GARCH model that shock weight belongs to
+     * @param value value of the shock weight
+     * @param index order of the shock weight
      */
-    @Override
-    public void saveModelShockWeight(GarchModel garchModel, double value, int index) {
+    private void saveModelShockWeight(GarchModel garchModel, double value, int index) {
         ModelShockWeight modelShockWeight = new ModelShockWeight();
         modelShockWeight.setGarchModel(garchModel);
         modelShockWeight.setOrderNo(index + 1);
         modelShockWeight.setValue(value);
         modelShockWeightRepository.save(modelShockWeight);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateGarchModel(long modelId, GarchModelCalculationDTO garchModelCalculationDTO) {
+        GarchModel garchModel = garchModelRepository.findById(modelId).orElseThrow(() -> new RuntimeException("GarchModel not found"));
+        garchModel.setName(garchModelCalculationDTO.name());
+        garchModel.setStartVariance(garchModelCalculationDTO.startVariance());
+        garchModel.setConstantVariance(garchModelCalculationDTO.constantVariance());
+
+        List<ModelVarianceWeight> modelVarianceWeightList =  modelVarianceWeightRepository.findAllByGarchModelIdOrderByOrderNoAsc(modelId);
+        updateVarianceWeights(garchModel, modelVarianceWeightList, garchModelCalculationDTO.lastVariances());
+
+        List<ModelShockWeight> modelShockWeightList = modelShockWeightRepository.findAllByGarchModelIdOrderByOrderNoAsc(modelId);
+        updateShockWeights(garchModel, modelShockWeightList, garchModelCalculationDTO.lastShocks());
+    }
+
+
+    private void updateVarianceWeights(GarchModel garchModel, List<ModelVarianceWeight> existingValues, List<Double> newValues) {
+        int common = Math.min(existingValues.size(), newValues.size());
+
+        for (int i = 0; i < common; i++) {
+            existingValues.get(i).setValue(newValues.get(i));
+        }
+
+        if (newValues.size() > existingValues.size()) {
+            for (int i = existingValues.size(); i < newValues.size(); i++) {
+                saveModelVarianceWeight(garchModel, newValues.get(i), i);
+            }
+        }
+
+        if (existingValues.size() > newValues.size()) {
+            List<ModelVarianceWeight> extra = existingValues.subList(newValues.size(), existingValues.size());
+            modelVarianceWeightRepository.deleteAll(extra);
+        }
+    }
+
+    private void updateShockWeights(GarchModel garchModel, List<ModelShockWeight> existingValues, List<Double> newValues) {
+        int common = Math.min(existingValues.size(), newValues.size());
+
+        for (int i = 0; i < common; i++) {
+            existingValues.get(i).setValue(newValues.get(i));
+        }
+
+        if (newValues.size() > existingValues.size()) {
+            for (int i = existingValues.size(); i < newValues.size(); i++) {
+                saveModelShockWeight(garchModel, newValues.get(i), i);
+            }
+        }
+
+        if (existingValues.size() > newValues.size()) {
+            List<ModelShockWeight> extra = existingValues.subList(newValues.size(), existingValues.size());
+            modelShockWeightRepository.deleteAll(extra);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteGarchModel(Long modelId){
+        modelVarianceWeightRepository.deleteByGarchModelId(modelId);
+        modelShockWeightRepository.deleteByGarchModelId(modelId);
+        garchModelRepository.deleteById(modelId);
     }
 }

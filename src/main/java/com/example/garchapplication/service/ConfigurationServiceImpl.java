@@ -79,13 +79,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             Configuration configuration = saveConfiguration(configurationName);
 
             for (GarchModelCalculationDTO garchModelCalculationDTO : garchModelCalculationDTOS) {
-                GarchModel garchModel = garchModelService.saveModel(garchModelCalculationDTO, configuration);
-                for (int i = 0; i < garchModelCalculationDTO.lastVariances().size(); i++) {
-                    garchModelService.saveModelVarianceWeight(garchModel, garchModelCalculationDTO.lastVariances().get(i), i);
-                }
-                for (int i = 0; i < garchModelCalculationDTO.lastShocks().size(); i++) {
-                    garchModelService.saveModelShockWeight(garchModel, garchModelCalculationDTO.lastShocks().get(i), i);
-                }
+                garchModelService.saveModel(garchModelCalculationDTO, configuration);
             }
         }
     }
@@ -106,5 +100,28 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         configurationRepository.save(configuration);
 
         return configuration;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateConfigurationName(long configurationId, String newName) {
+        Configuration configuration = configurationRepository.findById(configurationId).orElseThrow(() -> new RuntimeException("Configuration not found"));
+        configuration.setName(newName);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteConfiguration(long configurationId) {
+        List<GarchModel> garchModelList = findAllByConfigurationId(configurationId);
+        for (GarchModel garchModel : garchModelList) {
+            garchModelService.deleteGarchModel(garchModel.getId());
+        }
+        configurationRepository.deleteById(configurationId);
     }
 }

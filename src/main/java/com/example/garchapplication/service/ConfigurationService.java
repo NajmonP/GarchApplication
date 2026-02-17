@@ -34,4 +34,21 @@ public interface ConfigurationService {
      * @return all configurations associated with the current user.
      */
     List<Configuration> getAllConfigurationsByUser();
+
+    /**
+     * Updates configuration name.
+     *
+     * @param configurationId id of configuration that is going to be updated
+     * @param newName new name of configuration
+     */
+    @Transactional(rollbackFor = Exception.class)
+    void updateConfigurationName(long configurationId, String newName);
+
+    /**
+     * Deletes configuration na its corresponding models
+     *
+     * @param configurationId id of configuration that is going to be deleted
+     */
+    @Transactional(rollbackFor = Exception.class)
+    void deleteConfiguration(long configurationId);
 }

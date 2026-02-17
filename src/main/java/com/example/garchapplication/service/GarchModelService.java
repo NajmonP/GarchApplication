@@ -6,6 +6,7 @@ import com.example.garchapplication.model.entity.Configuration;
 import com.example.garchapplication.model.entity.GarchModel;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -49,25 +50,24 @@ public interface GarchModelService {
      *
      * @param garchModelCalculationDTO GARCH model to be saved into database
      * @param configuration configuration that GARCH model belongs to
-     * @return instance of saved GARCH model for purpose of saving related model variance and shock weights
      */
-    GarchModel saveModel(GarchModelCalculationDTO garchModelCalculationDTO, Configuration configuration);
+    @Transactional(rollbackFor = Exception.class)
+    void saveModel(GarchModelCalculationDTO garchModelCalculationDTO, Configuration configuration);
 
     /**
-     * Adds variance weight of the given GARCH model to database.
+     * Updates already stored GARCH model and its corresponding shock and variance weights.
      *
-     * @param garchModel GARCH model that variance weight belongs to
-     * @param value value of the variance weight
-     * @param index order of the variance weight
+     * @param modelId id of GARCH model that is going to be updated
+     * @param garchModelCalculationDTO DTO containing new GARCH model data
      */
-    void saveModelVarianceWeight(GarchModel garchModel, double value,  int index);
+    @Transactional(rollbackFor = Exception.class)
+    void updateGarchModel(long modelId, GarchModelCalculationDTO garchModelCalculationDTO);
 
     /**
-     * Adds shock weight of the given GARCH model to database.
+     * Deletes stored GARCH model and its corresponding shock and variance weights.
      *
-     * @param garchModel GARCH model that shock weight belongs
-     * @param value value of the shock weight
-     * @param index order of the shock weight
+     * @param modelId id of GARCH model that is about to be deleted
      */
-    void saveModelShockWeight(GarchModel garchModel, double value, int index);
+    @Transactional(rollbackFor = Exception.class)
+    void deleteGarchModel(Long modelId);
 }

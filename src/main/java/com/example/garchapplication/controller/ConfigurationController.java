@@ -1,11 +1,12 @@
 package com.example.garchapplication.controller;
 
 import com.example.garchapplication.model.dto.GarchModelDTO;
+import com.example.garchapplication.model.dto.UpdateConfigurationRequest;
 import com.example.garchapplication.model.entity.Configuration;
 import com.example.garchapplication.service.ConfigurationService;
-import com.example.garchapplication.service.GarchModelService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -18,12 +19,10 @@ import java.util.List;
 class ConfigurationController {
 
     private final ConfigurationService configurationService;
-    private final GarchModelService garchModelService;
 
     @Autowired
-    public ConfigurationController(ConfigurationService configurationService, GarchModelService garchModelService) {
+    public ConfigurationController(ConfigurationService configurationService) {
         this.configurationService = configurationService;
-        this.garchModelService = garchModelService;
     }
 
     @GetMapping("/configuration")
@@ -62,4 +61,22 @@ class ConfigurationController {
         configurationService.addConfiguration(configurationFile);
         return "redirect:/configuration";
     }
+
+    @PutMapping("/configuration/{configurationId}")
+    @ResponseBody
+    public ResponseEntity<Void> updateConfiguration(
+            @PathVariable Long configurationId,
+            @RequestBody UpdateConfigurationRequest updateConfigurationRequest
+    ) {
+        configurationService.updateConfigurationName(configurationId, updateConfigurationRequest.name());
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/configuration/{configurationId}")
+    @ResponseBody
+    public ResponseEntity<Void> deleteConfiguration(@PathVariable Long configurationId) {
+        configurationService.deleteConfiguration(configurationId);
+        return ResponseEntity.noContent().build();
+    }
+
 }
