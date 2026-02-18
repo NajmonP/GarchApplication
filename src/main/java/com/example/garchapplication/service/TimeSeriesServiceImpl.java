@@ -4,6 +4,7 @@ import com.example.garchapplication.model.dto.TimeSeriesDTO;
 import com.example.garchapplication.model.entity.TimeSeries;
 import com.example.garchapplication.model.entity.TimeSeriesValue;
 import com.example.garchapplication.model.entity.User;
+import com.example.garchapplication.repository.CalculationRepository;
 import com.example.garchapplication.repository.TimeSeriesRepository;
 import com.example.garchapplication.repository.TimeSeriesValueRepository;
 import com.example.garchapplication.security.AuthenticationHandler;
@@ -18,18 +19,19 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.sql.Date;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class TimeSeriesServiceImpl implements TimeSeriesService {
 
     private final TimeSeriesRepository timeSeriesRepository;
+    private final CalculationRepository calculationRepository;
     private final TimeSeriesValueRepository timeSeriesValueRepository;
     private final AuthenticationHandler authenticationHandler;
 
     @Autowired
-    public TimeSeriesServiceImpl(TimeSeriesRepository timeSeriesRepository, TimeSeriesValueRepository timeSeriesValueRepository, AuthenticationHandler authenticationHandler) {
+    public TimeSeriesServiceImpl(TimeSeriesRepository timeSeriesRepository, CalculationRepository calculationRepository, TimeSeriesValueRepository timeSeriesValueRepository, AuthenticationHandler authenticationHandler) {
         this.timeSeriesRepository = timeSeriesRepository;
+        this.calculationRepository = calculationRepository;
         this.timeSeriesValueRepository = timeSeriesValueRepository;
         this.authenticationHandler = authenticationHandler;
     }
@@ -153,4 +155,27 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
     public TimeSeries getTimeSeriesFromDatabase(Long timeSeriesId) {
         return timeSeriesRepository.findById(timeSeriesId).get();
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateTimeSeriesName(Long timeSeriesId, String newName) {
+        TimeSeries timeSeries = timeSeriesRepository.findById(timeSeriesId).get();
+        timeSeries.setName(newName);
+    }
+
+    @Override
+    @Transactional
+    public void deleteTimeSeries(long timeSeriesId) {
+
+        calculationRepository.markMissingInput(timeSeriesId);
+        calculationRepository.markMissingOutput(timeSeriesId);
+
+        timeSeriesRepository.deleteById(timeSeriesId);
+
+        calculationRepository.markBrokenWhereBothNull();
+    }
+
 }

@@ -215,8 +215,6 @@ public class GarchModelServiceImpl implements GarchModelService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteGarchModel(Long modelId){
-        modelVarianceWeightRepository.deleteByGarchModelId(modelId);
-        modelShockWeightRepository.deleteByGarchModelId(modelId);
         garchModelRepository.deleteById(modelId);
     }
 }

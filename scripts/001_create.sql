@@ -94,7 +94,7 @@ CREATE TABLE calculation
     user_id               BIGINT                   NOT NULL REFERENCES users (user_id) ON DELETE CASCADE,
     status                garch.calculation_status NOT NULL DEFAULT 'OK',
     run_at                TIMESTAMPTZ              NOT NULL DEFAULT now(),
-    input_time_series_id  BIGINT                   REFERENCES time_series (time_series_id) ON DELETE RESTRICT,
+    input_time_series_id  BIGINT                   REFERENCES time_series (time_series_id) ON DELETE SET NULL,
     result_time_series_id BIGINT                   REFERENCES time_series (time_series_id) ON DELETE SET NULL,
     start_variance        DOUBLE PRECISION         NOT NULL,
     constant_variance     DOUBLE PRECISION         NOT NULL

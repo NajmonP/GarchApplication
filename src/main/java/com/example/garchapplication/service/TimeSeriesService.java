@@ -56,4 +56,22 @@ public interface TimeSeriesService {
      * @return selected time series
      */
     TimeSeries getTimeSeriesFromDatabase(Long timeSeriesId);
+
+    /**
+     * Updates time series name.
+     *
+     * @param timeSeriesId id of time series that is going to be updated
+     * @param newName new name of time series
+     */
+    @Transactional(rollbackFor = Exception.class)
+    void updateTimeSeriesName(Long timeSeriesId, String newName);
+
+
+    /**
+     * Deletes time series.
+     *
+     * @param timeSeriesId id of time series that is going to be deleted
+     */
+    @Transactional(rollbackFor = Exception.class)
+    void deleteTimeSeries(long timeSeriesId);
 }

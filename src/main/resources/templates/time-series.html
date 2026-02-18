@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
@@ -11,6 +11,11 @@
 
 <h1>Time series</h1>
 
+<form id="csrfForm" style="display:none;">
+    <input type="hidden" id="csrfToken" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+    <input type="hidden" id="csrfHeaderName" th:value="${_csrf.headerName}" />
+</form>
+
 <div class="row">
     <div class="card shadow-sm col-6 mb-3" th:each="timeSeries : ${timeSeriesList}">
         <div class="card-body">
@@ -18,6 +23,23 @@
             <p><strong>Název:</strong> <span th:text="${timeSeries.name}"></span></p>
             <p><strong>Vytvořeno:</strong> <span th:text="${timeSeries.created}"></span></p>
             <p><strong>Vytvořil:</strong> <span th:text="${timeSeries.user.username}"></span></p>
+
+            <div class="d-flex gap-2 mt-3" th:if="${#authorization.expression('isAuthenticated()')}">
+                <button type="button"
+                        class="btn btn-outline-primary btn-sm"
+                        data-bs-toggle="modal"
+                        data-bs-target="#editTimeSeriesModal"
+                        th:attr="data-id=${timeSeries.id},data-name=${timeSeries.name}">
+                    Upravit
+                </button>
+
+                <button type="button"
+                        class="btn btn-outline-danger btn-sm js-delete-time-series"
+                        th:attr="data-id=${timeSeries.id}">
+                    Smazat
+                </button>
+            </div>
+
         </div>
     </div>
 </div>
@@ -26,8 +48,12 @@
       method="post" enctype="multipart/form-data">
     <label for="time-series" class="form-label">Kofigurační soubor (XLSX):</label>
     <input type="file" id="time-series" name="time-series" accept=".xlsx,.xls" required/>
-
     <button type="submit" class="btn btn-primary w-100">Vložit</button>
 </form>
+
+<div th:replace="~{fragments/time-series-edit-modal :: editTimeSeriesModal}"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/time-series-edit.js"></script>
 </body>
 </html>

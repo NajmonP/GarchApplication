@@ -1,13 +1,13 @@
 package com.example.garchapplication.controller;
 
+import com.example.garchapplication.model.dto.UpdateNameRequest;
 import com.example.garchapplication.model.entity.TimeSeries;
 import com.example.garchapplication.service.TimeSeriesService;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -45,6 +45,21 @@ public class TimeSeriesController {
     ) throws IOException {
         timeSeriesService.addTimeSeriesFromFile(timeSeriesFile);
         return "redirect:/time-series";
+    }
+
+    @PutMapping("/time-series/{timeSeriesId}")
+    @ResponseBody
+    public ResponseEntity<Void> updateTimeSeriesName(@PathVariable long timeSeriesId,
+                                                     @RequestBody UpdateNameRequest updateNameRequest) {
+        timeSeriesService.updateTimeSeriesName(timeSeriesId, updateNameRequest.name());
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/time-series/{timeSeriesId}")
+    @ResponseBody
+    public ResponseEntity<Void> deleteTimeSeries(@PathVariable long timeSeriesId) {
+        timeSeriesService.deleteTimeSeries(timeSeriesId);
+        return ResponseEntity.noContent().build();
     }
 }
 

@@ -1,7 +1,7 @@
 package com.example.garchapplication.controller;
 
 import com.example.garchapplication.model.dto.GarchModelDTO;
-import com.example.garchapplication.model.dto.UpdateConfigurationRequest;
+import com.example.garchapplication.model.dto.UpdateNameRequest;
 import com.example.garchapplication.model.entity.Configuration;
 import com.example.garchapplication.service.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,9 +66,9 @@ class ConfigurationController {
     @ResponseBody
     public ResponseEntity<Void> updateConfiguration(
             @PathVariable Long configurationId,
-            @RequestBody UpdateConfigurationRequest updateConfigurationRequest
+            @RequestBody UpdateNameRequest updateNameRequest
     ) {
-        configurationService.updateConfigurationName(configurationId, updateConfigurationRequest.name());
+        configurationService.updateConfigurationName(configurationId, updateNameRequest.name());
         return ResponseEntity.noContent().build();
     }
 
