@@ -5,6 +5,7 @@ import com.example.garchapplication.model.dto.GarchModelDTO;
 import com.example.garchapplication.model.dto.UpdateNameRequest;
 import com.example.garchapplication.model.entity.Configuration;
 import com.example.garchapplication.service.ConfigurationService;
+import com.example.garchapplication.service.GarchModelService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
@@ -24,10 +25,12 @@ import java.util.List;
 class ConfigurationController {
 
     private final ConfigurationService configurationService;
+    private final GarchModelService garchModelService;
 
     @Autowired
-    public ConfigurationController(ConfigurationService configurationService) {
+    public ConfigurationController(ConfigurationService configurationService, GarchModelService garchModelService) {
         this.configurationService = configurationService;
+        this.garchModelService = garchModelService;
     }
 
     @GetMapping("/configuration")
@@ -47,7 +50,7 @@ class ConfigurationController {
     @GetMapping("/configuration/{configurationId}")
     @ResponseBody
     public List<GarchModelDTO> getModelsByConfiguration(@PathVariable Long configurationId) {
-        return configurationService.extractGarchModelDTOsByConfigurationId(configurationId);
+        return garchModelService.extractGarchModelDTOsByConfigurationId(configurationId);
     }
 
     /**

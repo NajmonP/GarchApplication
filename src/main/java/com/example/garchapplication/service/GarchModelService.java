@@ -17,6 +17,9 @@ import java.util.Map;
  */
 @Service
 public interface GarchModelService {
+
+    List<GarchModel> findAllGarchModelsByConfigurationId(Long configurationId);
+
     /**
      * Loads GARCH model and its parameters from database based on given ID.
      * <br>
@@ -38,6 +41,8 @@ public interface GarchModelService {
      * @return DTO of selected GARCH model
      */
     GarchModelDTO extractGarchModelDTO(Long modelId);
+
+    List<GarchModelDTO> extractGarchModelDTOsByConfigurationId(Long configurationId);
 
     /**
      * Extracts all GARCH models from sheet of provided configuration file.

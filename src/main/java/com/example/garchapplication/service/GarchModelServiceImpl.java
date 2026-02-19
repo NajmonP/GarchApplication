@@ -40,6 +40,11 @@ public class GarchModelServiceImpl implements GarchModelService {
         this.modelShockWeightRepository = modelShockWeightRepository;
     }
 
+    @Override
+    public List<GarchModel> findAllGarchModelsByConfigurationId(Long configurationId) {
+        return garchModelRepository.findAllByConfigurationId(configurationId);
+    }
+
     /**
     * {@inheritDoc}
      */
@@ -64,6 +69,16 @@ public class GarchModelServiceImpl implements GarchModelService {
         List<ModelShockWeight> modelShockWeightList = modelShockWeightRepository.findAllByGarchModelIdOrderByOrderNoAsc(garchModel.getId());
 
         return GarchModelMapper.toGarchModelDTO(garchModel, modelVarianceWeightList, modelShockWeightList);
+    }
+
+    @Override
+    public List<GarchModelDTO> extractGarchModelDTOsByConfigurationId(Long configurationId) {
+        List<GarchModel> garchModelList = findAllGarchModelsByConfigurationId(configurationId);
+        List<GarchModelDTO> garchModelDTOList = new ArrayList<>();
+        garchModelList.forEach(garchModel -> {
+            garchModelDTOList.add(extractGarchModelDTO(garchModel.getId()));
+        });
+        return garchModelDTOList;
     }
 
     /**

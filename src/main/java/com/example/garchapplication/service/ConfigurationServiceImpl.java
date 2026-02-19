@@ -26,14 +26,12 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     private final GarchModelService garchModelService;
     private final ConfigurationRepository configurationRepository;
-    private final GarchModelRepository garchModelRepository;
     private final AuthenticationHandler authenticationHandler;
 
     @Autowired
     public ConfigurationServiceImpl(ConfigurationRepository configurationRepository, GarchModelServiceImpl garchModelService, GarchModelRepository garchModelRepository, AuthenticationHandler authenticationHandler) {
         this.configurationRepository = configurationRepository;
         this.garchModelService = garchModelService;
-        this.garchModelRepository = garchModelRepository;
         this.authenticationHandler = authenticationHandler;
     }
 
@@ -51,20 +49,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     }
 
 
-    @Override
-    public List<GarchModel> findAllByConfigurationId(Long configurationId) {
-        return garchModelRepository.findAllByConfigurationId(configurationId);
-    }
 
-    @Override
-    public List<GarchModelDTO> extractGarchModelDTOsByConfigurationId(Long configurationId) {
-        List<GarchModel> garchModelList = findAllByConfigurationId(configurationId);
-        List<GarchModelDTO> garchModelDTOList = new ArrayList<>();
-        garchModelList.forEach(garchModel -> {
-            garchModelDTOList.add(garchModelService.extractGarchModelDTO(garchModel.getId()));
-        });
-        return garchModelDTOList;
-    }
 
     /**
      * {@inheritDoc}
@@ -119,7 +104,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteConfiguration(long configurationId) {
-        List<GarchModel> garchModelList = findAllByConfigurationId(configurationId);
+        List<GarchModel> garchModelList = garchModelService.findAllGarchModelsByConfigurationId(configurationId);
         for (GarchModel garchModel : garchModelList) {
             garchModelService.deleteGarchModel(garchModel.getId());
         }
@@ -132,7 +117,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     @Override
     public ConfigurationFileDTO exportConfiguration(Long configurationId) {
         Configuration configuration = configurationRepository.findById(configurationId).orElseThrow(() -> new RuntimeException("Configuration not found"));
-        List<GarchModelDTO> garchModelDTOList = extractGarchModelDTOsByConfigurationId(configurationId);
+        List<GarchModelDTO> garchModelDTOList = garchModelService.extractGarchModelDTOsByConfigurationId(configurationId);
 
         try (Workbook workbook = new XSSFWorkbook();
              ByteArrayOutputStream out = new ByteArrayOutputStream()) {
