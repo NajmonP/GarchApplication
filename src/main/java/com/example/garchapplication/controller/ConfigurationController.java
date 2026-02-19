@@ -1,5 +1,6 @@
 package com.example.garchapplication.controller;
 
+import com.example.garchapplication.helper.DownloadHeaderUtil;
 import com.example.garchapplication.model.dto.XlsxFileDTO;
 import com.example.garchapplication.model.dto.GarchModelDTO;
 import com.example.garchapplication.model.dto.UpdateNameRequest;
@@ -92,26 +93,11 @@ class ConfigurationController {
 
         XlsxFileDTO xlsxFileDTO = configurationService.exportConfiguration(configurationId);
 
-        String base = (xlsxFileDTO.name() == null || xlsxFileDTO.name().isBlank()) ? "configuration" : xlsxFileDTO.name().trim();
-        base = base.replaceAll("[\\\\/:*?\"<>|]", "_"); // zakázané znaky pro Windows
 
-        String utf8Filename = base + ".xlsx";
-
-        // ASCII fallback pro filename= (bez diakritiky)
-        String asciiBase = Normalizer.normalize(base, Normalizer.Form.NFD)
-                .replaceAll("\\p{M}", "")              // odstraní diakritiku
-                .replaceAll("[^A-Za-z0-9._-]", "_");   // jen bezpečné znaky
-        if (asciiBase.isBlank()) asciiBase = "configuration";
-
-        String asciiFilename = asciiBase + ".xlsx";
-
-        ContentDisposition cd = ContentDisposition.attachment()
-                .filename(asciiFilename)                           // filename=
-                .filename(utf8Filename, StandardCharsets.UTF_8)    // filename*=
-                .build();
+        ContentDisposition contentDisposition = DownloadHeaderUtil.createExcelAttachment(xlsxFileDTO.name());
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, cd.toString())
+                .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString())
                 .contentType(MediaType.parseMediaType(
                         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 ))
