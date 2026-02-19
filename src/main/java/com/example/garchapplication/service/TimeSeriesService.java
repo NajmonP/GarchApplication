@@ -1,6 +1,7 @@
 package com.example.garchapplication.service;
 
 import com.example.garchapplication.model.dto.TimeSeriesDTO;
+import com.example.garchapplication.model.dto.XlsxFileDTO;
 import com.example.garchapplication.model.entity.TimeSeries;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -74,4 +75,12 @@ public interface TimeSeriesService {
      */
     @Transactional(rollbackFor = Exception.class)
     void deleteTimeSeries(long timeSeriesId);
+
+    /**
+     * Loads all time series data from database and writes them into xlsx file.
+     *
+     * @param timeSeriesId id of time series that is going to be exported
+     * @return DTO containing time series name and corresponding data
+     */
+    XlsxFileDTO exportTimeSeries(long timeSeriesId);
 }

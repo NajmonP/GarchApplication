@@ -1,8 +1,12 @@
 package com.example.garchapplication.controller;
 
+import com.example.garchapplication.model.dto.TimeSeriesDTO;
 import com.example.garchapplication.model.dto.UpdateNameRequest;
+import com.example.garchapplication.model.dto.XlsxFileDTO;
 import com.example.garchapplication.model.entity.TimeSeries;
 import com.example.garchapplication.service.TimeSeriesService;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -11,6 +15,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.text.Normalizer;
 import java.util.List;
 
 @Controller
@@ -60,6 +66,41 @@ public class TimeSeriesController {
     public ResponseEntity<Void> deleteTimeSeries(@PathVariable long timeSeriesId) {
         timeSeriesService.deleteTimeSeries(timeSeriesId);
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     *
+     * @param timeSeriesId
+     * @return
+     */
+    @GetMapping("/time-series/download/{timeSeriesId}")
+    public ResponseEntity<byte[]> downloadTimeSeries(@PathVariable long timeSeriesId) {
+        XlsxFileDTO xlsxFileDTO = timeSeriesService.exportTimeSeries(timeSeriesId);
+
+        String base = (xlsxFileDTO.name() == null || xlsxFileDTO.name().isBlank()) ? "configuration" : xlsxFileDTO.name().trim();
+        base = base.replaceAll("[\\\\/:*?\"<>|]", "_"); // zakázané znaky pro Windows
+
+        String utf8Filename = base + ".xlsx";
+
+        // ASCII fallback pro filename= (bez diakritiky)
+        String asciiBase = Normalizer.normalize(base, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")              // odstraní diakritiku
+                .replaceAll("[^A-Za-z0-9._-]", "_");   // jen bezpečné znaky
+        if (asciiBase.isBlank()) asciiBase = "configuration";
+
+        String asciiFilename = asciiBase + ".xlsx";
+
+        ContentDisposition cd = ContentDisposition.attachment()
+                .filename(asciiFilename)                           // filename=
+                .filename(utf8Filename, StandardCharsets.UTF_8)    // filename*=
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, cd.toString())
+                .contentType(MediaType.parseMediaType(
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                ))
+                .body(xlsxFileDTO.bytes());
     }
 }
 

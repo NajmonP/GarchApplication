@@ -1,6 +1,6 @@
 package com.example.garchapplication.controller;
 
-import com.example.garchapplication.model.dto.ConfigurationFileDTO;
+import com.example.garchapplication.model.dto.XlsxFileDTO;
 import com.example.garchapplication.model.dto.GarchModelDTO;
 import com.example.garchapplication.model.dto.UpdateNameRequest;
 import com.example.garchapplication.model.entity.Configuration;
@@ -90,9 +90,9 @@ class ConfigurationController {
     @GetMapping("/configuration/download/{configurationId}")
     public ResponseEntity<byte[]> downloadConfiguration(@PathVariable Long configurationId) {
 
-        ConfigurationFileDTO configurationFileDTO = configurationService.exportConfiguration(configurationId);
+        XlsxFileDTO xlsxFileDTO = configurationService.exportConfiguration(configurationId);
 
-        String base = (configurationFileDTO.name() == null || configurationFileDTO.name().isBlank()) ? "configuration" : configurationFileDTO.name().trim();
+        String base = (xlsxFileDTO.name() == null || xlsxFileDTO.name().isBlank()) ? "configuration" : xlsxFileDTO.name().trim();
         base = base.replaceAll("[\\\\/:*?\"<>|]", "_"); // zakázané znaky pro Windows
 
         String utf8Filename = base + ".xlsx";
@@ -115,7 +115,7 @@ class ConfigurationController {
                 .contentType(MediaType.parseMediaType(
                         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 ))
-                .body(configurationFileDTO.bytes());
+                .body(xlsxFileDTO.bytes());
     }
 
 }

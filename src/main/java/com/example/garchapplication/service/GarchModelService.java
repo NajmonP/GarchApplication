@@ -42,6 +42,15 @@ public interface GarchModelService {
      */
     GarchModelDTO extractGarchModelDTO(Long modelId);
 
+    /**
+     * Loads GARCH models and its parameters from database based on given configuration ID.
+     * <br>
+     * Data is loaded from {@code garch_model} entity and its parameters from {@code model_variance_weight}
+     * and {@code model_shock_weight} entities.
+     *
+     * @param configurationId ID of selected configuration
+     * @return DTOs of corresponding GARCH models
+     */
     List<GarchModelDTO> extractGarchModelDTOsByConfigurationId(Long configurationId);
 
     /**
@@ -79,13 +88,13 @@ public interface GarchModelService {
     void deleteGarchModel(Long modelId);
 
     /**
-     * Adds Garch model
+     * Adds Garch model to Excel sheet during configuration exporting
      *
-     * @param garchModelDTO
-     * @param sheet
-     * @param index
-     * @param styles
-     * @return
+     * @param garchModelDTO DTO of GARCH model containing all related data
+     * @param sheet sheet to what is going to be data written to
+     * @param index index of starting row
+     * @param styles map of all cell styles
+     * @return index of last row that of a sheet to what data is written to
      */
     int addGarchModelToSheet(GarchModelDTO garchModelDTO, Sheet sheet, int index, Map<String, CellStyle> styles);
 }

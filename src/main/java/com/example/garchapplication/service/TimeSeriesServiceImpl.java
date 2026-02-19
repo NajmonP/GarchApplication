@@ -1,21 +1,25 @@
 package com.example.garchapplication.service;
 
+import com.example.garchapplication.helper.CellStylesBuilder;
 import com.example.garchapplication.model.dto.TimeSeriesDTO;
+import com.example.garchapplication.model.dto.XlsxFileDTO;
 import com.example.garchapplication.model.entity.TimeSeries;
 import com.example.garchapplication.model.entity.TimeSeriesValue;
 import com.example.garchapplication.model.entity.User;
+import com.example.garchapplication.model.enums.CellStyleNames;
 import com.example.garchapplication.repository.CalculationRepository;
 import com.example.garchapplication.repository.TimeSeriesRepository;
 import com.example.garchapplication.repository.TimeSeriesValueRepository;
 import com.example.garchapplication.security.AuthenticationHandler;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.sql.Date;
 import java.util.*;
@@ -75,7 +79,7 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
         Map<Long, Double> timeSeriesValues = timeSeriesDTO.timeSeries();
 
         for (int i = 0; i < timeSeriesValues.size(); i++) {
-            saveTimeSeriesValue(timeSeries, timeSeriesValues.get((long) i), i+1);
+            saveTimeSeriesValue(timeSeries, timeSeriesValues.get((long) i), i + 1);
         }
 
         return timeSeries;
@@ -141,10 +145,10 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
     public TimeSeriesDTO getTimeSeriesDTOFromDatabase(Long timeSeriesId) {
         List<TimeSeriesValue> timeSeriesValueList = timeSeriesValueRepository.findAllByTimeSeriesIdOrderByOrderNo(timeSeriesId);
         Map<Long, Double> timeSeries = new HashMap<>();
-        for(int i = 0; i < timeSeriesValueList.size(); i++){
-            timeSeries.put((long)i, timeSeriesValueList.get(i).getValue());
+        for (int i = 0; i < timeSeriesValueList.size(); i++) {
+            timeSeries.put((long) i, timeSeriesValueList.get(i).getValue());
         }
-        String name = timeSeriesRepository.findById(timeSeriesId).get().getName();
+        String name = timeSeriesRepository.findById(timeSeriesId).orElseThrow(() -> new RuntimeException("TimeSeries not found")).getName();
         return new TimeSeriesDTO(name, timeSeries);
     }
 
@@ -166,6 +170,9 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
         timeSeries.setName(newName);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @Transactional
     public void deleteTimeSeries(long timeSeriesId) {
@@ -176,6 +183,51 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
         timeSeriesRepository.deleteById(timeSeriesId);
 
         calculationRepository.markBrokenWhereBothNull();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public XlsxFileDTO exportTimeSeries(long timeSeriesId) {
+        TimeSeriesDTO timeSeriesDTO = getTimeSeriesDTOFromDatabase(timeSeriesId);
+
+        try (Workbook workbook = new XSSFWorkbook();
+             ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+
+            Sheet sheet = workbook.createSheet("TimeSeries");
+            Map<String, CellStyle> styles = CellStylesBuilder.getCellStylesForTimeSeries(workbook);
+
+            Row header = sheet.createRow(0);
+            Cell cell = header.createCell(0);
+            cell.setCellValue("Název konfigurace:");
+            cell.setCellStyle(styles.get(CellStyleNames.PARAMETER_NAME.toString()));
+            cell = header.createCell(1);
+            cell.setCellValue(timeSeriesDTO.name());
+            cell.setCellStyle(styles.get(CellStyleNames.HEADER.toString()));
+            sheet.addMergedRegion(new CellRangeAddress(0, 0, 1, 8));
+
+            Row row = sheet.createRow(1);
+            cell = row.createCell(0);
+            cell.setCellValue("Hodnoty: ");
+            cell.setCellStyle(styles.get(CellStyleNames.PARAMETER_NAME.toString()));
+
+            exportTimeSeriesValues(sheet, timeSeriesDTO.timeSeries());
+
+            sheet.autoSizeColumn(0);
+            workbook.write(out);
+            return new XlsxFileDTO(out.toByteArray(), timeSeriesDTO.name());
+
+        } catch (IOException e) {
+            throw new RuntimeException("Error generating Excel file", e);
+        }
+    }
+
+    private void exportTimeSeriesValues(Sheet sheet, Map<Long, Double> timeSeriesValues) {
+        for(int i = 0; i < timeSeriesValues.size(); i++) {
+            Row row = sheet.createRow(i + 2);
+            row.createCell(0).setCellValue(timeSeriesValues.get((long)i));
+        }
     }
 
 }

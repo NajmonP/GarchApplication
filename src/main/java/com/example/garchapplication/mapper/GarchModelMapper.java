@@ -8,7 +8,7 @@ import com.example.garchapplication.model.entity.ModelVarianceWeight;
 
 import java.util.List;
 
-public class GarchModelMapper {
+public final class GarchModelMapper {
 
     public static GarchModelCalculationDTO toGarchModelCalculationDTO(
             GarchModel model,

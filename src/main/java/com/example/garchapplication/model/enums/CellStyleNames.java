@@ -1,7 +1,7 @@
 package com.example.garchapplication.model.enums;
 
 public enum CellStyleNames {
-    CONFIGURATION_NAME,
+    HEADER,
     MODEL_NAME,
     PARAMETER_NAME
 }

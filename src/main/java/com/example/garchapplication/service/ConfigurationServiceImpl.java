@@ -1,6 +1,7 @@
 package com.example.garchapplication.service;
 
-import com.example.garchapplication.model.dto.ConfigurationFileDTO;
+import com.example.garchapplication.helper.CellStylesBuilder;
+import com.example.garchapplication.model.dto.XlsxFileDTO;
 import com.example.garchapplication.model.dto.GarchModelCalculationDTO;
 import com.example.garchapplication.model.dto.GarchModelDTO;
 import com.example.garchapplication.model.entity.*;
@@ -47,9 +48,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         }
         return configurationRepository.getConfigurationsByUser(user);
     }
-
-
-
 
     /**
      * {@inheritDoc}
@@ -115,7 +113,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
      * {@inheritDoc}
      */
     @Override
-    public ConfigurationFileDTO exportConfiguration(Long configurationId) {
+    public XlsxFileDTO exportConfiguration(Long configurationId) {
         Configuration configuration = configurationRepository.findById(configurationId).orElseThrow(() -> new RuntimeException("Configuration not found"));
         List<GarchModelDTO> garchModelDTOList = garchModelService.extractGarchModelDTOsByConfigurationId(configurationId);
 
@@ -123,7 +121,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
              ByteArrayOutputStream out = new ByteArrayOutputStream()) {
 
             Sheet sheet = workbook.createSheet("Configuration");
-            Map<String, CellStyle> styles = getCellStyles(workbook);
+            Map<String, CellStyle> styles = CellStylesBuilder.getCellStylesForConfiguration(workbook);
 
             Row header = sheet.createRow(0);
             Cell cell = header.createCell(0);
@@ -131,7 +129,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             cell.setCellStyle(styles.get(CellStyleNames.PARAMETER_NAME.toString()));
             cell = header.createCell(1);
             cell.setCellValue(configuration.getName());
-            cell.setCellStyle(styles.get(CellStyleNames.CONFIGURATION_NAME.toString()));
+            cell.setCellStyle(styles.get(CellStyleNames.HEADER.toString()));
             sheet.addMergedRegion(new CellRangeAddress(0, 0, 1, 8));
             int index = 1;
             for(GarchModelDTO garchModelDTO : garchModelDTOList) {
@@ -140,37 +138,10 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
             sheet.autoSizeColumn(0);
             workbook.write(out);
-            return new ConfigurationFileDTO(out.toByteArray(), configuration.getName());
+            return new XlsxFileDTO(out.toByteArray(), configuration.getName());
 
         } catch (IOException e) {
             throw new RuntimeException("Error generating Excel file", e);
         }
-    }
-
-    private Map<String, CellStyle> getCellStyles(Workbook workbook) {
-        Map<String, CellStyle> styles = new HashMap<>();
-
-        CellStyle configurationName = workbook.createCellStyle();
-        configurationName.setAlignment(HorizontalAlignment.CENTER);
-        configurationName.setVerticalAlignment(VerticalAlignment.CENTER);
-        configurationName.setFillForegroundColor(IndexedColors.ORANGE.index);
-        configurationName.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-
-        styles.put(CellStyleNames.CONFIGURATION_NAME.toString(), configurationName);
-
-        CellStyle modelName = workbook.createCellStyle();
-        modelName.setAlignment(HorizontalAlignment.CENTER);
-        modelName.setVerticalAlignment(VerticalAlignment.CENTER);
-        modelName.setFillForegroundColor(IndexedColors.LIGHT_ORANGE.index);
-        modelName.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-
-        styles.put(CellStyleNames.MODEL_NAME.toString(), modelName);
-
-        CellStyle parameterName = workbook.createCellStyle();
-        parameterName.setFillForegroundColor(IndexedColors.LIGHT_ORANGE.index);
-        parameterName.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-
-        styles.put(CellStyleNames.PARAMETER_NAME.toString(), parameterName);
-        return styles;
     }
 }

@@ -1,6 +1,6 @@
 package com.example.garchapplication.service;
 
-import com.example.garchapplication.model.dto.ConfigurationFileDTO;
+import com.example.garchapplication.model.dto.XlsxFileDTO;
 import com.example.garchapplication.model.entity.Configuration;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,7 +40,7 @@ public interface ConfigurationService {
     void updateConfigurationName(long configurationId, String newName);
 
     /**
-     * Deletes configuration na its corresponding models
+     * Deletes configuration na its corresponding models.
      *
      * @param configurationId id of configuration that is going to be deleted
      */
@@ -49,10 +49,10 @@ public interface ConfigurationService {
 
 
     /**
+     * Loads all configurations data from database and writes them into xlsx file .
      *
-     *
-     * @param configurationId
-     * @return
+     * @param configurationId id of configuration that is going to be exported
+     * @return DTO containing configuration name and corresponding data
      */
-    ConfigurationFileDTO exportConfiguration(Long configurationId);
+    XlsxFileDTO exportConfiguration(Long configurationId);
 }
