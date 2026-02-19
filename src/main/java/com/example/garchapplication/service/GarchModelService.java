@@ -4,11 +4,13 @@ import com.example.garchapplication.model.dto.GarchModelCalculationDTO;
 import com.example.garchapplication.model.dto.GarchModelDTO;
 import com.example.garchapplication.model.entity.Configuration;
 import com.example.garchapplication.model.entity.GarchModel;
+import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Service interface responsible for GARCH model management.
@@ -70,4 +72,15 @@ public interface GarchModelService {
      */
     @Transactional(rollbackFor = Exception.class)
     void deleteGarchModel(Long modelId);
+
+    /**
+     * Adds Garch model
+     *
+     * @param garchModelDTO
+     * @param sheet
+     * @param index
+     * @param styles
+     * @return
+     */
+    int addGarchModelToSheet(GarchModelDTO garchModelDTO, Sheet sheet, int index, Map<String, CellStyle> styles);
 }

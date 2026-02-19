@@ -1,10 +1,13 @@
 package com.example.garchapplication.controller;
 
+import com.example.garchapplication.model.dto.ConfigurationFileDTO;
 import com.example.garchapplication.model.dto.GarchModelDTO;
 import com.example.garchapplication.model.dto.UpdateNameRequest;
 import com.example.garchapplication.model.entity.Configuration;
 import com.example.garchapplication.service.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -13,6 +16,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.text.Normalizer;
 import java.util.List;
 
 @Controller
@@ -77,6 +82,37 @@ class ConfigurationController {
     public ResponseEntity<Void> deleteConfiguration(@PathVariable Long configurationId) {
         configurationService.deleteConfiguration(configurationId);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/configuration/download/{configurationId}")
+    public ResponseEntity<byte[]> downloadConfiguration(@PathVariable Long configurationId) {
+
+        ConfigurationFileDTO configurationFileDTO = configurationService.exportConfiguration(configurationId);
+
+        String base = (configurationFileDTO.name() == null || configurationFileDTO.name().isBlank()) ? "configuration" : configurationFileDTO.name().trim();
+        base = base.replaceAll("[\\\\/:*?\"<>|]", "_"); // zakázané znaky pro Windows
+
+        String utf8Filename = base + ".xlsx";
+
+        // ASCII fallback pro filename= (bez diakritiky)
+        String asciiBase = Normalizer.normalize(base, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")              // odstraní diakritiku
+                .replaceAll("[^A-Za-z0-9._-]", "_");   // jen bezpečné znaky
+        if (asciiBase.isBlank()) asciiBase = "configuration";
+
+        String asciiFilename = asciiBase + ".xlsx";
+
+        ContentDisposition cd = ContentDisposition.attachment()
+                .filename(asciiFilename)                           // filename=
+                .filename(utf8Filename, StandardCharsets.UTF_8)    // filename*=
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, cd.toString())
+                .contentType(MediaType.parseMediaType(
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                ))
+                .body(configurationFileDTO.bytes());
     }
 
 }

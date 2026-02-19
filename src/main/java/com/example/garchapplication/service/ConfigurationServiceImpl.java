@@ -1,24 +1,25 @@
 package com.example.garchapplication.service;
 
+import com.example.garchapplication.model.dto.ConfigurationFileDTO;
 import com.example.garchapplication.model.dto.GarchModelCalculationDTO;
 import com.example.garchapplication.model.dto.GarchModelDTO;
 import com.example.garchapplication.model.entity.*;
+import com.example.garchapplication.model.enums.CellStyleNames;
 import com.example.garchapplication.repository.ConfigurationRepository;
 import com.example.garchapplication.repository.GarchModelRepository;
 import com.example.garchapplication.security.AuthenticationHandler;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.util.CellRangeAddress;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.sql.Date;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class ConfigurationServiceImpl implements ConfigurationService {
@@ -123,5 +124,68 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             garchModelService.deleteGarchModel(garchModel.getId());
         }
         configurationRepository.deleteById(configurationId);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ConfigurationFileDTO exportConfiguration(Long configurationId) {
+        Configuration configuration = configurationRepository.findById(configurationId).orElseThrow(() -> new RuntimeException("Configuration not found"));
+        List<GarchModelDTO> garchModelDTOList = extractGarchModelDTOsByConfigurationId(configurationId);
+
+        try (Workbook workbook = new XSSFWorkbook();
+             ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+
+            Sheet sheet = workbook.createSheet("Configuration");
+            Map<String, CellStyle> styles = getCellStyles(workbook);
+
+            Row header = sheet.createRow(0);
+            Cell cell = header.createCell(0);
+            cell.setCellValue("Název konfigurace:");
+            cell.setCellStyle(styles.get(CellStyleNames.PARAMETER_NAME.toString()));
+            cell = header.createCell(1);
+            cell.setCellValue(configuration.getName());
+            cell.setCellStyle(styles.get(CellStyleNames.CONFIGURATION_NAME.toString()));
+            sheet.addMergedRegion(new CellRangeAddress(0, 0, 1, 8));
+            int index = 1;
+            for(GarchModelDTO garchModelDTO : garchModelDTOList) {
+                index = garchModelService.addGarchModelToSheet(garchModelDTO, sheet, index, styles);
+            }
+
+            sheet.autoSizeColumn(0);
+            workbook.write(out);
+            return new ConfigurationFileDTO(out.toByteArray(), configuration.getName());
+
+        } catch (IOException e) {
+            throw new RuntimeException("Error generating Excel file", e);
+        }
+    }
+
+    private Map<String, CellStyle> getCellStyles(Workbook workbook) {
+        Map<String, CellStyle> styles = new HashMap<>();
+
+        CellStyle configurationName = workbook.createCellStyle();
+        configurationName.setAlignment(HorizontalAlignment.CENTER);
+        configurationName.setVerticalAlignment(VerticalAlignment.CENTER);
+        configurationName.setFillForegroundColor(IndexedColors.ORANGE.index);
+        configurationName.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+        styles.put(CellStyleNames.CONFIGURATION_NAME.toString(), configurationName);
+
+        CellStyle modelName = workbook.createCellStyle();
+        modelName.setAlignment(HorizontalAlignment.CENTER);
+        modelName.setVerticalAlignment(VerticalAlignment.CENTER);
+        modelName.setFillForegroundColor(IndexedColors.LIGHT_ORANGE.index);
+        modelName.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+        styles.put(CellStyleNames.MODEL_NAME.toString(), modelName);
+
+        CellStyle parameterName = workbook.createCellStyle();
+        parameterName.setFillForegroundColor(IndexedColors.LIGHT_ORANGE.index);
+        parameterName.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+        styles.put(CellStyleNames.PARAMETER_NAME.toString(), parameterName);
+        return styles;
     }
 }

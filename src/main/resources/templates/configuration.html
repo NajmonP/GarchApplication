@@ -26,11 +26,19 @@
         </div>
 
         <div class="card-footer d-flex justify-content-between align-items-center">
-            <button type="button"
-                    class="btn btn-outline-primary btn-sm show-models-btn"
-                    th:attr="data-configuration-id=${configuration.id}">
-                Zobraz modely
-            </button>
+            <div class="d-flex gap-2">
+                <button type="button"
+                        class="btn btn-outline-primary btn-sm show-models-btn"
+                        th:attr="data-configuration-id=${configuration.id}">
+                    Zobraz modely
+                </button>
+
+                <button type="button"
+                        class="btn btn-outline-success btn-sm download-config-btn"
+                        th:attr="data-configuration-id=${configuration.id}">
+                    Stáhnout
+                </button>
+            </div>
 
             <div class="d-flex gap-2">
                 <button type="button"
@@ -111,6 +119,8 @@
 <script src="/js/configuration-models.js"></script>
 
 <script src="/js/configuration-edit.js"></script>
+
+<script src="/js/configuration-download.js"></script>
 
 </body>
 </html>

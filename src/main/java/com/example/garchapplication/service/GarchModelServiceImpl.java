@@ -7,17 +7,22 @@ import com.example.garchapplication.model.entity.Configuration;
 import com.example.garchapplication.model.entity.GarchModel;
 import com.example.garchapplication.model.entity.ModelShockWeight;
 import com.example.garchapplication.model.entity.ModelVarianceWeight;
+import com.example.garchapplication.model.enums.CellStyleNames;
 import com.example.garchapplication.repository.GarchModelRepository;
 import com.example.garchapplication.repository.ModelShockWeightRepository;
 import com.example.garchapplication.repository.ModelVarianceWeightRepository;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.util.CellRangeAddress;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class GarchModelServiceImpl implements GarchModelService {
@@ -216,5 +221,48 @@ public class GarchModelServiceImpl implements GarchModelService {
     @Transactional(rollbackFor = Exception.class)
     public void deleteGarchModel(Long modelId){
         garchModelRepository.deleteById(modelId);
+    }
+
+    @Override
+    public int addGarchModelToSheet(GarchModelDTO garchModelDTO, Sheet sheet, int index, Map<String, CellStyle> styles) {
+        Row row = sheet.createRow(index++);
+        Cell cell = row.createCell(0);
+        cell.setCellValue("Název modelu:");
+        cell.setCellStyle(styles.get(CellStyleNames.PARAMETER_NAME.toString()));
+        cell = row.createCell(1);
+        cell.setCellValue(garchModelDTO.name());
+        cell.setCellStyle(styles.get(CellStyleNames.MODEL_NAME.toString()));
+        sheet.addMergedRegion(new CellRangeAddress(index-1, index-1, 1, 8));
+
+        row = sheet.createRow(index++);
+        cell = row.createCell(0);
+        cell.setCellValue("Počáteční rozptyl:");
+        cell.setCellStyle(styles.get(CellStyleNames.PARAMETER_NAME.toString()));
+        row.createCell(1).setCellValue(garchModelDTO.startVariance());
+
+        row = sheet.createRow(index++);
+        cell = row.createCell(0);
+        cell.setCellValue("Konstantní rozptyl:");
+        cell.setCellStyle(styles.get(CellStyleNames.PARAMETER_NAME.toString()));
+        row.createCell(1).setCellValue(garchModelDTO.constantVariance());
+
+        row = sheet.createRow(index++);
+        cell = row.createCell(0);
+        cell.setCellValue("Váhy minulých rozptylů:");
+        cell.setCellStyle(styles.get(CellStyleNames.PARAMETER_NAME.toString()));
+        for(int i = 0; i < garchModelDTO.lastVariances().size(); i++) {
+            double value = garchModelDTO.lastVariances().get(i);
+            row.createCell(i + 1).setCellValue(value);
+        }
+
+        row = sheet.createRow(index++);
+        cell = row.createCell(0);
+        cell.setCellValue("Váhy minulých odhadů:");
+        cell.setCellStyle(styles.get(CellStyleNames.PARAMETER_NAME.toString()));
+        for(int i = 0; i < garchModelDTO.lastShocks().size(); i++) {
+            double value = garchModelDTO.lastShocks().get(i);
+            row.createCell(i + 1).setCellValue(value);
+        }
+        return index;
     }
 }

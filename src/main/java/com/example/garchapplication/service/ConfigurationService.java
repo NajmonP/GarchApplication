@@ -1,5 +1,6 @@
 package com.example.garchapplication.service;
 
+import com.example.garchapplication.model.dto.ConfigurationFileDTO;
 import com.example.garchapplication.model.dto.GarchModelDTO;
 import com.example.garchapplication.model.entity.Configuration;
 import com.example.garchapplication.model.entity.GarchModel;
@@ -51,4 +52,13 @@ public interface ConfigurationService {
      */
     @Transactional(rollbackFor = Exception.class)
     void deleteConfiguration(long configurationId);
+
+
+    /**
+     *
+     *
+     * @param configurationId
+     * @return
+     */
+    ConfigurationFileDTO exportConfiguration(Long configurationId);
 }
