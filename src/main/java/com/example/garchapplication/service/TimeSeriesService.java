@@ -1,6 +1,7 @@
 package com.example.garchapplication.service;
 
 import com.example.garchapplication.model.dto.TimeSeriesDTO;
+import com.example.garchapplication.model.dto.TimeSeriesDetailDTO;
 import com.example.garchapplication.model.dto.XlsxFileDTO;
 import com.example.garchapplication.model.entity.TimeSeries;
 import org.springframework.stereotype.Service;
@@ -83,4 +84,12 @@ public interface TimeSeriesService {
      * @return DTO containing time series name and corresponding data
      */
     XlsxFileDTO exportTimeSeries(long timeSeriesId);
+
+    /**
+     * Loads time series details to show them in detail modal
+     *
+     * @param timeSeriesId id of selected time series
+     * @return DTO containing all time series corresponding data and calculated details.
+     */
+    TimeSeriesDetailDTO getTimeSeriesDetails(Long timeSeriesId);
 }

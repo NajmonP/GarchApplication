@@ -2,6 +2,7 @@ package com.example.garchapplication.controller;
 
 import com.example.garchapplication.helper.DownloadHeaderUtil;
 import com.example.garchapplication.model.dto.TimeSeriesDTO;
+import com.example.garchapplication.model.dto.TimeSeriesDetailDTO;
 import com.example.garchapplication.model.dto.UpdateNameRequest;
 import com.example.garchapplication.model.dto.XlsxFileDTO;
 import com.example.garchapplication.model.entity.TimeSeries;
@@ -70,7 +71,6 @@ public class TimeSeriesController {
     }
 
     /**
-     *
      * @param timeSeriesId
      * @return
      */
@@ -86,6 +86,18 @@ public class TimeSeriesController {
                         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 ))
                 .body(xlsxFileDTO.bytes());
+    }
+
+    @GetMapping("/time-series/{timeSeriesId}")
+    public String timeSeriesDetailPage(@PathVariable long timeSeriesId, Model model) {
+        model.addAttribute("timeSeriesId", timeSeriesId);
+        return "time-series-detail";
+    }
+
+    @GetMapping("/time-series/detail/{timeSeriesId}")
+    @ResponseBody
+    public TimeSeriesDetailDTO timeSeriesDetail(@PathVariable long timeSeriesId) {
+        return timeSeriesService.getTimeSeriesDetails(timeSeriesId);
     }
 }
 

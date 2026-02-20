@@ -3,66 +3,68 @@
 <body>
 
 <div th:fragment="garchModelEditModal">
-  <div class="modal fade" id="garchModelEditModal" tabindex="-1" aria-labelledby="garchModelEditModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
-      <div class="modal-content">
+    <div class="modal fade" id="garchModelEditModal" tabindex="-1" aria-labelledby="garchModelEditModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
 
-        <div class="modal-header">
-          <h5 class="modal-title" id="garchModelEditModalLabel">Upravit GARCH model</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zavřít"></button>
-        </div>
+                <div class="modal-header">
+                    <h5 class="modal-title" id="garchModelEditModalLabel">Upravit GARCH model</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zavřít"></button>
+                </div>
 
-        <div class="modal-body">
-          <!-- uložíme si id modelu pro JS -->
-          <input type="hidden" id="editModelId">
+                <div class="modal-body">
+                    <!-- uložíme si id modelu pro JS -->
+                    <input type="hidden" id="editModelId">
 
-          <div class="mb-3">
-            <label for="editModelName" class="form-label">Název</label>
-            <input type="text" class="form-control" id="editModelName" required>
-          </div>
+                    <div class="mb-3">
+                        <label for="editModelName" class="form-label">Název</label>
+                        <input type="text" class="form-control" id="editModelName" required>
+                    </div>
 
-          <div class="row g-2">
-            <div class="col-md-6">
-              <label for="editStartVariance" class="form-label">Počáteční rozptyl</label>
-              <input type="number" step="any" class="form-control" id="editStartVariance" required>
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <label for="editStartVariance" class="form-label">Počáteční rozptyl</label>
+                            <input type="number" step="any" class="form-control" id="editStartVariance" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="editConstantVariance" class="form-label">Konstantní rozptyl</label>
+                            <input type="number" step="any" class="form-control" id="editConstantVariance" required>
+                        </div>
+                    </div>
+
+                    <hr class="my-3">
+
+                    <div class="mb-3">
+                        <label for="editLastVariances" class="form-label">
+                            Váhy minulých rozptylů
+                            <span class="text-muted">(odděluj čárkou, např. 0.1, 0.2)</span>
+                        </label>
+                        <textarea class="form-control" id="editLastVariances" rows="2"
+                                  placeholder="0.1, 0.2"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="editLastShocks" class="form-label">
+                            Váhy minulých šoků
+                            <span class="text-muted">(odděluj čárkou, např. 0.3)</span>
+                        </label>
+                        <textarea class="form-control" id="editLastShocks" rows="2" placeholder="0.3"></textarea>
+                    </div>
+
+                    <div class="alert alert-danger d-none" id="editModelError" role="alert"></div>
+                    <div class="alert alert-success d-none" id="editModelSuccess" role="alert">Uloženo.</div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Zavřít</button>
+                    <button type="button" class="btn btn-primary" id="btnSaveModelChanges">Uložit změny</button>
+                </div>
+
             </div>
-
-            <div class="col-md-6">
-              <label for="editConstantVariance" class="form-label">Konstantní rozptyl</label>
-              <input type="number" step="any" class="form-control" id="editConstantVariance" required>
-            </div>
-          </div>
-
-          <hr class="my-3">
-
-          <div class="mb-3">
-            <label for="editLastVariances" class="form-label">
-              Váhy minulých rozptylů
-              <span class="text-muted">(odděluj čárkou, např. 0.1, 0.2)</span>
-            </label>
-            <textarea class="form-control" id="editLastVariances" rows="2" placeholder="0.1, 0.2"></textarea>
-          </div>
-
-          <div class="mb-3">
-            <label for="editLastShocks" class="form-label">
-              Váhy minulých šoků
-              <span class="text-muted">(odděluj čárkou, např. 0.3)</span>
-            </label>
-            <textarea class="form-control" id="editLastShocks" rows="2" placeholder="0.3"></textarea>
-          </div>
-
-          <div class="alert alert-danger d-none" id="editModelError" role="alert"></div>
-          <div class="alert alert-success d-none" id="editModelSuccess" role="alert">Uloženo.</div>
         </div>
-
-        <div class="modal-footer">
-          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Zavřít</button>
-          <button type="button" class="btn btn-primary" id="btnSaveModelChanges">Uložit změny</button>
-        </div>
-
-      </div>
     </div>
-  </div>
 </div>
 
 </body>

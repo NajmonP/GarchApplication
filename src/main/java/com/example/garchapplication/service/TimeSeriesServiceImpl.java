@@ -1,7 +1,11 @@
 package com.example.garchapplication.service;
 
 import com.example.garchapplication.helper.CellStylesBuilder;
+import com.example.garchapplication.mapper.GarchModelMapper;
+import com.example.garchapplication.mapper.TimeSeriesChartMapper;
+import com.example.garchapplication.model.dto.ChartOfTimeSeriesDTO;
 import com.example.garchapplication.model.dto.TimeSeriesDTO;
+import com.example.garchapplication.model.dto.TimeSeriesDetailDTO;
 import com.example.garchapplication.model.dto.XlsxFileDTO;
 import com.example.garchapplication.model.entity.TimeSeries;
 import com.example.garchapplication.model.entity.TimeSeriesValue;
@@ -224,10 +228,55 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
     }
 
     private void exportTimeSeriesValues(Sheet sheet, Map<Long, Double> timeSeriesValues) {
-        for(int i = 0; i < timeSeriesValues.size(); i++) {
+        for (int i = 0; i < timeSeriesValues.size(); i++) {
             Row row = sheet.createRow(i + 2);
-            row.createCell(0).setCellValue(timeSeriesValues.get((long)i));
+            row.createCell(0).setCellValue(timeSeriesValues.get((long) i));
         }
     }
 
+    @Override
+    public TimeSeriesDetailDTO getTimeSeriesDetails(Long timeSeriesId) {
+        TimeSeriesDTO timeSeriesDTO = getTimeSeriesDTOFromDatabase(timeSeriesId);
+        ChartOfTimeSeriesDTO chartOfTimeSeriesDTO = TimeSeriesChartMapper.toChart(timeSeriesDTO);
+        List<Double> values = calculateStatisticalDetails(timeSeriesDTO.timeSeries());
+        return new TimeSeriesDetailDTO(chartOfTimeSeriesDTO, timeSeriesDTO.timeSeries().size(), values.get(0), values.get(1), values.get(2), values.get(3), values.get(4));
+    }
+
+    private List<Double> calculateStatisticalDetails(Map<Long, Double> timeSeries) {
+        List<Double> values = new ArrayList<>();
+        double sum = 0.0;
+
+        for (Double value : timeSeries.values()) {
+            sum += value;
+        }
+
+        int numberOfValues = timeSeries.size();
+
+        double mean = sum / numberOfValues;
+
+        double standardDeviation = 0;
+        for (Double value : timeSeries.values()) {
+            standardDeviation += Math.pow(value - mean, 2);
+        }
+        standardDeviation = standardDeviation / (numberOfValues - 1);
+        standardDeviation = Math.sqrt(standardDeviation);
+
+        values.add(mean);
+        double skewness = 0;
+        for (Double value : timeSeries.values()) {
+            skewness += Math.pow((value - mean)/standardDeviation, 3);
+        }
+        skewness = skewness * ((double) numberOfValues /((numberOfValues-1)*(numberOfValues-2)));
+        values.add(skewness);
+
+        double kurtosis = 0;
+        for (Double value : timeSeries.values()) {
+            kurtosis += Math.pow((value - mean)/standardDeviation, 4);
+        }
+        kurtosis /= numberOfValues;
+        values.add(kurtosis);
+        values.add(Collections.min(timeSeries.values()));
+        values.add(Collections.max(timeSeries.values()));
+        return values;
+    }
 }
