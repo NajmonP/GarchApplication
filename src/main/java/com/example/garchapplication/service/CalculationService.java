@@ -29,6 +29,7 @@ public interface CalculationService {
      * Validates user input.
      *
      * @param garchModelCalculationDTO  GARCH model object made of user input
+     * @param forecast number of observations that are going to forecasted
      * @param timeSeriesFile an optional uploaded time series file (may be null)
      * @param timeSeriesId   an optional ID of an existing time series (may be null)
      * @throws IOException                      if reading the uploaded time series file fails
@@ -36,41 +37,46 @@ public interface CalculationService {
      * @throws InvalidLastValueException        if any of the previous values are non-positive
      * @throws MaxThresholdExceededException    if the total sum exceeds SUM_MAXIMUM_THRESHOLD
      */
-    TimeSeriesDTO calculate(GarchModelCalculationDTO garchModelCalculationDTO, MultipartFile timeSeriesFile, Long timeSeriesId) throws IOException;
+    @Transactional(rollbackFor = Exception.class)
+    TimeSeriesDTO calculate(GarchModelCalculationDTO garchModelCalculationDTO, int forecast, MultipartFile timeSeriesFile, Long timeSeriesId) throws IOException;
 
     /**
      * Starting point of calculation based on selected GARCH model.
      *
-     * @param modelId        ID of selected GARCH model
+     * @param modelId ID of selected GARCH model
+     * @param forecast number of observations that are going to forecasted
      * @param timeSeriesFile an optional uploaded time series file (may be null)
      * @param timeSeriesId   an optional ID of an existing time series (may be null)
      * @throws IOException if reading the uploaded time series file fails
      */
-    TimeSeriesDTO calculateFromSelectedModel(Long modelId, MultipartFile timeSeriesFile, Long timeSeriesId) throws IOException;
+    @Transactional(rollbackFor = Exception.class)
+    TimeSeriesDTO calculateFromSelectedModel(Long modelId, int forecast, MultipartFile timeSeriesFile, Long timeSeriesId) throws IOException;
 
     /**
      * Starts calculation process by creating new instance of {@link CalculationProcess}
      *
      * @param garchModelCalculationDTO  GARCH model object sent from calculate methods
+     * @param forecast number of observations that are going to forecasted
      * @param timeSeriesFile an optional uploaded time series file (may be null)
      * @param timeSeriesId   an optional ID of an existing time series (may be null)
      * @return DTO of time series representing the result of the calculation
      * @throws MissingTimeSeriesException if timeSeriesFile and timeSeriesId are both null
      * @throws IOException                if reading the uploaded time series file fails
      */
-    TimeSeriesDTO startCalculationBasedOnInput(GarchModelCalculationDTO garchModelCalculationDTO, MultipartFile timeSeriesFile, Long timeSeriesId) throws IOException;
+    TimeSeriesDTO startCalculationBasedOnInput(GarchModelCalculationDTO garchModelCalculationDTO, int forecast, MultipartFile timeSeriesFile, Long timeSeriesId) throws IOException;
 
     /**
      * Saves result of the calculation for logged user into database.
      *
      * @param timeSeriesDTO time series representing result of the calculation
      * @param garchModelCalculationDTO GARCH model used in calculation
+     * @param forecast number of observations that are going to forecasted
      * @param timeSeriesFile an optional uploaded time series file (may be null)
      * @param timeSeriesId an optional ID of an existing time series (may be null)
      * @param user object or logged user
      */
     @Transactional(rollbackFor = Exception.class)
-    void saveCalculation(TimeSeriesDTO timeSeriesDTO, GarchModelCalculationDTO garchModelCalculationDTO, MultipartFile timeSeriesFile, Long timeSeriesId, User user);
+    void saveCalculation(TimeSeriesDTO timeSeriesDTO, GarchModelCalculationDTO garchModelCalculationDTO, int forecast, MultipartFile timeSeriesFile, Long timeSeriesId, User user);
 
     List<Calculation> getAllCalculationsByUser();
 }

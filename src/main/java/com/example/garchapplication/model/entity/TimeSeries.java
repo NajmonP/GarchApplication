@@ -20,21 +20,6 @@ public class TimeSeries {
     @Column(name = "name",  nullable = false)
     private String name;
 
-    @Column(name = "mean")
-    private double mean;
-
-    @Column(name = "median")
-    private double median;
-
-    @Column(name = "variance")
-    private double variance;
-
-    @Column(name = "skewness")
-    private double skewness;
-
-    @Column(name = "kurtosis")
-    private double kurtosis;
-
     @Column(name = "created_at", nullable = false)
     private Date created;
 
@@ -63,46 +48,6 @@ public class TimeSeries {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public double getMean() {
-        return mean;
-    }
-
-    public void setMean(double mean) {
-        this.mean = mean;
-    }
-
-    public double getMedian() {
-        return median;
-    }
-
-    public void setMedian(double median) {
-        this.median = median;
-    }
-
-    public double getVariance() {
-        return variance;
-    }
-
-    public void setVariance(double variance) {
-        this.variance = variance;
-    }
-
-    public double getSkewness() {
-        return skewness;
-    }
-
-    public void setSkewness(double skewness) {
-        this.skewness = skewness;
-    }
-
-    public double getKurtosis() {
-        return kurtosis;
-    }
-
-    public void setKurtosis(double kurtosis) {
-        this.kurtosis = kurtosis;
     }
 
     public Date getCreated() {

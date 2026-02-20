@@ -28,6 +28,9 @@
 
     <div class="form-wrap">
         <form class="form-manual" th:action="@{/start-calculation-manual}" method="post" enctype="multipart/form-data">
+            <label for="forecast" class="form-label">Předpověď</label>
+            <input type="number" step="1" id="forecast" name="forecast" required>
+
             <label for="start_variance" class="form-label">Počáteční rozptyl:</label>
             <input type="number" step="0.0001" id="start_variance" name="start_variance" required/>
 
@@ -87,8 +90,12 @@
             <button type="submit" class="btn btn-primary w-100">Spustit výpočet</button>
         </form>
 
-        <form class="form-config" th:action="@{/start-calculation-configuration}" method="post" enctype="multipart/form-data">
+        <form class="form-config" th:action="@{/start-calculation-configuration}" method="post"
+              enctype="multipart/form-data">
             <input type="hidden" name="mode" value="config"/>
+
+            <label for="forecast_config" class="form-label">Předpověď</label>
+            <input type="number" step="1" id="forecast_config" name="forecast_config" required>
 
             <label for="configurationId" class="form-label">Vyber konfiguraci</label>
             <select id="configurationId" name="configurationId" required class="form-select">

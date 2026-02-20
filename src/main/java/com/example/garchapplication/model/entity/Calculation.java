@@ -35,6 +35,9 @@ public class Calculation {
     @JoinColumn(name = "result_time_series_id")
     private TimeSeries resultTimeSeries;
 
+    @Column(name = "forecast", nullable = false)
+    private int forecast;
+
     @Column(name = "start_variance", nullable = false)
     private double startVariance;
 
@@ -87,6 +90,14 @@ public class Calculation {
 
     public void setResultTimeSeries(TimeSeries resultTimeSeries) {
         this.resultTimeSeries = resultTimeSeries;
+    }
+
+    public int getForecast() {
+        return forecast;
+    }
+
+    public void setForecast(int forecast) {
+        this.forecast = forecast;
     }
 
     public double getStartVariance() {

@@ -57,12 +57,13 @@ public class CalculationServiceImpl implements CalculationService {
      * {@inheritDoc}
      */
     @Override
-    public TimeSeriesDTO calculate(GarchModelCalculationDTO garchModelCalculationDTO, MultipartFile timeSeriesFile, Long timeSeriesId) throws IOException {
+    @Transactional(rollbackFor = Exception.class)
+    public TimeSeriesDTO calculate(GarchModelCalculationDTO garchModelCalculationDTO, int forecast, MultipartFile timeSeriesFile, Long timeSeriesId) throws IOException {
         validateInput(garchModelCalculationDTO.constantVariance(), garchModelCalculationDTO.lastVariances(), garchModelCalculationDTO.lastShocks());
-        TimeSeriesDTO result = startCalculationBasedOnInput(garchModelCalculationDTO, timeSeriesFile, timeSeriesId);
+        TimeSeriesDTO result = startCalculationBasedOnInput(garchModelCalculationDTO, forecast, timeSeriesFile, timeSeriesId);
         User user = authenticationHandler.getUserEntity();
         if (user != null) {
-            saveCalculation(result, garchModelCalculationDTO, timeSeriesFile, timeSeriesId, user);
+            saveCalculation(result, garchModelCalculationDTO, forecast, timeSeriesFile, timeSeriesId, user);
         }
         return result;
     }
@@ -105,16 +106,17 @@ public class CalculationServiceImpl implements CalculationService {
      * {@inheritDoc}
      */
     @Override
-    public TimeSeriesDTO calculateFromSelectedModel(Long modelId, MultipartFile timeSeriesFile, Long timeSeriesId) throws IOException {
+    @Transactional(rollbackFor = Exception.class)
+    public TimeSeriesDTO calculateFromSelectedModel(Long modelId, int forecast, MultipartFile timeSeriesFile, Long timeSeriesId) throws IOException {
         GarchModelCalculationDTO garchModelCalculationDTO = garchModelService.extractGarchModelCalculationDTO(modelId);
-        return calculate(garchModelCalculationDTO, timeSeriesFile, timeSeriesId);
+        return calculate(garchModelCalculationDTO, forecast, timeSeriesFile, timeSeriesId);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public TimeSeriesDTO startCalculationBasedOnInput(GarchModelCalculationDTO garchModelCalculationDTO, MultipartFile timeSeriesFile, Long timeSeriesId) throws IOException {
+    public TimeSeriesDTO startCalculationBasedOnInput(GarchModelCalculationDTO garchModelCalculationDTO, int forecast, MultipartFile timeSeriesFile, Long timeSeriesId) throws IOException {
         TimeSeriesDTO loadedTimeSeries;
 
         if (timeSeriesFile != null && !timeSeriesFile.isEmpty()) {
@@ -125,7 +127,7 @@ public class CalculationServiceImpl implements CalculationService {
             throw new MissingTimeSeriesException();
         }
 
-        CalculationSetupDTO calculationSetupDTO = new CalculationSetupDTO(loadedTimeSeries.timeSeries(), garchModelCalculationDTO);
+        CalculationSetupDTO calculationSetupDTO = new CalculationSetupDTO(loadedTimeSeries.timeSeries(), garchModelCalculationDTO, forecast);
         CalculationProcess calculationProcess = new CalculationProcess(calculationSetupDTO);
         Map<Long, Double> predictedVolatility = calculationProcess.startCalculation();
 
@@ -134,7 +136,7 @@ public class CalculationServiceImpl implements CalculationService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void saveCalculation(TimeSeriesDTO timeSeriesDTO, GarchModelCalculationDTO garchModelCalculationDTO, MultipartFile timeSeriesFile, Long timeSeriesId, User user) {
+    public void saveCalculation(TimeSeriesDTO timeSeriesDTO, GarchModelCalculationDTO garchModelCalculationDTO, int forecast, MultipartFile timeSeriesFile, Long timeSeriesId, User user) {
         Calculation calculation = new Calculation();
         calculation.setRunAt(new Date(System.currentTimeMillis()));
         calculation.setUser(user);
@@ -156,6 +158,7 @@ public class CalculationServiceImpl implements CalculationService {
 
         TimeSeries resultTimeSeries = timeSeriesService.addTimeSeriesFromDTO(renamed);
         calculation.setResultTimeSeries(resultTimeSeries);
+        calculation.setForecast(forecast);
 
         // update
         calculationRepository.save(calculation);

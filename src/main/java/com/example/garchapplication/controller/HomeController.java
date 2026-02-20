@@ -73,11 +73,12 @@ class HomeController {
             @RequestParam("last_variance[]") List<Double> lastVariance,
             @RequestParam("last_shock[]") List<Double> lastShock,
             @RequestParam(value = "time_series_file", required = false) MultipartFile timeSeriesFile,
+            @RequestParam(value = "forecast", required = true) int forecast,
             @RequestParam(value = "timeSeriesId", required = false) Long timeSeriesId
     ) throws IOException {
         GarchModelCalculationDTO garchModelCalculationDTO = new GarchModelCalculationDTO( "name", startVariance, constantVariance, lastVariance, lastShock);
 
-        TimeSeriesDTO result = calculationService.calculate(garchModelCalculationDTO, timeSeriesFile, timeSeriesId);
+        TimeSeriesDTO result = calculationService.calculate(garchModelCalculationDTO, forecast, timeSeriesFile, timeSeriesId);
         return TimeSeriesChartMapper.toChart(result);
     }
 
@@ -97,10 +98,11 @@ class HomeController {
     public ChartOfTimeSeriesDTO startCalculationConfiguration(
             @RequestParam("modelId") Long modelId,
             @RequestParam(value = "time_series_file", required = false) MultipartFile timeSeriesFile,
+            @RequestParam(value = "forecast_config", required = true) int forecast,
             @RequestParam(value = "timeSeriesId", required = false) Long timeSeriesId
 
     ) throws IOException {
-        TimeSeriesDTO result = calculationService.calculateFromSelectedModel(modelId, timeSeriesFile, timeSeriesId);
+        TimeSeriesDTO result = calculationService.calculateFromSelectedModel(modelId, forecast, timeSeriesFile, timeSeriesId);
         return TimeSeriesChartMapper.toChart(result);
     }
 }

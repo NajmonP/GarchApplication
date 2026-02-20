@@ -27,11 +27,6 @@ CREATE TABLE time_series
     time_series_id BIGSERIAL PRIMARY KEY,
     user_id        BIGINT      NOT NULL REFERENCES users (user_id) ON DELETE CASCADE,
     name           TEXT        NOT NULL,
-    mean           DOUBLE PRECISION,
-    median         DOUBLE PRECISION,
-    variance       DOUBLE PRECISION,
-    skewness       DOUBLE PRECISION,
-    kurtosis       DOUBLE PRECISION,
     created_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
     visibility     TEXT        NOT NULL DEFAULT 'private',
     UNIQUE (user_id, name)
@@ -96,6 +91,7 @@ CREATE TABLE calculation
     run_at                TIMESTAMPTZ              NOT NULL DEFAULT now(),
     input_time_series_id  BIGINT                   REFERENCES time_series (time_series_id) ON DELETE SET NULL,
     result_time_series_id BIGINT                   REFERENCES time_series (time_series_id) ON DELETE SET NULL,
+    forecast              BIGINT                   NOT NULL,
     start_variance        DOUBLE PRECISION         NOT NULL,
     constant_variance     DOUBLE PRECISION         NOT NULL
 );
