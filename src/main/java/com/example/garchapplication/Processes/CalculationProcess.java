@@ -82,19 +82,29 @@ public class CalculationProcess {
         double nextVariance = constantVariance;
         long currentIndex = index;
         int missingVariances = 0;
-        for (Double lastVariance : lastVariancesList) {
-            if (timeSeries.size() > currentIndex - 1) {
-                nextVariance += lastVariance * Math.pow(timeSeries.get(currentIndex - 1), 2);
+        int forecastIndex = 0;
+        for (int i = 0; i < lastVariancesList.size(); i++) {
+            if (timeSeries.containsKey(currentIndex - 1)) {
+                nextVariance += lastVariancesList.get(i) * Math.pow(timeSeries.get(currentIndex - 1), 2);
             } else {
+                if(missingVariances == 0) {
+                    forecastIndex = i;
+                }
                 missingVariances++;
             }
             currentIndex--;
         }
+
         currentIndex = index;
+
+        for (int i = forecastIndex; i < forecastIndex + missingVariances; i++) {
+            nextVariance += lastVariancesList.get(i) * calculatedVolatility.get(currentIndex - 1);
+            currentIndex--;
+        }
+
+        currentIndex = index;
+
         for (Double lastShock : lastShocksList) {
-            for (int i = 0; i < missingVariances; i++) {
-                nextVariance += lastVariancesList.get(i) * calculatedVolatility.get(currentIndex - 1);
-            }
             nextVariance += lastShock * calculatedVolatility.get(currentIndex - 1);
             currentIndex--;
         }
