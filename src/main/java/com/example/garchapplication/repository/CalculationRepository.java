@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface CalculationRepository extends JpaRepository<Calculation, Integer> {
+public interface CalculationRepository extends JpaRepository<Calculation, Long> {
     List<Calculation> getCalculationsByUser(User user);
 
     @Modifying

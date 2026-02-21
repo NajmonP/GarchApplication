@@ -9,6 +9,12 @@
 <body>
 <div th:replace="~{fragments/navbar :: navbar}"></div>
 <h1>Calculation</h1>
+
+<form id="csrfForm" style="display:none;">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+    <input type="hidden" id="csrfHeaderName" th:value="${_csrf.headerName}" />
+</form>
+
 <div class="row">
     <div class="card shadow-sm col-6 mb-3" th:each="calculation : ${calculationList}">
         <div class="card-body">
@@ -19,14 +25,24 @@
             <p><strong>Vstupní časová řada:</strong><span th:text="${calculation.inputTimeSeries != null ?  calculation.inputTimeSeries.name + ' (' + calculation.inputTimeSeries.id + ')' : ' - '}"></span></p>
             <p><strong>Vstupní časová řada:</strong><span th:text="${calculation.resultTimeSeries != null ?  calculation.resultTimeSeries.name + ' (' + calculation.resultTimeSeries.id + ')' : ' - '}"></span></p>
 
-            <div class="d-flex gap-2 mt-3">
+            <div class="d-flex justify-content-between align-items-center mt-3">
                 <a class="btn btn-outline-secondary btn-sm"
                    th:href="@{/calculation/{id}(id=${calculation.id})}">
                     Zobrazit detaily
                 </a>
+
+                <button type="button"
+                        class="btn btn-outline-danger btn-sm js-delete-calculation"
+                        th:attr="data-id=${calculation.id}">
+                    Smazat
+                </button>
             </div>
+
         </div>
     </div>
 </div>
+
+<script src="/js/calculation-delete.js"></script>
+
 </body>
 </html>

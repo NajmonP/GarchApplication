@@ -84,4 +84,7 @@ public interface CalculationService {
     Calculation getCalculationById(long calculationId);
 
     CalculationDetailDTO getCalculationDetails(long calculationId);
+
+    @Transactional(rollbackFor = Exception.class)
+    void deleteCalculation(long calculationId);
 }

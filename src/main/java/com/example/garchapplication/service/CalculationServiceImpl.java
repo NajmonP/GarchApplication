@@ -218,4 +218,10 @@ public class CalculationServiceImpl implements CalculationService {
 
         return new CalculationDetailDTO(calculationId, timeSeriesDetailDTOInput, timeSeriesDetailDTOResult, calculation.getUser().getUsername(), calculation.getForecast(), calculation.getStatus(), calculation.getRunAt());
     }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteCalculation(long calculationId) {
+        calculationRepository.deleteById(calculationId);
+    }
 }
