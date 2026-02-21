@@ -3,6 +3,7 @@ package com.example.garchapplication.service;
 import com.example.garchapplication.exception.InvalidConstantVarianceException;
 import com.example.garchapplication.exception.InvalidLastValueException;
 import com.example.garchapplication.exception.MaxThresholdExceededException;
+import com.example.garchapplication.model.dto.CalculationDetailDTO;
 import com.example.garchapplication.model.dto.GarchModelCalculationDTO;
 import com.example.garchapplication.model.dto.TimeSeriesDTO;
 import com.example.garchapplication.model.entity.Calculation;
@@ -79,4 +80,8 @@ public interface CalculationService {
     void saveCalculation(TimeSeriesDTO timeSeriesDTO, GarchModelCalculationDTO garchModelCalculationDTO, int forecast, MultipartFile timeSeriesFile, Long timeSeriesId, User user);
 
     List<Calculation> getAllCalculationsByUser();
+
+    Calculation getCalculationById(long calculationId);
+
+    CalculationDetailDTO getCalculationDetails(long calculationId);
 }

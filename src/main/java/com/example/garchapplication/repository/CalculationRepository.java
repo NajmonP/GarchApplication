@@ -38,4 +38,6 @@ public interface CalculationRepository extends JpaRepository<Calculation, Intege
           and result_time_series_id is null
     """, nativeQuery = true)
     int markBrokenWhereBothNull();
+
+    Calculation getCalculationById(long calculationId);
 }

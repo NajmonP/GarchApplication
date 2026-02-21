@@ -18,6 +18,13 @@
             <p><strong>Datum:</strong> <span th:text="${calculation.runAt}"></span></p>
             <p><strong>Vstupní časová řada:</strong><span th:text="${calculation.inputTimeSeries != null ?  calculation.inputTimeSeries.name + ' (' + calculation.inputTimeSeries.id + ')' : ' - '}"></span></p>
             <p><strong>Vstupní časová řada:</strong><span th:text="${calculation.resultTimeSeries != null ?  calculation.resultTimeSeries.name + ' (' + calculation.resultTimeSeries.id + ')' : ' - '}"></span></p>
+
+            <div class="d-flex gap-2 mt-3">
+                <a class="btn btn-outline-secondary btn-sm"
+                   th:href="@{/calculation/{id}(id=${calculation.id})}">
+                    Zobrazit detaily
+                </a>
+            </div>
         </div>
     </div>
 </div>

@@ -239,7 +239,7 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
         TimeSeriesDTO timeSeriesDTO = getTimeSeriesDTOFromDatabase(timeSeriesId);
         ChartOfTimeSeriesDTO chartOfTimeSeriesDTO = TimeSeriesChartMapper.toChart(timeSeriesDTO);
         List<Double> values = calculateStatisticalDetails(timeSeriesDTO.timeSeries());
-        return new TimeSeriesDetailDTO(chartOfTimeSeriesDTO, timeSeriesDTO.timeSeries().size(), values.get(0), values.get(1), values.get(2), values.get(3), values.get(4));
+        return new TimeSeriesDetailDTO(timeSeriesId, chartOfTimeSeriesDTO, timeSeriesDTO.timeSeries().size(), values.get(0), values.get(1), values.get(2), values.get(3), values.get(4));
     }
 
     private List<Double> calculateStatisticalDetails(Map<Long, Double> timeSeries) {

@@ -1,9 +1,7 @@
 package com.example.garchapplication.service;
 
 import com.example.garchapplication.Processes.CalculationProcess;
-import com.example.garchapplication.model.dto.CalculationSetupDTO;
-import com.example.garchapplication.model.dto.GarchModelCalculationDTO;
-import com.example.garchapplication.model.dto.TimeSeriesDTO;
+import com.example.garchapplication.model.dto.*;
 import com.example.garchapplication.exception.InvalidConstantVarianceException;
 import com.example.garchapplication.exception.InvalidLastValueException;
 import com.example.garchapplication.exception.MaxThresholdExceededException;
@@ -24,6 +22,7 @@ import java.sql.Date;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Implementation of {@link CalculationService}.
@@ -196,5 +195,27 @@ public class CalculationServiceImpl implements CalculationService {
             return Collections.emptyList();
         }
         return calculationRepository.getCalculationsByUser(user);
+    }
+
+    @Override
+    public Calculation getCalculationById(long calculationId) {
+        return calculationRepository.getCalculationById(calculationId);
+    }
+
+    @Override
+    public CalculationDetailDTO getCalculationDetails(long calculationId) {
+        Calculation calculation = getCalculationById(calculationId);
+        Optional<TimeSeries> optionalTimeSeriesInput = Optional.ofNullable(calculation.getInputTimeSeries());
+        Optional<TimeSeries> optionalTimeSeriesResult = Optional.ofNullable(calculation.getResultTimeSeries());
+        TimeSeriesDetailDTO timeSeriesDetailDTOInput = null;
+        TimeSeriesDetailDTO timeSeriesDetailDTOResult = null;
+        if (optionalTimeSeriesInput.isPresent()) {
+            timeSeriesDetailDTOInput = timeSeriesService.getTimeSeriesDetails(optionalTimeSeriesInput.get().getId());
+        }
+        if (optionalTimeSeriesResult.isPresent()) {
+            timeSeriesDetailDTOResult = timeSeriesService.getTimeSeriesDetails(calculation.getResultTimeSeries().getId());
+        }
+
+        return new CalculationDetailDTO(calculationId, timeSeriesDetailDTOInput, timeSeriesDetailDTOResult, calculation.getUser().getUsername(), calculation.getForecast(), calculation.getStatus(), calculation.getRunAt());
     }
 }
