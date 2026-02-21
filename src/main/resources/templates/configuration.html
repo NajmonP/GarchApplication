@@ -16,9 +16,19 @@
     <input type="hidden" id="csrfHeaderName" th:value="${_csrf.headerName}" />
 </form>
 
+<div class="container mb-3">
+    <div class="row">
+        <div class="col-6">
+            <input type="text"
+                   id="searchInput"
+                   class="form-control"
+                   placeholder="Vyhledat konfiguraci podle názvu...">
+        </div>
+    </div>
+</div>
 
 <div class="row">
-    <div class="card shadow-sm col-6 mb-3" th:each="configuration : ${configurationList}">
+    <div class="card shadow-sm col-6 mb-3" th:each="configuration : ${configurationList}" th:attr="data-name=${configuration.name}">
         <div class="card-body">
             <p><strong>Id:</strong> <span th:text="${configuration.id}"></span></p>
             <p><strong>Název:</strong> <span th:text="${configuration.name}"></span></p>
@@ -121,6 +131,8 @@
 <script src="/js/configuration-edit.js"></script>
 
 <script src="/js/configuration-download.js"></script>
+
+<script src="/js/search.js"></script>
 
 </body>
 </html>
