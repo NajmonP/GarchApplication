@@ -19,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.sql.Date;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -140,7 +140,7 @@ public class CalculationServiceImpl implements CalculationService {
     @Transactional(rollbackFor = Exception.class)
     public void saveCalculation(TimeSeriesDTO timeSeriesDTO, GarchModelCalculationDTO garchModelCalculationDTO, int forecast, MultipartFile timeSeriesFile, Long timeSeriesId, User user) {
         Calculation calculation = new Calculation();
-        calculation.setRunAt(new Date(System.currentTimeMillis()));
+        calculation.setRunAt(Instant.now());
         calculation.setUser(user);
         calculation.setStartVariance(garchModelCalculationDTO.startVariance());
         calculation.setConstantVariance(garchModelCalculationDTO.constantVariance());

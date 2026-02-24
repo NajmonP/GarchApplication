@@ -20,7 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.sql.Date;
+import java.time.Instant;
 import java.util.*;
 
 @Service
@@ -83,7 +83,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         Configuration configuration = new Configuration();
         configuration.setName(configurationName);
         configuration.setUser(user);
-        configuration.setCreated(new Date(System.currentTimeMillis()));
+        configuration.setCreated(Instant.now());
         configurationRepository.save(configuration);
         auditLogService.logCreateEvent(EntityType.CONFIGURATION, configuration.getId(), configurationName);
         return configuration;

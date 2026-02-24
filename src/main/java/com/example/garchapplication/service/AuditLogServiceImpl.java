@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
-import java.sql.Date;
+import java.time.Instant;
 
 @Service
 public class AuditLogServiceImpl implements AuditLogService {
@@ -23,17 +23,17 @@ public class AuditLogServiceImpl implements AuditLogService {
 
     @Override
     public void logCreateEvent(EntityType entityType, long entityId, String entityName) {
-        publish(new AuditLogDTO(new Date(System.currentTimeMillis()), authenticationHandler.getUserEntity().getId(), authenticationHandler.getUserEntity().getUsername(), entityId, entityType, entityName, OperationType.CREATE));
+        publish(new AuditLogDTO(Instant.now(), authenticationHandler.getUserEntity().getId(), authenticationHandler.getUserEntity().getUsername(), entityId, entityType, entityName, OperationType.CREATE));
     }
 
     @Override
     public void logUpdateEvent(EntityType entityType, long entityId, String entityName) {
-        publish(new AuditLogDTO(new Date(System.currentTimeMillis()), authenticationHandler.getUserEntity().getId(), authenticationHandler.getUserEntity().getUsername(), entityId, entityType, entityName, OperationType.UPDATE));
+        publish(new AuditLogDTO(Instant.now(), authenticationHandler.getUserEntity().getId(), authenticationHandler.getUserEntity().getUsername(), entityId, entityType, entityName, OperationType.UPDATE));
     }
 
     @Override
     public void logDeleteEvent(EntityType entityType, long entityId, String entityName) {
-        publish(new AuditLogDTO(new Date(System.currentTimeMillis()), authenticationHandler.getUserEntity().getId(), authenticationHandler.getUserEntity().getUsername(), entityId, entityType, entityName, OperationType.DELETE));
+        publish(new AuditLogDTO(Instant.now(), authenticationHandler.getUserEntity().getId(), authenticationHandler.getUserEntity().getUsername(), entityId, entityType, entityName, OperationType.DELETE));
     }
 
     private void publish(AuditLogDTO auditLogDTO) {

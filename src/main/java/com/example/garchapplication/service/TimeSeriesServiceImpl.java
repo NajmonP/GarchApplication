@@ -26,7 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.sql.Date;
+import java.time.Instant;
 import java.util.*;
 
 @Service
@@ -104,7 +104,7 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
         TimeSeries timeSeries = new TimeSeries();
         timeSeries.setUser(user);
         timeSeries.setName(timeSeriesName);
-        timeSeries.setCreated(new Date(System.currentTimeMillis()));
+        timeSeries.setCreated(Instant.now());
         timeSeries.setVisibility("private");
 
         timeSeriesRepository.save(timeSeries);

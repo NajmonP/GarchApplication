@@ -6,7 +6,7 @@ import jakarta.persistence.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import java.sql.Date;
+import java.time.Instant;
 
 @Entity
 @Table(name = "audit_log", schema = "garch")
@@ -17,7 +17,7 @@ public class AuditLog {
     private Long id;
 
     @Column(name = "occurred_at", nullable = false)
-    private Date occuredAt;
+    private Instant occuredAt;
 
     @Column(name = "username")
     private String username;
@@ -50,11 +50,11 @@ public class AuditLog {
         this.id = id;
     }
 
-    public Date getOccuredAt() {
+    public Instant getOccuredAt() {
         return occuredAt;
     }
 
-    public void setOccuredAt(Date occuredAt) {
+    public void setOccuredAt(Instant occuredAt) {
         this.occuredAt = occuredAt;
     }
 

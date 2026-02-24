@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import java.sql.Date;
+import java.time.Instant;
 
 @Entity
 @Table(name = "calculation", schema = "garch")
@@ -25,7 +25,7 @@ public class Calculation {
     private CalculationStatus status;
 
     @Column(name = "run_at", nullable = false)
-    private Date runAt;
+    private Instant runAt;
 
     @ManyToOne
     @JoinColumn(name = "input_time_series_id")
@@ -68,11 +68,11 @@ public class Calculation {
         this.status = status;
     }
 
-    public Date getRunAt() {
+    public Instant getRunAt() {
         return runAt;
     }
 
-    public void setRunAt(Date runAt) {
+    public void setRunAt(Instant runAt) {
         this.runAt = runAt;
     }
 

@@ -2,7 +2,7 @@ package com.example.garchapplication.model.entity;
 
 import jakarta.persistence.*;
 
-import java.sql.Date;
+import java.time.Instant;
 
 @Entity
 @Table(name = "users", schema = "garch")
@@ -29,7 +29,7 @@ public class User {
     private String role;
 
     @Column(name = "created_at", nullable = false)
-    private Date created;
+    private Instant created;
 
     public long getId() {
         return id;
@@ -79,11 +79,11 @@ public class User {
         this.role = role;
     }
 
-    public Date getCreated() {
+    public Instant getCreated() {
         return created;
     }
 
-    public void setCreated(Date created) {
+    public void setCreated(Instant created) {
         this.created = created;
     }
 }

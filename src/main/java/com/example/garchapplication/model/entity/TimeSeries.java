@@ -2,7 +2,7 @@ package com.example.garchapplication.model.entity;
 
 import jakarta.persistence.*;
 
-import java.sql.Date;
+import java.time.Instant;
 
 @Entity
 @Table(name = "time_series", schema = "garch")
@@ -21,7 +21,7 @@ public class TimeSeries {
     private String name;
 
     @Column(name = "created_at", nullable = false)
-    private Date created;
+    private Instant created;
 
     @Column(name = "visibility", nullable = false)
     private String visibility;
@@ -50,11 +50,11 @@ public class TimeSeries {
         this.name = name;
     }
 
-    public Date getCreated() {
+    public Instant getCreated() {
         return created;
     }
 
-    public void setCreated(Date created) {
+    public void setCreated(Instant created) {
         this.created = created;
     }
 
