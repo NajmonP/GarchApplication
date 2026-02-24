@@ -11,6 +11,7 @@ import com.example.garchapplication.model.entity.TimeSeries;
 import com.example.garchapplication.model.entity.TimeSeriesValue;
 import com.example.garchapplication.model.entity.User;
 import com.example.garchapplication.model.enums.CellStyleNames;
+import com.example.garchapplication.model.enums.EntityType;
 import com.example.garchapplication.repository.CalculationRepository;
 import com.example.garchapplication.repository.TimeSeriesRepository;
 import com.example.garchapplication.repository.TimeSeriesValueRepository;
@@ -31,13 +32,15 @@ import java.util.*;
 @Service
 public class TimeSeriesServiceImpl implements TimeSeriesService {
 
+    private final AuditLogService auditLogService;
     private final TimeSeriesRepository timeSeriesRepository;
     private final CalculationRepository calculationRepository;
     private final TimeSeriesValueRepository timeSeriesValueRepository;
     private final AuthenticationHandler authenticationHandler;
 
     @Autowired
-    public TimeSeriesServiceImpl(TimeSeriesRepository timeSeriesRepository, CalculationRepository calculationRepository, TimeSeriesValueRepository timeSeriesValueRepository, AuthenticationHandler authenticationHandler) {
+    public TimeSeriesServiceImpl(AuditLogService auditLogService, TimeSeriesRepository timeSeriesRepository, CalculationRepository calculationRepository, TimeSeriesValueRepository timeSeriesValueRepository, AuthenticationHandler authenticationHandler) {
+        this.auditLogService = auditLogService;
         this.timeSeriesRepository = timeSeriesRepository;
         this.calculationRepository = calculationRepository;
         this.timeSeriesValueRepository = timeSeriesValueRepository;
@@ -105,6 +108,7 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
         timeSeries.setVisibility("private");
 
         timeSeriesRepository.save(timeSeries);
+        auditLogService.logCreateEvent(EntityType.TIME_SERIES, timeSeries.getId(), timeSeriesName);
         return timeSeries;
     }
 
@@ -172,6 +176,7 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
     public void updateTimeSeriesName(Long timeSeriesId, String newName) {
         TimeSeries timeSeries = timeSeriesRepository.findById(timeSeriesId).get();
         timeSeries.setName(newName);
+        auditLogService.logUpdateEvent(EntityType.TIME_SERIES, timeSeries.getId(), newName);
     }
 
     /**
@@ -180,6 +185,7 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
     @Override
     @Transactional
     public void deleteTimeSeries(long timeSeriesId) {
+        String name = timeSeriesRepository.findNameById(timeSeriesId).orElseThrow(() -> new IllegalArgumentException("TimeSeries not found"));
 
         calculationRepository.markMissingInput(timeSeriesId);
         calculationRepository.markMissingOutput(timeSeriesId);
@@ -187,6 +193,8 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
         timeSeriesRepository.deleteById(timeSeriesId);
 
         calculationRepository.markBrokenWhereBothNull();
+
+        auditLogService.logDeleteEvent(EntityType.TIME_SERIES, timeSeriesId, name);
     }
 
     /**

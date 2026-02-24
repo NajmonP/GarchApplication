@@ -8,6 +8,7 @@ import com.example.garchapplication.exception.MaxThresholdExceededException;
 import com.example.garchapplication.exception.MissingTimeSeriesException;
 import com.example.garchapplication.model.entity.*;
 import com.example.garchapplication.model.enums.CalculationStatus;
+import com.example.garchapplication.model.enums.EntityType;
 import com.example.garchapplication.repository.CalculationRepository;
 import com.example.garchapplication.repository.RunShockWeightRepository;
 import com.example.garchapplication.repository.RunVarianceWeightRepository;
@@ -31,6 +32,7 @@ import java.util.Optional;
 @Service
 public class CalculationServiceImpl implements CalculationService {
 
+    private final AuditLogService auditLogService;
     private final TimeSeriesService timeSeriesService;
     private final GarchModelService garchModelService;
     private final AuthenticationHandler authenticationHandler;
@@ -43,7 +45,8 @@ public class CalculationServiceImpl implements CalculationService {
     private static final String RESULT_NAME = "result";
 
     @Autowired
-    public CalculationServiceImpl(TimeSeriesService timeSeriesService, GarchModelService garchModelService, AuthenticationHandler authenticationHandler, RunVarianceWeightRepository runVarianceWeightRepository, RunShockWeightRepository runShockWeightRepository, CalculationRepository calculationRepository) {
+    public CalculationServiceImpl(AuditLogService auditLogService, TimeSeriesService timeSeriesService, GarchModelService garchModelService, AuthenticationHandler authenticationHandler, RunVarianceWeightRepository runVarianceWeightRepository, RunShockWeightRepository runShockWeightRepository, CalculationRepository calculationRepository) {
+        this.auditLogService = auditLogService;
         this.timeSeriesService = timeSeriesService;
         this.garchModelService = garchModelService;
         this.authenticationHandler = authenticationHandler;
@@ -169,6 +172,7 @@ public class CalculationServiceImpl implements CalculationService {
         for (int i = 0; i < garchModelCalculationDTO.lastShocks().size(); i++) {
             saveRunShockWeight(calculation, garchModelCalculationDTO.lastShocks().get(i), i);
         }
+        auditLogService.logCreateEvent(EntityType.CALCULATION, calculation.getId(), null);
     }
 
     private void saveRunVarianceWeight(Calculation calculation, double value, int index) {
@@ -223,5 +227,6 @@ public class CalculationServiceImpl implements CalculationService {
     @Transactional(rollbackFor = Exception.class)
     public void deleteCalculation(long calculationId) {
         calculationRepository.deleteById(calculationId);
+        auditLogService.logDeleteEvent(EntityType.CALCULATION, calculationId, null);
     }
 }

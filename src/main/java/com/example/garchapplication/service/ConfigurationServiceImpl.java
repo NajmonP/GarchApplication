@@ -6,6 +6,7 @@ import com.example.garchapplication.model.dto.GarchModelCalculationDTO;
 import com.example.garchapplication.model.dto.GarchModelDTO;
 import com.example.garchapplication.model.entity.*;
 import com.example.garchapplication.model.enums.CellStyleNames;
+import com.example.garchapplication.model.enums.EntityType;
 import com.example.garchapplication.repository.ConfigurationRepository;
 import com.example.garchapplication.repository.GarchModelRepository;
 import com.example.garchapplication.security.AuthenticationHandler;
@@ -25,14 +26,16 @@ import java.util.*;
 @Service
 public class ConfigurationServiceImpl implements ConfigurationService {
 
+    private final AuditLogService auditLogService;
     private final GarchModelService garchModelService;
     private final ConfigurationRepository configurationRepository;
     private final AuthenticationHandler authenticationHandler;
 
     @Autowired
-    public ConfigurationServiceImpl(ConfigurationRepository configurationRepository, GarchModelServiceImpl garchModelService, GarchModelRepository garchModelRepository, AuthenticationHandler authenticationHandler) {
+    public ConfigurationServiceImpl(ConfigurationRepository configurationRepository, GarchModelServiceImpl garchModelService, GarchModelRepository garchModelRepository, AuditLogService auditLogService, AuthenticationHandler authenticationHandler) {
         this.configurationRepository = configurationRepository;
         this.garchModelService = garchModelService;
+        this.auditLogService = auditLogService;
         this.authenticationHandler = authenticationHandler;
     }
 
@@ -82,7 +85,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         configuration.setUser(user);
         configuration.setCreated(new Date(System.currentTimeMillis()));
         configurationRepository.save(configuration);
-
+        auditLogService.logCreateEvent(EntityType.CONFIGURATION, configuration.getId(), configurationName);
         return configuration;
     }
 
@@ -94,6 +97,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     public void updateConfigurationName(long configurationId, String newName) {
         Configuration configuration = configurationRepository.findById(configurationId).orElseThrow(() -> new RuntimeException("Configuration not found"));
         configuration.setName(newName);
+        auditLogService.logUpdateEvent(EntityType.CONFIGURATION, configuration.getId(), newName);
     }
 
     /**
@@ -102,11 +106,14 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteConfiguration(long configurationId) {
+        String name = configurationRepository.findNameById(configurationId).orElseThrow(() -> new RuntimeException("Configuration not found"));
+
         List<GarchModel> garchModelList = garchModelService.findAllGarchModelsByConfigurationId(configurationId);
         for (GarchModel garchModel : garchModelList) {
             garchModelService.deleteGarchModel(garchModel.getId());
         }
         configurationRepository.deleteById(configurationId);
+        auditLogService.logDeleteEvent(EntityType.CONFIGURATION, configurationId, name);
     }
 
     /**

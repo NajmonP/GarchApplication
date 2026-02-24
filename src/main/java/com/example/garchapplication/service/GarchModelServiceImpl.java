@@ -8,6 +8,7 @@ import com.example.garchapplication.model.entity.GarchModel;
 import com.example.garchapplication.model.entity.ModelShockWeight;
 import com.example.garchapplication.model.entity.ModelVarianceWeight;
 import com.example.garchapplication.model.enums.CellStyleNames;
+import com.example.garchapplication.model.enums.EntityType;
 import com.example.garchapplication.repository.GarchModelRepository;
 import com.example.garchapplication.repository.ModelShockWeightRepository;
 import com.example.garchapplication.repository.ModelVarianceWeightRepository;
@@ -27,6 +28,7 @@ import java.util.Map;
 @Service
 public class GarchModelServiceImpl implements GarchModelService {
 
+    private final AuditLogService auditLogService;
     private final GarchModelRepository garchModelRepository;
     private final ModelVarianceWeightRepository modelVarianceWeightRepository;
     private final ModelShockWeightRepository modelShockWeightRepository;
@@ -34,7 +36,8 @@ public class GarchModelServiceImpl implements GarchModelService {
     private static final int MODEL_ROWS = 5;
 
     @Autowired
-    public GarchModelServiceImpl(GarchModelRepository garchModelRepository, ModelVarianceWeightRepository modelVarianceWeightRepository, ModelShockWeightRepository modelShockWeightRepository) {
+    public GarchModelServiceImpl(AuditLogService auditLogService, GarchModelRepository garchModelRepository, ModelVarianceWeightRepository modelVarianceWeightRepository, ModelShockWeightRepository modelShockWeightRepository) {
+        this.auditLogService = auditLogService;
         this.garchModelRepository = garchModelRepository;
         this.modelVarianceWeightRepository = modelVarianceWeightRepository;
         this.modelShockWeightRepository = modelShockWeightRepository;
@@ -140,6 +143,7 @@ public class GarchModelServiceImpl implements GarchModelService {
             double value = garchModelCalculationDTO.lastShocks().get(i);
             saveModelShockWeight(garchModel, value, i);
         }
+        auditLogService.logCreateEvent(EntityType.GARCH_MODEL, garchModel.getId(),  garchModel.getName());
     }
 
     /**
@@ -188,6 +192,7 @@ public class GarchModelServiceImpl implements GarchModelService {
 
         List<ModelShockWeight> modelShockWeightList = modelShockWeightRepository.findAllByGarchModelIdOrderByOrderNoAsc(modelId);
         updateShockWeights(garchModel, modelShockWeightList, garchModelCalculationDTO.lastShocks());
+        auditLogService.logUpdateEvent(EntityType.GARCH_MODEL, modelId, garchModelCalculationDTO.name());
     }
 
 
@@ -235,7 +240,9 @@ public class GarchModelServiceImpl implements GarchModelService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteGarchModel(Long modelId){
+        String name = garchModelRepository.findNameById(modelId).orElseThrow(() -> new RuntimeException("GarchModel not found"));
         garchModelRepository.deleteById(modelId);
+        auditLogService.logDeleteEvent(EntityType.GARCH_MODEL, modelId, name);
     }
 
     @Override
