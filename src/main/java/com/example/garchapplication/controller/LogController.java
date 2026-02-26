@@ -36,7 +36,6 @@ public class LogController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "50") int size
     ) {
-        return PageResponse.ResponseFromPage(auditLogService.findBetween(from, to, page, size));
-        //return auditLogService.findBetween(from, to, page, size);
+        return PageResponse.responseFromPage(auditLogService.findBetween(from, to, page, size));
     }
 }

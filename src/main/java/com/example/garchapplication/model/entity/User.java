@@ -1,6 +1,9 @@
 package com.example.garchapplication.model.entity;
 
+import com.example.garchapplication.model.enums.RoleType;
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 
@@ -25,8 +28,10 @@ public class User {
     @Column(name = "profile_pic_url")
     private String profilePictureUrl;
 
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "role", nullable = false)
-    private String role;
+    private RoleType role;
 
     @Column(name = "created_at", nullable = false)
     private Instant created;
@@ -71,11 +76,11 @@ public class User {
         this.profilePictureUrl = profilePictureUrl;
     }
 
-    public String getRole() {
+    public RoleType getRole() {
         return role;
     }
 
-    public void setRole(String role) {
+    public void setRole(RoleType role) {
         this.role = role;
     }
 

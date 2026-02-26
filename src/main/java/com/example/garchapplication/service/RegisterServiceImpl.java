@@ -1,0 +1,47 @@
+package com.example.garchapplication.service;
+
+import com.example.garchapplication.model.dto.RegisterRequest;
+import com.example.garchapplication.model.entity.User;
+import com.example.garchapplication.model.enums.RoleType;
+import com.example.garchapplication.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Instant;
+
+@Service
+public class RegisterServiceImpl implements RegisterService {
+
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+
+    @Autowired
+    public RegisterServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void register(RegisterRequest registerRequest) {
+        if (!registerRequest.password().equals(registerRequest.confirmPassword())) {
+            throw new IllegalArgumentException("Passwords do not match");
+        }
+        if (userRepository.existsByUsername(registerRequest.username())) {
+            throw new IllegalArgumentException("Username already exists");
+        }
+        if (userRepository.existsByEmail(registerRequest.email())) {
+            throw new IllegalArgumentException("Email already exists");
+        }
+
+        User user = new User();
+        user.setUsername(registerRequest.username());
+        user.setEmail(registerRequest.email());
+        user.setHashedPassword(passwordEncoder.encode(registerRequest.password()));
+        user.setRole(RoleType.USER);
+        user.setCreated(Instant.now());
+        userRepository.save(user);
+    }
+}
