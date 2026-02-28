@@ -7,6 +7,7 @@ import com.example.garchapplication.model.dto.UpdateNameRequest;
 import com.example.garchapplication.model.dto.XlsxFileDTO;
 import com.example.garchapplication.model.entity.TimeSeries;
 import com.example.garchapplication.service.TimeSeriesService;
+import org.springframework.core.io.Resource;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -86,6 +87,22 @@ public class TimeSeriesController {
                         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 ))
                 .body(xlsxFileDTO.bytes());
+    }
+
+    @GetMapping("/time-series/download/sample")
+    public ResponseEntity<Resource> donwloadSampleTimeSeries() {
+
+        String downloadName = "Time-series-sample";
+        ContentDisposition contentDisposition = DownloadHeaderUtil.createExcelAttachment(downloadName);
+
+        Resource resource = timeSeriesService.downloadSampleTimeSeries();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString())
+                .contentType(MediaType.parseMediaType(
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                ))
+                .body(resource);
     }
 
     @GetMapping("/time-series/{timeSeriesId}")

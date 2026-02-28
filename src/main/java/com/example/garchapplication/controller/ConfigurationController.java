@@ -8,6 +8,7 @@ import com.example.garchapplication.model.entity.Configuration;
 import com.example.garchapplication.service.ConfigurationService;
 import com.example.garchapplication.service.GarchModelService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -102,6 +103,22 @@ class ConfigurationController {
                         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 ))
                 .body(xlsxFileDTO.bytes());
+    }
+
+    @GetMapping("/configuration/download/sample")
+    public ResponseEntity<Resource> downloadSampleConfiguration(){
+
+        String downloadName = "Configuration-sample";
+        ContentDisposition contentDisposition = DownloadHeaderUtil.createExcelAttachment(downloadName);
+
+        Resource resource = configurationService.downloadSampleConfiguration();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString())
+                .contentType(MediaType.parseMediaType(
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                ))
+                .body(resource);
     }
 
 }

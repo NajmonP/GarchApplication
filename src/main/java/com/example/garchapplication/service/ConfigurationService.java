@@ -2,6 +2,7 @@ package com.example.garchapplication.service;
 
 import com.example.garchapplication.model.dto.XlsxFileDTO;
 import com.example.garchapplication.model.entity.Configuration;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -55,4 +56,6 @@ public interface ConfigurationService {
      * @return DTO containing configuration name and corresponding data
      */
     XlsxFileDTO exportConfiguration(Long configurationId);
+
+    Resource downloadSampleConfiguration();
 }

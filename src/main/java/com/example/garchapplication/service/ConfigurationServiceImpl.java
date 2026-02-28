@@ -1,6 +1,7 @@
 package com.example.garchapplication.service;
 
 import com.example.garchapplication.helper.CellStylesBuilder;
+import com.example.garchapplication.helper.DownloadHeaderUtil;
 import com.example.garchapplication.model.dto.XlsxFileDTO;
 import com.example.garchapplication.model.dto.GarchModelCalculationDTO;
 import com.example.garchapplication.model.dto.GarchModelDTO;
@@ -13,6 +14,10 @@ import com.example.garchapplication.security.AuthenticationHandler;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -139,7 +144,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             cell.setCellStyle(styles.get(CellStyleNames.HEADER.toString()));
             sheet.addMergedRegion(new CellRangeAddress(0, 0, 1, 8));
             int index = 1;
-            for(GarchModelDTO garchModelDTO : garchModelDTOList) {
+            for (GarchModelDTO garchModelDTO : garchModelDTOList) {
                 index = garchModelService.addGarchModelToSheet(garchModelDTO, sheet, index, styles);
             }
 
@@ -150,5 +155,16 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         } catch (IOException e) {
             throw new RuntimeException("Error generating Excel file", e);
         }
+    }
+
+    @Override
+    public Resource downloadSampleConfiguration() {
+        Resource resource = new ClassPathResource("downloads/Configuration-sample.xlsx");
+
+        if (!resource.exists()) {
+            throw new RuntimeException("Configuration sample not found");
+        }
+
+        return resource;
     }
 }

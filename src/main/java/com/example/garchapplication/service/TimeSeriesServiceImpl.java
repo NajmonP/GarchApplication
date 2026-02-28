@@ -20,6 +20,8 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -248,6 +250,17 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
         ChartOfTimeSeriesDTO chartOfTimeSeriesDTO = TimeSeriesChartMapper.toChart(timeSeriesDTO);
         List<Double> values = calculateStatisticalDetails(timeSeriesDTO.timeSeries());
         return new TimeSeriesDetailDTO(timeSeriesId, chartOfTimeSeriesDTO, timeSeriesDTO.timeSeries().size(), values.get(0), values.get(1), values.get(2), values.get(3), values.get(4));
+    }
+
+    @Override
+    public Resource downloadSampleTimeSeries() {
+        Resource resource = new ClassPathResource("downloads/Time-series-sample.xlsx");
+
+        if (!resource.exists()) {
+            throw new RuntimeException("Time series sample not found");
+        }
+
+        return resource;
     }
 
     private List<Double> calculateStatisticalDetails(Map<Long, Double> timeSeries) {

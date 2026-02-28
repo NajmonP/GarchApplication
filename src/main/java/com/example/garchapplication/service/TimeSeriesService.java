@@ -4,6 +4,7 @@ import com.example.garchapplication.model.dto.TimeSeriesDTO;
 import com.example.garchapplication.model.dto.TimeSeriesDetailDTO;
 import com.example.garchapplication.model.dto.XlsxFileDTO;
 import com.example.garchapplication.model.entity.TimeSeries;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -92,4 +93,6 @@ public interface TimeSeriesService {
      * @return DTO containing all time series corresponding data and calculated details.
      */
     TimeSeriesDetailDTO getTimeSeriesDetails(Long timeSeriesId);
+
+    Resource downloadSampleTimeSeries();
 }
