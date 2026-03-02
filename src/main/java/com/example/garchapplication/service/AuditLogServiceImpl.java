@@ -1,5 +1,6 @@
 package com.example.garchapplication.service;
 
+import com.example.garchapplication.exception.InvalidDateRangeException;
 import com.example.garchapplication.model.dto.AuditLogDTO;
 import com.example.garchapplication.model.entity.AuditLog;
 import com.example.garchapplication.model.enums.EntityType;
@@ -49,7 +50,7 @@ public class AuditLogServiceImpl implements AuditLogService {
     @Override
     public Page<AuditLogDTO> findBetween(LocalDate from, LocalDate to, int page, int size) {
         if (from.isAfter(to)) {
-            throw new IllegalArgumentException("'from' must be <= 'to'");
+            throw new InvalidDateRangeException();
         }
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("occuredAt").descending());

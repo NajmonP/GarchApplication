@@ -1,7 +1,7 @@
 package com.example.garchapplication.service;
 
+import com.example.garchapplication.exception.*;
 import com.example.garchapplication.helper.CellStylesBuilder;
-import com.example.garchapplication.mapper.GarchModelMapper;
 import com.example.garchapplication.mapper.TimeSeriesChartMapper;
 import com.example.garchapplication.model.dto.ChartOfTimeSeriesDTO;
 import com.example.garchapplication.model.dto.TimeSeriesDTO;
@@ -74,6 +74,8 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
                 double value = sheet.getRow(i).getCell(0).getNumericCellValue();
                 saveTimeSeriesValue(timeSeries, value, i - 1);
             }
+        } catch(IllegalStateException | NullPointerException ex){
+            throw new WrongFileStructureException(EntityType.TIME_SERIES, ex);
         }
     }
 
@@ -158,7 +160,7 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
         for (int i = 0; i < timeSeriesValueList.size(); i++) {
             timeSeries.put((long) i, timeSeriesValueList.get(i).getValue());
         }
-        String name = timeSeriesRepository.findById(timeSeriesId).orElseThrow(() -> new RuntimeException("TimeSeries not found")).getName();
+        String name = timeSeriesRepository.findById(timeSeriesId).orElseThrow(() -> new EntityNotFoundException(timeSeriesId, EntityType.TIME_SERIES)).getName();
         return new TimeSeriesDTO(name, timeSeries);
     }
 
@@ -167,7 +169,7 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
      */
     @Override
     public TimeSeries getTimeSeriesFromDatabase(Long timeSeriesId) {
-        return timeSeriesRepository.findById(timeSeriesId).get();
+        return timeSeriesRepository.findById(timeSeriesId).orElseThrow(() -> new EntityNotFoundException(timeSeriesId, EntityType.TIME_SERIES));
     }
 
     /**
@@ -176,7 +178,11 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateTimeSeriesName(Long timeSeriesId, String newName) {
-        TimeSeries timeSeries = timeSeriesRepository.findById(timeSeriesId).get();
+        if (newName == null || newName.isBlank()) {
+            throw new EmptyNameException(EntityType.TIME_SERIES);
+        }
+
+        TimeSeries timeSeries = timeSeriesRepository.findById(timeSeriesId).orElseThrow(() -> new EntityNotFoundException(timeSeriesId, EntityType.TIME_SERIES));
         timeSeries.setName(newName);
         auditLogService.logUpdateEvent(EntityType.TIME_SERIES, timeSeries.getId(), newName);
     }
@@ -187,7 +193,7 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
     @Override
     @Transactional
     public void deleteTimeSeries(long timeSeriesId) {
-        String name = timeSeriesRepository.findNameById(timeSeriesId).orElseThrow(() -> new IllegalArgumentException("TimeSeries not found"));
+        String name = timeSeriesRepository.findNameById(timeSeriesId).orElseThrow(() -> new EntityNotFoundException(timeSeriesId, EntityType.TIME_SERIES));
 
         calculationRepository.markMissingInput(timeSeriesId);
         calculationRepository.markMissingOutput(timeSeriesId);
@@ -232,8 +238,8 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
             workbook.write(out);
             return new XlsxFileDTO(out.toByteArray(), timeSeriesDTO.name());
 
-        } catch (IOException e) {
-            throw new RuntimeException("Error generating Excel file", e);
+        } catch (IOException ex) {
+            throw new ExportFailedException(EntityType.TIME_SERIES, ex);
         }
     }
 
@@ -257,7 +263,7 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
         Resource resource = new ClassPathResource("downloads/Time-series-sample.xlsx");
 
         if (!resource.exists()) {
-            throw new RuntimeException("Time series sample not found");
+            throw new SampleNotFoundException(EntityType.TIME_SERIES);
         }
 
         return resource;
@@ -285,14 +291,14 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
         values.add(mean);
         double skewness = 0;
         for (Double value : timeSeries.values()) {
-            skewness += Math.pow((value - mean)/standardDeviation, 3);
+            skewness += Math.pow((value - mean) / standardDeviation, 3);
         }
-        skewness = skewness * ((double) numberOfValues /((numberOfValues-1)*(numberOfValues-2)));
+        skewness = skewness * ((double) numberOfValues / ((numberOfValues - 1) * (numberOfValues - 2)));
         values.add(skewness);
 
         double kurtosis = 0;
         for (Double value : timeSeries.values()) {
-            kurtosis += Math.pow((value - mean)/standardDeviation, 4);
+            kurtosis += Math.pow((value - mean) / standardDeviation, 4);
         }
         kurtosis /= numberOfValues;
         values.add(kurtosis);

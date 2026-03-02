@@ -1,5 +1,7 @@
 package com.example.garchapplication.service;
 
+import com.example.garchapplication.exception.EntityNotFoundException;
+import com.example.garchapplication.exception.WrongFileStructureException;
 import com.example.garchapplication.mapper.GarchModelMapper;
 import com.example.garchapplication.model.dto.GarchModelCalculationDTO;
 import com.example.garchapplication.model.dto.GarchModelDTO;
@@ -49,11 +51,11 @@ public class GarchModelServiceImpl implements GarchModelService {
     }
 
     /**
-    * {@inheritDoc}
+     * {@inheritDoc}
      */
     @Override
     public GarchModelCalculationDTO extractGarchModelCalculationDTO(Long modelId) {
-        GarchModel garchModel = garchModelRepository.findById(modelId).orElse(null);
+        GarchModel garchModel = garchModelRepository.findById(modelId).orElseThrow(() -> new EntityNotFoundException(modelId, EntityType.GARCH_MODEL));
 
         List<ModelVarianceWeight> modelVarianceWeightList = modelVarianceWeightRepository.findAllByGarchModelIdOrderByOrderNoAsc(garchModel.getId());
         List<ModelShockWeight> modelShockWeightList = modelShockWeightRepository.findAllByGarchModelIdOrderByOrderNoAsc(garchModel.getId());
@@ -65,8 +67,8 @@ public class GarchModelServiceImpl implements GarchModelService {
      * {@inheritDoc}
      */
     @Override
-    public GarchModelDTO extractGarchModelDTO(Long modelId){
-        GarchModel garchModel = garchModelRepository.findById(modelId).orElse(null);
+    public GarchModelDTO extractGarchModelDTO(Long modelId) {
+        GarchModel garchModel = garchModelRepository.findById(modelId).orElseThrow(() -> new EntityNotFoundException(modelId, EntityType.GARCH_MODEL));
 
         List<ModelVarianceWeight> modelVarianceWeightList = modelVarianceWeightRepository.findAllByGarchModelIdOrderByOrderNoAsc(garchModel.getId());
         List<ModelShockWeight> modelShockWeightList = modelShockWeightRepository.findAllByGarchModelIdOrderByOrderNoAsc(garchModel.getId());
@@ -78,9 +80,9 @@ public class GarchModelServiceImpl implements GarchModelService {
     public List<GarchModelDTO> extractGarchModelDTOsByConfigurationId(Long configurationId) {
         List<GarchModel> garchModelList = findAllGarchModelsByConfigurationId(configurationId);
         List<GarchModelDTO> garchModelDTOList = new ArrayList<>();
-        garchModelList.forEach(garchModel -> {
-            garchModelDTOList.add(extractGarchModelDTO(garchModel.getId()));
-        });
+        garchModelList.forEach(garchModel ->
+                garchModelDTOList.add(extractGarchModelDTO(garchModel.getId()))
+        );
         return garchModelDTOList;
     }
 
@@ -89,36 +91,40 @@ public class GarchModelServiceImpl implements GarchModelService {
      */
     @Override
     public List<GarchModelCalculationDTO> extractGarchModelsFromFileSheet(Sheet sheet) {
-        List<GarchModelCalculationDTO> garchModelCalculationDTOS = new ArrayList<>();
+        try {
+            List<GarchModelCalculationDTO> garchModelCalculationDTOS = new ArrayList<>();
 
-        for (int i = 1; i < sheet.getLastRowNum(); i += MODEL_ROWS) {
-            String modelName = "";
-            double startVariance = 0;
-            double constantVariance = 0;
-            List<Double> lastVariances = new ArrayList<>();
-            List<Double> lastShocks = new ArrayList<>();
-            for (int j = i; j < i + MODEL_ROWS; j++) {
-                Row row = sheet.getRow(j);
-                switch (j % MODEL_ROWS) {
-                    case 0 -> {
-                        for (int currentCellNum = 1; currentCellNum < row.getLastCellNum(); currentCellNum++) {
-                            lastShocks.add(row.getCell(currentCellNum).getNumericCellValue());
+            for (int i = 1; i < sheet.getLastRowNum(); i += MODEL_ROWS) {
+                String modelName = "";
+                double startVariance = 0;
+                double constantVariance = 0;
+                List<Double> lastVariances = new ArrayList<>();
+                List<Double> lastShocks = new ArrayList<>();
+                for (int j = i; j < i + MODEL_ROWS; j++) {
+                    Row row = sheet.getRow(j);
+                    switch (j % MODEL_ROWS) {
+                        case 0 -> {
+                            for (int currentCellNum = 1; currentCellNum < row.getLastCellNum(); currentCellNum++) {
+                                lastShocks.add(row.getCell(currentCellNum).getNumericCellValue());
+                            }
                         }
-                    }
-                    case 1 -> modelName = row.getCell(1).getStringCellValue();
-                    case 2 -> startVariance = row.getCell(1).getNumericCellValue();
-                    case 3 -> constantVariance = row.getCell(1).getNumericCellValue();
-                    case 4 -> {
-                        for (int currentCellNum = 1; currentCellNum < row.getLastCellNum(); currentCellNum++) {
-                            lastVariances.add(row.getCell(currentCellNum).getNumericCellValue());
+                        case 1 -> modelName = row.getCell(1).getStringCellValue();
+                        case 2 -> startVariance = row.getCell(1).getNumericCellValue();
+                        case 3 -> constantVariance = row.getCell(1).getNumericCellValue();
+                        case 4 -> {
+                            for (int currentCellNum = 1; currentCellNum < row.getLastCellNum(); currentCellNum++) {
+                                lastVariances.add(row.getCell(currentCellNum).getNumericCellValue());
+                            }
                         }
                     }
                 }
+                garchModelCalculationDTOS.add(new GarchModelCalculationDTO(modelName, startVariance, constantVariance, lastVariances, lastShocks));
             }
-            garchModelCalculationDTOS.add(new GarchModelCalculationDTO(modelName, startVariance, constantVariance, lastVariances, lastShocks));
-        }
 
-        return garchModelCalculationDTOS;
+            return garchModelCalculationDTOS;
+        } catch (IllegalStateException | NullPointerException ex) {
+            throw new WrongFileStructureException(EntityType.CONFIGURATION, ex);
+        }
     }
 
     /**
@@ -134,26 +140,26 @@ public class GarchModelServiceImpl implements GarchModelService {
         garchModel.setConstantVariance(garchModelCalculationDTO.constantVariance());
         garchModelRepository.save(garchModel);
 
-        for(int i = 0; i < garchModelCalculationDTO.lastVariances().size(); i++){
+        for (int i = 0; i < garchModelCalculationDTO.lastVariances().size(); i++) {
             double value = garchModelCalculationDTO.lastVariances().get(i);
             saveModelVarianceWeight(garchModel, value, i);
         }
 
-        for(int i = 0; i < garchModelCalculationDTO.lastShocks().size(); i++){
+        for (int i = 0; i < garchModelCalculationDTO.lastShocks().size(); i++) {
             double value = garchModelCalculationDTO.lastShocks().get(i);
             saveModelShockWeight(garchModel, value, i);
         }
-        auditLogService.logCreateEvent(EntityType.GARCH_MODEL, garchModel.getId(),  garchModel.getName());
+        auditLogService.logCreateEvent(EntityType.GARCH_MODEL, garchModel.getId(), garchModel.getName());
     }
 
     /**
      * Adds variance weight of the given GARCH model to database.
      *
      * @param garchModel GARCH model that variance weight belongs to
-     * @param value value of the variance weight
-     * @param index order of the variance weight
+     * @param value      value of the variance weight
+     * @param index      order of the variance weight
      */
-    private void saveModelVarianceWeight(GarchModel garchModel, double value,  int index) {
+    private void saveModelVarianceWeight(GarchModel garchModel, double value, int index) {
         ModelVarianceWeight modelVarianceWeight = new ModelVarianceWeight();
         modelVarianceWeight.setGarchModel(garchModel);
         modelVarianceWeight.setOrderNo(index + 1);
@@ -165,8 +171,8 @@ public class GarchModelServiceImpl implements GarchModelService {
      * Adds shock weight of the given GARCH model to database.
      *
      * @param garchModel GARCH model that shock weight belongs to
-     * @param value value of the shock weight
-     * @param index order of the shock weight
+     * @param value      value of the shock weight
+     * @param index      order of the shock weight
      */
     private void saveModelShockWeight(GarchModel garchModel, double value, int index) {
         ModelShockWeight modelShockWeight = new ModelShockWeight();
@@ -182,12 +188,12 @@ public class GarchModelServiceImpl implements GarchModelService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateGarchModel(long modelId, GarchModelCalculationDTO garchModelCalculationDTO) {
-        GarchModel garchModel = garchModelRepository.findById(modelId).orElseThrow(() -> new RuntimeException("GarchModel not found"));
+        GarchModel garchModel = garchModelRepository.findById(modelId).orElseThrow(() -> new EntityNotFoundException(modelId, EntityType.GARCH_MODEL));
         garchModel.setName(garchModelCalculationDTO.name());
         garchModel.setStartVariance(garchModelCalculationDTO.startVariance());
         garchModel.setConstantVariance(garchModelCalculationDTO.constantVariance());
 
-        List<ModelVarianceWeight> modelVarianceWeightList =  modelVarianceWeightRepository.findAllByGarchModelIdOrderByOrderNoAsc(modelId);
+        List<ModelVarianceWeight> modelVarianceWeightList = modelVarianceWeightRepository.findAllByGarchModelIdOrderByOrderNoAsc(modelId);
         updateVarianceWeights(garchModel, modelVarianceWeightList, garchModelCalculationDTO.lastVariances());
 
         List<ModelShockWeight> modelShockWeightList = modelShockWeightRepository.findAllByGarchModelIdOrderByOrderNoAsc(modelId);
@@ -239,8 +245,8 @@ public class GarchModelServiceImpl implements GarchModelService {
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void deleteGarchModel(Long modelId){
-        String name = garchModelRepository.findNameById(modelId).orElseThrow(() -> new RuntimeException("GarchModel not found"));
+    public void deleteGarchModel(Long modelId) {
+        String name = garchModelRepository.findNameById(modelId).orElseThrow(() -> new EntityNotFoundException(modelId, EntityType.GARCH_MODEL));
         garchModelRepository.deleteById(modelId);
         auditLogService.logDeleteEvent(EntityType.GARCH_MODEL, modelId, name);
     }
@@ -254,7 +260,7 @@ public class GarchModelServiceImpl implements GarchModelService {
         cell = row.createCell(1);
         cell.setCellValue(garchModelDTO.name());
         cell.setCellStyle(styles.get(CellStyleNames.MODEL_NAME.toString()));
-        sheet.addMergedRegion(new CellRangeAddress(index-1, index-1, 1, 8));
+        sheet.addMergedRegion(new CellRangeAddress(index - 1, index - 1, 1, 8));
 
         row = sheet.createRow(index++);
         cell = row.createCell(0);
@@ -272,7 +278,7 @@ public class GarchModelServiceImpl implements GarchModelService {
         cell = row.createCell(0);
         cell.setCellValue("Váhy minulých rozptylů:");
         cell.setCellStyle(styles.get(CellStyleNames.PARAMETER_NAME.toString()));
-        for(int i = 0; i < garchModelDTO.lastVariances().size(); i++) {
+        for (int i = 0; i < garchModelDTO.lastVariances().size(); i++) {
             double value = garchModelDTO.lastVariances().get(i);
             row.createCell(i + 1).setCellValue(value);
         }
@@ -281,7 +287,7 @@ public class GarchModelServiceImpl implements GarchModelService {
         cell = row.createCell(0);
         cell.setCellValue("Váhy minulých odhadů:");
         cell.setCellStyle(styles.get(CellStyleNames.PARAMETER_NAME.toString()));
-        for(int i = 0; i < garchModelDTO.lastShocks().size(); i++) {
+        for (int i = 0; i < garchModelDTO.lastShocks().size(); i++) {
             double value = garchModelDTO.lastShocks().get(i);
             row.createCell(i + 1).setCellValue(value);
         }

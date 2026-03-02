@@ -90,6 +90,7 @@ class ConfigurationController {
     }
 
     @GetMapping("/configuration/download/{configurationId}")
+    @ResponseBody
     public ResponseEntity<byte[]> downloadConfiguration(@PathVariable Long configurationId) {
 
         XlsxFileDTO xlsxFileDTO = configurationService.exportConfiguration(configurationId);
@@ -106,6 +107,7 @@ class ConfigurationController {
     }
 
     @GetMapping("/configuration/download/sample")
+    @ResponseBody
     public ResponseEntity<Resource> downloadSampleConfiguration(){
 
         String downloadName = "Configuration-sample";

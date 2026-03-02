@@ -1,5 +1,6 @@
 package com.example.garchapplication.exception;
 
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -7,24 +8,13 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 @ControllerAdvice
 public class ApplicationExceptionHandler {
 
-    @ExceptionHandler(MaxThresholdExceededException.class)
-    public ResponseEntity<String> MaxThresholdExceeded(MaxThresholdExceededException ex) {
-        String errorMessage = ex.getMessage() + " Součet vah: " + ex.getSum();
-        return ResponseEntity.badRequest().body(errorMessage);
+    @ExceptionHandler(GarchApplicationException.class)
+    public ResponseEntity<String> handleException(GarchApplicationException ex) {
+        return ResponseEntity.status(ex.getHttpStatusCode()).body(ex.getMessage());
     }
 
-    @ExceptionHandler(InvalidConstantVarianceException.class)
-    public ResponseEntity<String> InvalidConstatVarianceException(InvalidConstantVarianceException ex) {
-        return ResponseEntity.badRequest().body(ex.getMessage());
-    }
-
-    @ExceptionHandler(InvalidLastValueException.class)
-    public ResponseEntity<String> InvalidLastValueException(InvalidLastValueException ex) {
-        return ResponseEntity.badRequest().body(ex.getMessage());
-    }
-
-    @ExceptionHandler(MissingTimeSeriesException.class)
-    public ResponseEntity<String> MissingTimeSeriesException(MissingTimeSeriesException ex) {
-        return ResponseEntity.badRequest().body(ex.getMessage());
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<String> Exception() {
+        return ResponseEntity.status(HttpStatusCode.valueOf(500)).body("Došlo k nečekané chybě");
     }
 }

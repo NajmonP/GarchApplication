@@ -1,5 +1,6 @@
 package com.example.garchapplication.service;
 
+import com.example.garchapplication.exception.InvalidRegisterException;
 import com.example.garchapplication.model.dto.RegisterRequest;
 import com.example.garchapplication.model.entity.User;
 import com.example.garchapplication.model.enums.RoleType;
@@ -27,13 +28,13 @@ public class RegisterServiceImpl implements RegisterService {
     @Transactional(rollbackFor = Exception.class)
     public void register(RegisterRequest registerRequest) {
         if (!registerRequest.password().equals(registerRequest.confirmPassword())) {
-            throw new IllegalArgumentException("Passwords do not match");
+            throw new InvalidRegisterException("Passwords do not match");
         }
         if (userRepository.existsByUsername(registerRequest.username())) {
-            throw new IllegalArgumentException("Username already exists");
+            throw new InvalidRegisterException("Username already exists");
         }
         if (userRepository.existsByEmail(registerRequest.email())) {
-            throw new IllegalArgumentException("Email already exists");
+            throw new InvalidRegisterException("Email already exists");
         }
 
         User user = new User();

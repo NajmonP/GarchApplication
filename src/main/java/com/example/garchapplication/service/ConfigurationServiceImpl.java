@@ -1,7 +1,7 @@
 package com.example.garchapplication.service;
 
+import com.example.garchapplication.exception.*;
 import com.example.garchapplication.helper.CellStylesBuilder;
-import com.example.garchapplication.helper.DownloadHeaderUtil;
 import com.example.garchapplication.model.dto.XlsxFileDTO;
 import com.example.garchapplication.model.dto.GarchModelCalculationDTO;
 import com.example.garchapplication.model.dto.GarchModelDTO;
@@ -9,15 +9,13 @@ import com.example.garchapplication.model.entity.*;
 import com.example.garchapplication.model.enums.CellStyleNames;
 import com.example.garchapplication.model.enums.EntityType;
 import com.example.garchapplication.repository.ConfigurationRepository;
-import com.example.garchapplication.repository.GarchModelRepository;
 import com.example.garchapplication.security.AuthenticationHandler;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-import org.springframework.http.ContentDisposition;
-import org.springframework.http.ResponseEntity;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -37,7 +35,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private final AuthenticationHandler authenticationHandler;
 
     @Autowired
-    public ConfigurationServiceImpl(ConfigurationRepository configurationRepository, GarchModelServiceImpl garchModelService, GarchModelRepository garchModelRepository, AuditLogService auditLogService, AuthenticationHandler authenticationHandler) {
+    public ConfigurationServiceImpl(ConfigurationRepository configurationRepository, GarchModelServiceImpl garchModelService, AuditLogService auditLogService, AuthenticationHandler authenticationHandler) {
         this.configurationRepository = configurationRepository;
         this.garchModelService = garchModelService;
         this.auditLogService = auditLogService;
@@ -67,12 +65,19 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             Sheet sheet = workbook.getSheetAt(0);
 
             String configurationName = sheet.getRow(0).getCell(1).getStringCellValue();
+
+            if (configurationName == null || configurationName.isEmpty()) {
+                throw new EmptyNameException(EntityType.CONFIGURATION);
+            }
+
             List<GarchModelCalculationDTO> garchModelCalculationDTOS = garchModelService.extractGarchModelsFromFileSheet(sheet);
             Configuration configuration = saveConfiguration(configurationName);
 
             for (GarchModelCalculationDTO garchModelCalculationDTO : garchModelCalculationDTOS) {
                 garchModelService.saveModel(garchModelCalculationDTO, configuration);
             }
+        } catch (DataIntegrityViolationException ex) {
+            throw new DuplicateNameException(EntityType.CONFIGURATION, ex);
         }
     }
 
@@ -100,7 +105,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateConfigurationName(long configurationId, String newName) {
-        Configuration configuration = configurationRepository.findById(configurationId).orElseThrow(() -> new RuntimeException("Configuration not found"));
+        Configuration configuration = configurationRepository.findById(configurationId).orElseThrow(() -> new EntityNotFoundException(configurationId, EntityType.CONFIGURATION));
         configuration.setName(newName);
         auditLogService.logUpdateEvent(EntityType.CONFIGURATION, configuration.getId(), newName);
     }
@@ -111,7 +116,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteConfiguration(long configurationId) {
-        String name = configurationRepository.findNameById(configurationId).orElseThrow(() -> new RuntimeException("Configuration not found"));
+        String name = configurationRepository.findNameById(configurationId).orElseThrow(() -> new EntityNotFoundException(configurationId, EntityType.CONFIGURATION));
 
         List<GarchModel> garchModelList = garchModelService.findAllGarchModelsByConfigurationId(configurationId);
         for (GarchModel garchModel : garchModelList) {
@@ -126,7 +131,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
      */
     @Override
     public XlsxFileDTO exportConfiguration(Long configurationId) {
-        Configuration configuration = configurationRepository.findById(configurationId).orElseThrow(() -> new RuntimeException("Configuration not found"));
+        Configuration configuration = configurationRepository.findById(configurationId).orElseThrow(() -> new EntityNotFoundException(configurationId, EntityType.CONFIGURATION));
         List<GarchModelDTO> garchModelDTOList = garchModelService.extractGarchModelDTOsByConfigurationId(configurationId);
 
         try (Workbook workbook = new XSSFWorkbook();
@@ -152,8 +157,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             workbook.write(out);
             return new XlsxFileDTO(out.toByteArray(), configuration.getName());
 
-        } catch (IOException e) {
-            throw new RuntimeException("Error generating Excel file", e);
+        } catch (IOException ex) {
+            throw new ExportFailedException(EntityType.CONFIGURATION, ex);
         }
     }
 
@@ -162,7 +167,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         Resource resource = new ClassPathResource("downloads/Configuration-sample.xlsx");
 
         if (!resource.exists()) {
-            throw new RuntimeException("Configuration sample not found");
+            throw new SampleNotFoundException(EntityType.CONFIGURATION);
         }
 
         return resource;
