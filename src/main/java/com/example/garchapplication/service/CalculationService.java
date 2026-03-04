@@ -6,6 +6,7 @@ import com.example.garchapplication.exception.MaxThresholdExceededException;
 import com.example.garchapplication.model.dto.CalculationDetailDTO;
 import com.example.garchapplication.model.dto.GarchModelCalculationDTO;
 import com.example.garchapplication.model.dto.TimeSeriesDTO;
+import com.example.garchapplication.model.dto.api.CalculationListItemDTO;
 import com.example.garchapplication.model.entity.Calculation;
 import com.example.garchapplication.model.entity.User;
 import org.springframework.stereotype.Service;
@@ -79,7 +80,7 @@ public interface CalculationService {
     @Transactional(rollbackFor = Exception.class)
     void saveCalculation(TimeSeriesDTO timeSeriesDTO, GarchModelCalculationDTO garchModelCalculationDTO, int forecast, MultipartFile timeSeriesFile, Long timeSeriesId, User user);
 
-    List<Calculation> getAllCalculationsByUser();
+    List<CalculationListItemDTO> getAllCalculationsByUser();
 
     Calculation getCalculationById(long calculationId);
 

@@ -1,11 +1,10 @@
 package com.example.garchapplication.service;
 
 import com.example.garchapplication.Processes.CalculationProcess;
+import com.example.garchapplication.exception.*;
+import com.example.garchapplication.mapper.CalculationMapper;
 import com.example.garchapplication.model.dto.*;
-import com.example.garchapplication.exception.InvalidConstantVarianceException;
-import com.example.garchapplication.exception.InvalidLastValueException;
-import com.example.garchapplication.exception.MaxThresholdExceededException;
-import com.example.garchapplication.exception.MissingTimeSeriesException;
+import com.example.garchapplication.model.dto.api.CalculationListItemDTO;
 import com.example.garchapplication.model.entity.*;
 import com.example.garchapplication.model.enums.CalculationStatus;
 import com.example.garchapplication.model.enums.EntityType;
@@ -192,18 +191,18 @@ public class CalculationServiceImpl implements CalculationService {
     }
 
     @Override
-    public List<Calculation> getAllCalculationsByUser() {
+    public List<CalculationListItemDTO> getAllCalculationsByUser() {
         User user = authenticationHandler.getUserEntity();
 
         if (user == null) {
             return Collections.emptyList();
         }
-        return calculationRepository.getCalculationsByUser(user);
+        return CalculationMapper.toListItemDTOs(calculationRepository.getCalculationsByUser(user));
     }
 
     @Override
     public Calculation getCalculationById(long calculationId) {
-        return calculationRepository.getCalculationById(calculationId);
+        return calculationRepository.findById(calculationId).orElseThrow(() -> new EntityNotFoundException(calculationId, EntityType.CALCULATION));
     }
 
     @Override

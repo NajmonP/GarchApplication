@@ -1,7 +1,7 @@
 package com.example.garchapplication.controller;
 
 import com.example.garchapplication.model.dto.CalculationDetailDTO;
-import com.example.garchapplication.model.entity.Calculation;
+import com.example.garchapplication.model.dto.api.CalculationListItemDTO;
 import com.example.garchapplication.service.CalculationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -24,11 +24,14 @@ public class CalculationController {
     }
 
     @GetMapping("/calculation")
-    public String calculation(Model model) {
-        List<Calculation> calculationList = calculationService.getAllCalculationsByUser();
-
-        model.addAttribute("calculationList", calculationList);
+    public String calculation() {
         return "calculation";
+    }
+
+    @GetMapping("/calculation/data")
+    @ResponseBody
+    public List<CalculationListItemDTO> calculationData() {
+        return calculationService.getAllCalculationsByUser();
     }
 
     @GetMapping("/calculation/{calculationId}")
@@ -39,7 +42,7 @@ public class CalculationController {
 
     @GetMapping("/calculation/detail/{calculationId}")
     @ResponseBody
-    public CalculationDetailDTO timeSeriesDetail(@PathVariable long calculationId) {
+    public CalculationDetailDTO calculationDetail(@PathVariable long calculationId) {
         return calculationService.getCalculationDetails(calculationId);
     }
 
