@@ -36,7 +36,9 @@
             return String(v);
         }
 
-        return v.toFixed(decimals);
+        return v
+            .toFixed(decimals)
+            .replace(/\.?0+$/, "");
     }
 
     window.AppFormatter = { formatInstant, formatValue  };

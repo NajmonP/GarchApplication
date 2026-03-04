@@ -6,7 +6,7 @@ import java.time.Instant;
 
 public record CalculationListItemDTO(
         Long id,
-        String status,
+        CalculationStatus status,
         Instant runAt,
         String username,
         Long inputTimeSeriesId,

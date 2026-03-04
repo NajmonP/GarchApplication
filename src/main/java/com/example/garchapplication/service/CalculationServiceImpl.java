@@ -208,6 +208,8 @@ public class CalculationServiceImpl implements CalculationService {
     @Override
     public CalculationDetailDTO getCalculationDetails(long calculationId) {
         Calculation calculation = getCalculationById(calculationId);
+        List<RunVarianceWeight> runVarianceWeightList = runVarianceWeightRepository.findAllByCalculationIdOrderByOrderNoAsc(calculationId);
+        List<RunShockWeight> runShockWeightList = runShockWeightRepository.findAllByCalculationIdOrderByOrderNoAsc(calculationId);
         Optional<TimeSeries> optionalTimeSeriesInput = Optional.ofNullable(calculation.getInputTimeSeries());
         Optional<TimeSeries> optionalTimeSeriesResult = Optional.ofNullable(calculation.getResultTimeSeries());
         TimeSeriesDetailDTO timeSeriesDetailDTOInput = null;
@@ -219,7 +221,7 @@ public class CalculationServiceImpl implements CalculationService {
             timeSeriesDetailDTOResult = timeSeriesService.getTimeSeriesDetails(calculation.getResultTimeSeries().getId());
         }
 
-        return new CalculationDetailDTO(calculationId, timeSeriesDetailDTOInput, timeSeriesDetailDTOResult, calculation.getUser().getUsername(), calculation.getForecast(), calculation.getStatus(), calculation.getRunAt());
+        return CalculationMapper.toDetailDTO(calculation, timeSeriesDetailDTOInput, timeSeriesDetailDTOResult, runVarianceWeightList, runShockWeightList);
     }
 
     @Override

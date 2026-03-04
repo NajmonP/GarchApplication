@@ -19,7 +19,7 @@
 
             const data = await res.json();
 
-            renderStats(data);
+            AppElManager.renderTimeSeriesStats(data, SELECTORS.statsBox);
 
             const chartDto = data?.chartOfTimeSeriesDTO;
             if (!chartDto) {
@@ -37,29 +37,6 @@
         } catch (e) {
             AppModal.showError("Chyba při načítání detailu.");
         }
-    }
-
-    function renderStats(data) {
-        const statsBox = document.querySelector(SELECTORS.statsBox);
-        if (!statsBox || !window.AppElManager) return;
-
-        AppElManager.clear(statsBox);
-
-        const name = data?.chartOfTimeSeriesDTO?.name ?? "-";
-
-        const rows = [
-            AppElManager.createInfoRow("Název:", name),
-            AppElManager.createInfoRow("Pozorování:", AppFormatter.formatValue(data?.observations)),
-            AppElManager.createInfoRow("Průměr (mean):", AppFormatter.formatValue(data?.mean)),
-            AppElManager.createInfoRow("Šikmost (skewness):", AppFormatter.formatValue(data?.skewness)),
-            AppElManager.createInfoRow("Špičatost (kurtosis):", AppFormatter.formatValue(data?.kurtosis)),
-            AppElManager.createInfoRow("Minimum:", AppFormatter.formatValue(data?.min)),
-            AppElManager.createInfoRow("Maximum:", AppFormatter.formatValue(data?.max))
-        ];
-
-        const frag = document.createDocumentFragment();
-        rows.forEach(r => r && frag.appendChild(r));
-        statsBox.appendChild(frag);
     }
 
     document.addEventListener("DOMContentLoaded", () => {

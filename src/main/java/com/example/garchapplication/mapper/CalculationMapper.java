@@ -1,7 +1,9 @@
 package com.example.garchapplication.mapper;
 
+import com.example.garchapplication.model.dto.CalculationDetailDTO;
+import com.example.garchapplication.model.dto.TimeSeriesDetailDTO;
 import com.example.garchapplication.model.dto.api.CalculationListItemDTO;
-import com.example.garchapplication.model.entity.Calculation;
+import com.example.garchapplication.model.entity.*;
 
 import java.util.List;
 
@@ -9,7 +11,7 @@ public final class CalculationMapper {
     public static CalculationListItemDTO toListItemDTO(Calculation calculation) {
         return new CalculationListItemDTO(
                 calculation.getId(),
-                calculation.getStatus().name(),
+                calculation.getStatus(),
                 calculation.getRunAt(),
                 calculation.getUser().getUsername(),
                 calculation.getInputTimeSeries() != null ? calculation.getInputTimeSeries().getId() : null,
@@ -23,5 +25,31 @@ public final class CalculationMapper {
         return calculationList.stream()
                 .map(CalculationMapper::toListItemDTO)
                 .toList();
+    }
+
+    public static CalculationDetailDTO toDetailDTO(Calculation calculation,
+                                                   TimeSeriesDetailDTO timeSeriesDetailDTOInput,
+                                                   TimeSeriesDetailDTO timeSeriesDetailDTOResult,
+                                                   List<RunVarianceWeight> varianceWeights,
+                                                   List<RunShockWeight> shockWeights) {
+        List<Double> lastVariances = varianceWeights.stream()
+                .map(RunVarianceWeight::getValue)
+                .toList();
+
+        List<Double> lastShocks = shockWeights.stream()
+                .map(RunShockWeight::getValue)
+                .toList();
+
+        return new CalculationDetailDTO(
+                calculation.getId(),
+                timeSeriesDetailDTOInput,
+                timeSeriesDetailDTOResult,
+                calculation.getForecast(),
+                calculation.getStatus(),
+                calculation.getStartVariance(),
+                calculation.getConstantVariance(),
+                lastVariances,
+                lastShocks
+        );
     }
 }
