@@ -1,11 +1,9 @@
 package com.example.garchapplication.controller;
 
 import com.example.garchapplication.helper.DownloadHeaderUtil;
-import com.example.garchapplication.model.dto.TimeSeriesDTO;
-import com.example.garchapplication.model.dto.TimeSeriesDetailDTO;
-import com.example.garchapplication.model.dto.UpdateNameRequest;
-import com.example.garchapplication.model.dto.XlsxFileDTO;
-import com.example.garchapplication.model.entity.TimeSeries;
+import com.example.garchapplication.mapper.TimeSeriesMapper;
+import com.example.garchapplication.model.dto.*;
+import com.example.garchapplication.model.dto.api.TimeSeriesListItemDTO;
 import com.example.garchapplication.service.TimeSeriesService;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ContentDisposition;
@@ -18,8 +16,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.text.Normalizer;
 import java.util.List;
 
 @Controller
@@ -32,11 +28,14 @@ public class TimeSeriesController {
     }
 
     @GetMapping("/time-series")
-    public String timeSeries(Model model) {
-        List<TimeSeries> timeSeriesList = timeSeriesService.getTimeSeriesByUser();
-
-        model.addAttribute("timeSeriesList", timeSeriesList);
+    public String timeSeries() {
         return "time-series";
+    }
+
+    @GetMapping("/time-series/data")
+    @ResponseBody
+    public List<TimeSeriesListItemDTO> timeSeriesData() {
+        return TimeSeriesMapper.toListItemDTOs(timeSeriesService.getTimeSeriesByUser());
     }
 
     /**
@@ -49,11 +48,12 @@ public class TimeSeriesController {
      * @throws IOException if reading or processing the uploaded file fails
      */
     @PostMapping(value = "/time-series/add-time-series", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public String addTimeSeries(
+    @ResponseBody
+    public ResponseEntity<Void> addTimeSeries(
             @RequestParam("time-series") MultipartFile timeSeriesFile
     ) throws IOException {
         timeSeriesService.addTimeSeriesFromFile(timeSeriesFile);
-        return "redirect:/time-series";
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/time-series/{timeSeriesId}")
@@ -76,6 +76,7 @@ public class TimeSeriesController {
      * @return
      */
     @GetMapping("/time-series/download/{timeSeriesId}")
+    @ResponseBody
     public ResponseEntity<byte[]> downloadTimeSeries(@PathVariable long timeSeriesId) {
         XlsxFileDTO xlsxFileDTO = timeSeriesService.exportTimeSeries(timeSeriesId);
 
@@ -90,7 +91,7 @@ public class TimeSeriesController {
     }
 
     @GetMapping("/time-series/download/sample")
-    public ResponseEntity<Resource> donwloadSampleTimeSeries() {
+    public ResponseEntity<Resource> downloadSampleTimeSeries() {
 
         String downloadName = "Time-series-sample";
         ContentDisposition contentDisposition = DownloadHeaderUtil.createExcelAttachment(downloadName);
