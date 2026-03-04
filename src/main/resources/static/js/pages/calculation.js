@@ -46,7 +46,7 @@
         body.appendChild(AppElManager.createInfoRow("Id:", item.id));
         body.appendChild(AppElManager.createInfoRow("Status:", item.status));
         body.appendChild(AppElManager.createInfoRow("Spustil:", item?.user?.username ?? item?.username ?? ""));
-        body.appendChild(AppElManager.createInfoRow("Datum:", AppElManager.formatInstant(item.runAt)));
+        body.appendChild(AppElManager.createInfoRow("Datum:", AppFormatter.formatInstant(item.runAt)));
 
         const inputLabel = inputName
             ? `${inputName} (${item.inputTimeSeriesId ?? ""})`

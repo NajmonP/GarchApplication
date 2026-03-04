@@ -155,12 +155,13 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
      */
     @Override
     public TimeSeriesDTO getTimeSeriesDTOFromDatabase(Long timeSeriesId) {
+        String name = timeSeriesRepository.findById(timeSeriesId).orElseThrow(() -> new EntityNotFoundException(timeSeriesId, EntityType.TIME_SERIES)).getName();
+
         List<TimeSeriesValue> timeSeriesValueList = timeSeriesValueRepository.findAllByTimeSeriesIdOrderByOrderNo(timeSeriesId);
         Map<Long, Double> timeSeries = new HashMap<>();
         for (int i = 0; i < timeSeriesValueList.size(); i++) {
             timeSeries.put((long) i, timeSeriesValueList.get(i).getValue());
         }
-        String name = timeSeriesRepository.findById(timeSeriesId).orElseThrow(() -> new EntityNotFoundException(timeSeriesId, EntityType.TIME_SERIES)).getName();
         return new TimeSeriesDTO(name, timeSeries);
     }
 

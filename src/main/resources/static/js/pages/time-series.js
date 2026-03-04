@@ -62,7 +62,7 @@
 
         body.appendChild(AppElManager.createInfoRow("Id:", item.id));
         body.appendChild(AppElManager.createInfoRow("Název:", item.name));
-        body.appendChild(AppElManager.createInfoRow("Vytvořeno:", AppElManager.formatInstant(item.created)));
+        body.appendChild(AppElManager.createInfoRow("Vytvořeno:", AppFormatter.formatInstant(item.created)));
         body.appendChild(AppElManager.createInfoRow("Vytvořil:", item.username));
         body.appendChild(AppElManager.createInfoRow("Viditelnost:", item.visibility));
 
