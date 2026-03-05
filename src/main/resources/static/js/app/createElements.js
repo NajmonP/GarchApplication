@@ -34,18 +34,35 @@
 
         const name = data?.chartOfTimeSeriesDTO?.name ?? "-";
 
-        const rows = [
-            AppElManager.createInfoRow("Název:", name),
-            AppElManager.createInfoRow("Pozorování:", AppFormatter.formatValue(data?.observations)),
-            AppElManager.createInfoRow("Průměr (mean):", AppFormatter.formatValue(data?.mean)),
-            AppElManager.createInfoRow("Šikmost (skewness):", AppFormatter.formatValue(data?.skewness)),
-            AppElManager.createInfoRow("Špičatost (kurtosis):", AppFormatter.formatValue(data?.kurtosis)),
-            AppElManager.createInfoRow("Minimum:", AppFormatter.formatValue(data?.min)),
-            AppElManager.createInfoRow("Maximum:", AppFormatter.formatValue(data?.max))
+        const items = [
+            ["Název:", name],
+            ["Pozorování:", AppFormatter.formatValue(data?.observations)],
+            ["Průměr (mean):", AppFormatter.formatValue(data?.mean)],
+            ["Šikmost (skewness):", AppFormatter.formatValue(data?.skewness)],
+            ["Špičatost (kurtosis):", AppFormatter.formatValue(data?.kurtosis)],
+            ["Minimum:", AppFormatter.formatValue(data?.min)],
+            ["Maximum:", AppFormatter.formatValue(data?.max)]
         ];
 
         const frag = document.createDocumentFragment();
-        rows.forEach(r => r && frag.appendChild(r));
+
+        for (let i = 0; i < items.length; i += 2) {
+
+            const row = AppElManager.createEl("div", "row g-2 mb-1");
+
+            const col1 = AppElManager.createEl("div", "col-6");
+            col1.appendChild(AppElManager.createInfoRow(items[i][0], items[i][1]));
+            row.appendChild(col1);
+
+            if (items[i + 1]) {
+                const col2 = AppElManager.createEl("div", "col-6");
+                col2.appendChild(AppElManager.createInfoRow(items[i + 1][0], items[i + 1][1]));
+                row.appendChild(col2);
+            }
+
+            frag.appendChild(row);
+        }
+
         statsBox.appendChild(frag);
     }
 
