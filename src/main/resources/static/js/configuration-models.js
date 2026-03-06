@@ -1,6 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
     initModelPickerForCalculation();
-    initModelListingForConfigCards();
     initSaveModelChanges();
 });
 
@@ -19,43 +18,8 @@ function createParagraph(text, className = "") {
     return p;
 }
 
-function formatWeights(arr, digits = 4) {
-    if (!Array.isArray(arr) || arr.length === 0) return "—";
-    return arr
-        .map(x => (typeof x === "number" ? x.toFixed(digits) : String(x)))
-        .join(", ");
-}
 
-function parseWeights(str) {
-    if (!str) return [];
-    return str
-        .split(",")
-        .map(s => s.trim())
-        .filter(s => s.length > 0)
-        .map(s => Number(s.replace(",", ".")))
-        .filter(n => Number.isFinite(n));
-}
 
-function readNumber(id) {
-    const el = document.getElementById(id);
-    if (!el) return NaN;
-    const raw = (el.value ?? "").trim().replace(",", ".");
-    return raw === "" ? NaN : Number(raw);
-}
-
-// CSRF headers for fetch (Spring Security)
-function csrfHeaders() {
-    const form = document.getElementById("csrfForm");
-    if (!form) return {};
-
-    const tokenInput = form.querySelector('input[type="hidden"][name]');
-    const headerName = document.getElementById("csrfHeaderName")?.value;
-
-    const token = tokenInput?.value;
-    if (!headerName || !token) return {};
-
-    return { [headerName]: token };
-}
 
 // =======================
 // Model picker (radio list) - for calculation
@@ -120,152 +84,10 @@ function initModelPickerForCalculation() {
 // Listing models inside configuration cards
 // =======================
 
-function initModelListingForConfigCards() {
-    const buttons = document.querySelectorAll(".show-models-btn");
-    if (!buttons || buttons.length === 0) return;
-
-    const template = document.getElementById("tpl-model-item");
-    if (!template) {
-        console.error("Chybí <template id='tpl-model-item'> v HTML.");
-        return;
-    }
-
-    buttons.forEach(btn => {
-        btn.addEventListener("click", async function () {
-            const configurationId = this.dataset.configurationId;
-            if (!configurationId) return;
-
-            const card = this.closest(".card");
-            const container = card ? card.querySelector(".models-container") : null;
-            if (!container) return;
-
-            if (container.dataset.loaded === "true") {
-                const hidden = container.classList.toggle("d-none");
-                this.textContent = hidden ? "Zobraz modely" : "Skrýt modely";
-                return;
-            }
-
-            await loadModelsIntoContainer(configurationId, container, this, template);
-        });
-    });
-}
-
-async function loadModelsIntoContainer(configurationId, container, toggleBtn, template) {
-    container.classList.remove("d-none");
-    clearElement(container);
-
-    toggleBtn.disabled = true;
-    const originalText = toggleBtn.textContent;
-    toggleBtn.textContent = "Načítám...";
-
-    try {
-        const response = await fetch(`/configuration/${configurationId}`);
-        if (!response.ok) throw new Error("Chyba při načítání modelů.");
-
-        const models = await response.json();
-
-        if (!models || models.length === 0) {
-            container.appendChild(createParagraph("Žádné modely pro tuto konfiguraci.", "text-muted mt-2 mb-0"));
-        } else {
-            const title = document.createElement("div");
-            title.classList.add("fw-semibold", "mt-2");
-            title.textContent = "Modely:";
-            container.appendChild(title);
-
-            const list = document.createElement("ul");
-            list.classList.add("list-group", "mt-2");
-
-            models.forEach(model => {
-                const li = buildModelListItem(template, model, configurationId);
-                list.appendChild(li);
-            });
-
-            container.appendChild(list);
-        }
-
-        container.dataset.loaded = "true";
-        toggleBtn.textContent = "Skrýt modely";
-
-    } catch (e) {
-        console.error(e);
-        container.appendChild(createParagraph("Nepodařilo se načíst modely.", "text-danger mt-2 mb-0"));
-        toggleBtn.textContent = originalText;
-    } finally {
-        toggleBtn.disabled = false;
-    }
-}
-
-function buildModelListItem(template, model, configurationId) {
-    const clone = template.content.cloneNode(true);
-    const li = clone.querySelector("li");
-
-    li.querySelector(".js-model-name").textContent = model.name ?? "Model";
-    li.querySelector(".js-model-id").textContent = model.id ?? "—";
-    li.querySelector(".js-start-variance").textContent = model.startVariance ?? "—";
-    li.querySelector(".js-constant-variance").textContent = model.constantVariance ?? "—";
-    li.querySelector(".js-last-variances").textContent = formatWeights(model.lastVariances);
-    li.querySelector(".js-last-shocks").textContent = formatWeights(model.lastShocks);
-
-    li.dataset.modelId = model.id;
-    li.dataset.configurationId = configurationId;
-    li.dataset.modelName = model.name ?? "";
-    li.dataset.startVariance = model.startVariance ?? "";
-    li.dataset.constantVariance = model.constantVariance ?? "";
-    li.dataset.lastVariances = Array.isArray(model.lastVariances) ? model.lastVariances.join(",") : "";
-    li.dataset.lastShocks = Array.isArray(model.lastShocks) ? model.lastShocks.join(",") : "";
-
-    const editBtn = li.querySelector(".js-edit-model-btn");
-    const deleteBtn = li.querySelector(".js-delete-model-btn");
-
-    if (editBtn) editBtn.addEventListener("click", () => openEditModelModal(li));
-    if (deleteBtn) deleteBtn.addEventListener("click", () => handleDeleteModel(li));
-
-    return li;
-}
 
 // =======================
 // Edit / Delete model actions (modal + endpoints)
 // =======================
-
-function openEditModelModal(li) {
-    document.getElementById("editModelError")?.classList.add("d-none");
-    document.getElementById("editModelSuccess")?.classList.add("d-none");
-
-    document.getElementById("editModelId").value = li.dataset.modelId ?? "";
-    document.getElementById("editModelName").value = li.dataset.modelName ?? "";
-    document.getElementById("editStartVariance").value = li.dataset.startVariance ?? "";
-    document.getElementById("editConstantVariance").value = li.dataset.constantVariance ?? "";
-    document.getElementById("editLastVariances").value = li.dataset.lastVariances ?? "";
-    document.getElementById("editLastShocks").value = li.dataset.lastShocks ?? "";
-}
-
-async function handleDeleteModel(li) {
-    const modelId = li.dataset.modelId;
-    const configurationId = li.dataset.configurationId;
-    if (!modelId || !configurationId) return;
-
-    if (!confirm("Opravdu chceš smazat tento model?")) return;
-
-    try {
-        const response = await fetch(`/model/${modelId}`, {
-            method: "DELETE",
-            headers: {
-                ...csrfHeaders()
-            }
-        });
-
-        if (!response.ok) {
-            const text = await response.text().catch(() => "");
-            console.error("DELETE failed:", response.status, response.statusText, text);
-            throw new Error(`Delete failed: ${response.status}`);
-        }
-
-        await refreshModels(configurationId);
-    } catch (e) {
-        console.error(e);
-        alert("Nepodařilo se smazat model.");
-    }
-}
 
 async function refreshModels(configurationId) {
     const btn = document.querySelector(`.show-models-btn[data-configuration-id="${configurationId}"]`);

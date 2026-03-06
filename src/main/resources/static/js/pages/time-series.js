@@ -2,6 +2,8 @@
     "use strict";
 
     const API_URL = "/time-series/data";
+    const DOWNLOAD_URL = "/time-series/download";
+    const DELETE_URL = "/time-series";
     const cardsEl = document.getElementById("timeSeriesCards");
     const searchEl = document.getElementById("searchInput");
     const uploadForm = document.getElementById("uploadForm");
@@ -28,7 +30,7 @@
         // Download
         const downloadBtn = AppElManager.createEl("button", "btn btn-outline-success btn-sm js-download", "Stáhnout");
         downloadBtn.type = "button";
-        downloadBtn.dataset.downloadUrl = "/time-series/download";
+        downloadBtn.dataset.downloadUrl = DOWNLOAD_URL;
         downloadBtn.dataset.downloadId = String(item.id);
         downloadBtn.dataset.filename = String(item.name);
         wrap.appendChild(downloadBtn);
@@ -45,7 +47,7 @@
 
         const delBtn = AppElManager.createEl("button", "btn btn-outline-danger btn-sm js-delete", "Smazat");
         delBtn.type = "button";
-        delBtn.dataset.deleteUrl = "/time-series";
+        delBtn.dataset.deleteUrl = DELETE_URL;
         delBtn.dataset.deleteId = String(item.id);
 
         wrap.appendChild(delBtn);

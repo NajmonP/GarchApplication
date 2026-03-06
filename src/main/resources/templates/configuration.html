@@ -1,19 +1,22 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Configuration</title>
     <link rel="stylesheet" href="/navbar.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
+<body
+        data-page="configuration"
+        th:attr="data-authenticated=${#authorization.expression('isAuthenticated()')}">
+
 <div th:replace="~{fragments/navbar :: navbar}"></div>
 
 <h1>Configuration</h1>
 
 <form id="csrfForm" style="display:none;">
-    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-    <input type="hidden" id="csrfHeaderName" th:value="${_csrf.headerName}" />
+    <input type="hidden" id="csrfToken" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+    <input type="hidden" id="csrfHeaderName" th:value="${_csrf.headerName}"/>
 </form>
 
 <div class="container mb-3">
@@ -34,56 +37,18 @@
     </div>
 </div>
 
-<div class="row">
-    <div class="card shadow-sm col-6 mb-3" th:each="configuration : ${configurationList}" th:attr="data-name=${configuration.name}">
-        <div class="card-body">
-            <p><strong>Id:</strong> <span th:text="${configuration.id}"></span></p>
-            <p><strong>Název:</strong> <span th:text="${configuration.name}"></span></p>
-            <p><strong>Vytvořeno:</strong> <span th:text="${configuration.created}"></span></p>
-        </div>
-
-        <div class="card-footer d-flex justify-content-between align-items-center">
-            <div class="d-flex gap-2">
-                <button type="button"
-                        class="btn btn-outline-primary btn-sm show-models-btn"
-                        th:attr="data-configuration-id=${configuration.id}">
-                    Zobraz modely
-                </button>
-
-                <button type="button"
-                        class="btn btn-outline-success btn-sm download-config-btn"
-                        th:attr="data-configuration-id=${configuration.id}">
-                    Stáhnout
-                </button>
-            </div>
-
-            <div class="d-flex gap-2">
-                <button type="button"
-                        class="btn btn-outline-secondary btn-sm edit-config-btn"
-                        data-bs-toggle="modal"
-                        data-bs-target="#configurationEditModal"
-                        th:attr="data-configuration-id=${configuration.id}, data-configuration-name=${configuration.name}">
-                    Upravit
-                </button>
-
-                <button type="button"
-                        class="btn btn-outline-danger btn-sm delete-config-btn"
-                        th:attr="data-configuration-id=${configuration.id}">
-                    Smazat
-                </button>
-            </div>
-        </div>
-
-        <div class="px-3 pb-3">
-            <div class="models-container d-none"></div>
-        </div>
-    </div>
+<div class="container">
+    <div id="configurationCards" class="row g-3"></div>
+    <div id="pagination" class="mt-3"></div>
 </div>
 
-<form th:action="@{configuration/add-configuration}" method="post" enctype="multipart/form-data">
+<form id="uploadForm"
+      th:action="@{/configuration/add-configuration}"
+      method="post"
+      enctype="multipart/form-data"
+      class="container mt-4">
     <label for="configuration" class="form-label">Kofigurační soubor (XLSX):</label>
     <input type="file" id="configuration" name="configuration" accept=".xlsx,.xls" required/>
-
     <button type="submit" class="btn btn-primary w-100">Vložit</button>
 </form>
 
@@ -127,19 +92,20 @@
     </li>
 </template>
 
-<div th:replace="~{fragments/configuration-edit-modal :: configurationEditModal}"></div>
-
+<div th:replace="~{fragments/configuration-edit-modal :: editConfigurationModal}"></div>
 <div th:replace="~{fragments/garch-model-edit-modal :: garchModelEditModal}"></div>
+<div th:replace="~{fragments/error-modal :: errorModal}"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-<script src="/js/configuration-models.js"></script>
+<script src="/js/app/errorModal.js"></script>
+<script src="/js/app/http.js"></script>
+<script src="/js/app/search.js"></script>
+<script src="/js/app/initButtons.js"></script>
+<script src="/js/app/createElements.js"></script>
+<script src="/js/app/format.js"></script>
 
-<script src="/js/configuration-edit.js"></script>
-
-<script src="/js/configuration-download.js"></script>
-
-<script src="/js/search.js"></script>
+<script src="/js/pages/configuration.js"></script>
 
 </body>
 </html>

@@ -2,47 +2,52 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 
-<div th:fragment="configurationEditModal">
-    <div class="modal fade" id="configurationEditModal" tabindex="-1" aria-hidden="true">
+<div th:fragment="editConfigurationModal">
+    <div class="modal fade" id="editConfigurationModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
-            <!-- POZOR: žádný POST submit. Form tu je jen kvůli bootstrap layoutu. -->
-            <form class="modal-content" onsubmit="return false;">
+            <div class="modal-content">
 
-                <div class="modal-header">
-                    <h5 class="modal-title">Upravit konfiguraci</h5>
-                    <button type="button" class="btn-close"
-                            data-bs-dismiss="modal"
-                            aria-label="Zavřít"></button>
-                </div>
+                <form id="editConfigurationForm" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Upravit konfiguraci</h5>
+                        <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="modal"
+                                aria-label="Zavřít"></button>
+                    </div>
 
-                <div class="modal-body">
-                    <input type="hidden" id="editConfigId">
+                    <div class="modal-body">
+                        <input type="hidden" id="editConfigId" name="id">
 
-                    <label for="editConfigName" class="form-label">Název</label>
-                    <input type="text"
-                           class="form-control"
-                           id="editConfigName"
-                           required>
+                        <div class="mb-3">
+                            <label for="editConfigName" class="form-label">Název</label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="editConfigName"
+                                   name="name"
+                                   required>
+                        </div>
 
-                    <div class="alert alert-danger d-none mt-3" id="editConfigError" role="alert"></div>
-                    <div class="alert alert-success d-none mt-3" id="editConfigSuccess" role="alert">Uloženo.</div>
-                </div>
+                        <div class="alert alert-danger d-none mt-3" id="editConfigError" role="alert"></div>
+                        <div class="alert alert-success d-none mt-3" id="editConfigSuccess" role="alert">Uloženo.</div>
+                    </div>
 
-                <div class="modal-footer">
-                    <button type="button"
-                            class="btn btn-outline-secondary"
-                            data-bs-dismiss="modal">
-                        Zrušit
-                    </button>
+                    <div class="modal-footer">
+                        <button type="button"
+                                class="btn btn-secondary"
+                                data-bs-dismiss="modal">
+                            Zrušit
+                        </button>
 
-                    <button type="button"
-                            class="btn btn-primary"
-                            id="btnSaveConfigChanges">
-                        Uložit
-                    </button>
-                </div>
+                        <button type="submit"
+                                class="btn btn-primary"
+                                id="btnSaveConfigChanges">
+                            Uložit
+                        </button>
+                    </div>
+                </form>
 
-            </form>
+            </div>
         </div>
     </div>
 </div>

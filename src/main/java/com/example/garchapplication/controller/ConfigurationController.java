@@ -1,9 +1,14 @@
 package com.example.garchapplication.controller;
 
 import com.example.garchapplication.helper.DownloadHeaderUtil;
+import com.example.garchapplication.mapper.ConfigurationMapper;
+import com.example.garchapplication.mapper.TimeSeriesMapper;
 import com.example.garchapplication.model.dto.XlsxFileDTO;
 import com.example.garchapplication.model.dto.GarchModelDTO;
 import com.example.garchapplication.model.dto.UpdateNameRequest;
+import com.example.garchapplication.model.dto.api.CalculationListItemDTO;
+import com.example.garchapplication.model.dto.api.ConfigurationListItemDTO;
+import com.example.garchapplication.model.dto.api.TimeSeriesListItemDTO;
 import com.example.garchapplication.model.entity.Configuration;
 import com.example.garchapplication.service.ConfigurationService;
 import com.example.garchapplication.service.GarchModelService;
@@ -36,11 +41,14 @@ class ConfigurationController {
     }
 
     @GetMapping("/configuration")
-    public String configuration(Model model) {
-        List<Configuration> configurationlist = configurationService.getAllConfigurationsByUser();
-
-        model.addAttribute("configurationList", configurationlist);
+    public String configuration() {
         return "configuration";
+    }
+
+    @GetMapping("/configuration/data")
+    @ResponseBody
+    public List<ConfigurationListItemDTO> configurationData() {
+        return ConfigurationMapper.toListItemDTOs(configurationService.getAllConfigurationsByUser());
     }
 
     /**
