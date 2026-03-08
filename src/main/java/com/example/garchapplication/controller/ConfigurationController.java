@@ -1,15 +1,10 @@
 package com.example.garchapplication.controller;
 
 import com.example.garchapplication.helper.DownloadHeaderUtil;
-import com.example.garchapplication.mapper.ConfigurationMapper;
-import com.example.garchapplication.mapper.TimeSeriesMapper;
 import com.example.garchapplication.model.dto.XlsxFileDTO;
 import com.example.garchapplication.model.dto.GarchModelDTO;
-import com.example.garchapplication.model.dto.UpdateNameRequest;
-import com.example.garchapplication.model.dto.api.CalculationListItemDTO;
+import com.example.garchapplication.model.dto.api.UpdateNameRequest;
 import com.example.garchapplication.model.dto.api.ConfigurationListItemDTO;
-import com.example.garchapplication.model.dto.api.TimeSeriesListItemDTO;
-import com.example.garchapplication.model.entity.Configuration;
 import com.example.garchapplication.service.ConfigurationService;
 import com.example.garchapplication.service.GarchModelService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,13 +14,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.text.Normalizer;
 import java.util.List;
 
 @Controller
@@ -48,7 +40,7 @@ class ConfigurationController {
     @GetMapping("/configuration/data")
     @ResponseBody
     public List<ConfigurationListItemDTO> configurationData() {
-        return ConfigurationMapper.toListItemDTOs(configurationService.getAllConfigurationsByUser());
+        return configurationService.getAllConfigurationsByUser();
     }
 
     /**

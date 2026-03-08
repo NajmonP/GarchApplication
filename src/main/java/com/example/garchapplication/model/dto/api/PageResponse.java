@@ -1,4 +1,4 @@
-package com.example.garchapplication.model.dto;
+package com.example.garchapplication.model.dto.api;
 
 import org.springframework.data.domain.Page;
 

@@ -1,8 +1,10 @@
 package com.example.garchapplication.service;
 
 import com.example.garchapplication.model.dto.TimeSeriesDTO;
-import com.example.garchapplication.model.dto.TimeSeriesDetailDTO;
+import com.example.garchapplication.model.dto.api.TimeSeriesDetailDTO;
 import com.example.garchapplication.model.dto.XlsxFileDTO;
+import com.example.garchapplication.model.dto.api.TimeSeriesListItemDTO;
+import com.example.garchapplication.model.dto.api.UpdateTimeSeriesRequest;
 import com.example.garchapplication.model.entity.TimeSeries;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -33,7 +35,7 @@ public interface TimeSeriesService {
     @Transactional(rollbackFor = Exception.class)
     TimeSeries addTimeSeriesFromDTO(TimeSeriesDTO timeSeriesDTO);
 
-    List<TimeSeries> getTimeSeriesByUser();
+    List<TimeSeriesListItemDTO> getTimeSeriesByUser();
 
     /**
      * Loads time series data from uploaded time series file.
@@ -61,13 +63,13 @@ public interface TimeSeriesService {
     TimeSeries getTimeSeriesFromDatabase(Long timeSeriesId);
 
     /**
-     * Updates time series name.
+     * Updates time series name na visibility.
      *
      * @param timeSeriesId id of time series that is going to be updated
-     * @param newName new name of time series
+     * @param updateTimeSeriesRequest data for time series update
      */
     @Transactional(rollbackFor = Exception.class)
-    void updateTimeSeriesName(Long timeSeriesId, String newName);
+    void updateTimeSeries(Long timeSeriesId, UpdateTimeSeriesRequest updateTimeSeriesRequest);
 
 
     /**

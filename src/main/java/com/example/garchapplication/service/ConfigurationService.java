@@ -1,6 +1,7 @@
 package com.example.garchapplication.service;
 
 import com.example.garchapplication.model.dto.XlsxFileDTO;
+import com.example.garchapplication.model.dto.api.ConfigurationListItemDTO;
 import com.example.garchapplication.model.entity.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -29,7 +30,7 @@ public interface ConfigurationService {
      *
      * @return all configurations associated with the current user.
      */
-    List<Configuration> getAllConfigurationsByUser();
+    List<ConfigurationListItemDTO> getAllConfigurationsByUser();
 
     /**
      * Updates configuration name.

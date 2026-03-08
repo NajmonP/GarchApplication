@@ -5,6 +5,7 @@ import com.example.garchapplication.exception.*;
 import com.example.garchapplication.mapper.CalculationMapper;
 import com.example.garchapplication.model.dto.*;
 import com.example.garchapplication.model.dto.api.CalculationListItemDTO;
+import com.example.garchapplication.model.dto.api.TimeSeriesDetailDTO;
 import com.example.garchapplication.model.entity.*;
 import com.example.garchapplication.model.enums.CalculationStatus;
 import com.example.garchapplication.model.enums.EntityType;

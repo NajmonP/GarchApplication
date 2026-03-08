@@ -4,16 +4,10 @@ import com.example.garchapplication.mapper.TimeSeriesChartMapper;
 import com.example.garchapplication.model.dto.ChartOfTimeSeriesDTO;
 import com.example.garchapplication.model.dto.GarchModelCalculationDTO;
 import com.example.garchapplication.model.dto.TimeSeriesDTO;
-import com.example.garchapplication.model.entity.Configuration;
-import com.example.garchapplication.model.entity.TimeSeries;
-import com.example.garchapplication.service.ConfigurationService;
-import com.example.garchapplication.service.GarchModelService;
 import com.example.garchapplication.service.CalculationService;
-import com.example.garchapplication.service.TimeSeriesService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,29 +19,15 @@ import java.util.List;
 class HomeController {
 
     private final CalculationService calculationService;
-    private final ConfigurationService configurationService;
-    private final TimeSeriesService timeSeriesService;
 
     @Autowired
-    HomeController(CalculationService calculationService, ConfigurationService configurationService, GarchModelService garchModelService, TimeSeriesService timeSeriesService) {
+    HomeController(CalculationService calculationService) {
         this.calculationService = calculationService;
-        this.configurationService = configurationService;
-        this.timeSeriesService = timeSeriesService;
     }
 
-    /**
-     * Displays the home page with all configurations and time series associated with the current user.
-     *
-     * @param model the model used to pass configuration and time series data to the view
-     * @return the name of the home page view ("index")
-     */
-    @GetMapping("/")
-    String home(Model model) {
-        List<Configuration> configurationlist = configurationService.getAllConfigurationsByUser();
-        List<TimeSeries> timeSeriesList = timeSeriesService.getTimeSeriesByUser();
 
-        model.addAttribute("configurationList", configurationlist);
-        model.addAttribute("timeSeriesList", timeSeriesList);
+    @GetMapping("/")
+    String home() {
         return "index";
     }
 

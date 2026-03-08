@@ -1,7 +1,7 @@
 package com.example.garchapplication.service;
 
 import com.example.garchapplication.exception.InvalidRegisterException;
-import com.example.garchapplication.model.dto.RegisterRequest;
+import com.example.garchapplication.model.dto.api.RegisterRequest;
 import com.example.garchapplication.model.entity.User;
 import com.example.garchapplication.model.enums.RoleType;
 import com.example.garchapplication.repository.UserRepository;

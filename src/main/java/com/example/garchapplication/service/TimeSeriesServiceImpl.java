@@ -3,10 +3,13 @@ package com.example.garchapplication.service;
 import com.example.garchapplication.exception.*;
 import com.example.garchapplication.helper.CellStylesBuilder;
 import com.example.garchapplication.mapper.TimeSeriesChartMapper;
+import com.example.garchapplication.mapper.TimeSeriesMapper;
 import com.example.garchapplication.model.dto.ChartOfTimeSeriesDTO;
 import com.example.garchapplication.model.dto.TimeSeriesDTO;
-import com.example.garchapplication.model.dto.TimeSeriesDetailDTO;
+import com.example.garchapplication.model.dto.api.TimeSeriesDetailDTO;
 import com.example.garchapplication.model.dto.XlsxFileDTO;
+import com.example.garchapplication.model.dto.api.TimeSeriesListItemDTO;
+import com.example.garchapplication.model.dto.api.UpdateTimeSeriesRequest;
 import com.example.garchapplication.model.entity.TimeSeries;
 import com.example.garchapplication.model.entity.TimeSeriesValue;
 import com.example.garchapplication.model.entity.User;
@@ -50,13 +53,13 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
     }
 
     @Override
-    public List<TimeSeries> getTimeSeriesByUser() {
+    public List<TimeSeriesListItemDTO> getTimeSeriesByUser() {
         User user = authenticationHandler.getUserEntity();
 
         if (user == null) {
             return Collections.emptyList();
         }
-        return timeSeriesRepository.getTimeSeriesByUser(user);
+        return TimeSeriesMapper.toListItemDTOs(timeSeriesRepository.getTimeSeriesByUser(user));
     }
 
     /**
@@ -109,7 +112,7 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
         timeSeries.setUser(user);
         timeSeries.setName(timeSeriesName);
         timeSeries.setCreated(Instant.now());
-        timeSeries.setVisibility("private");
+        timeSeries.setVisibility("Private");
 
         timeSeriesRepository.save(timeSeries);
         auditLogService.logCreateEvent(EntityType.TIME_SERIES, timeSeries.getId(), timeSeriesName);
@@ -178,13 +181,17 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void updateTimeSeriesName(Long timeSeriesId, String newName) {
+    public void updateTimeSeries(Long timeSeriesId, UpdateTimeSeriesRequest updateTimeSeriesRequest) {
+        String newName = updateTimeSeriesRequest.name();
+        String visibility = updateTimeSeriesRequest.visibility();
+
         if (newName == null || newName.isBlank()) {
             throw new EmptyNameException(EntityType.TIME_SERIES);
         }
 
         TimeSeries timeSeries = timeSeriesRepository.findById(timeSeriesId).orElseThrow(() -> new EntityNotFoundException(timeSeriesId, EntityType.TIME_SERIES));
         timeSeries.setName(newName);
+        timeSeries.setVisibility(visibility);
         auditLogService.logUpdateEvent(EntityType.TIME_SERIES, timeSeries.getId(), newName);
     }
 

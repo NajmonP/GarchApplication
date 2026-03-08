@@ -1,6 +1,6 @@
 package com.example.garchapplication.controller;
 
-import com.example.garchapplication.model.dto.RegisterRequest;
+import com.example.garchapplication.model.dto.api.RegisterRequest;
 import com.example.garchapplication.service.RegisterService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;

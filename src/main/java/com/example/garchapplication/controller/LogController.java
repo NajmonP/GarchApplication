@@ -1,10 +1,9 @@
 package com.example.garchapplication.controller;
 
 import com.example.garchapplication.model.dto.AuditLogDTO;
-import com.example.garchapplication.model.dto.PageResponse;
+import com.example.garchapplication.model.dto.api.PageResponse;
 import com.example.garchapplication.service.AuditLogService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;

@@ -20,14 +20,12 @@
     function renderActions(item) {
         const wrap = AppElManager.createEl("div", "d-flex gap-2 mt-3");
 
-        // Detail (link)
         const detail = AppElManager.createEl("a", "btn btn-outline-secondary btn-sm", "Zobrazit detaily");
         detail.href = `/time-series/${item.id}`;
         wrap.appendChild(detail);
 
         if (!isAuthenticated) return wrap;
 
-        // Download
         const downloadBtn = AppElManager.createEl("button", "btn btn-outline-success btn-sm js-download", "Stáhnout");
         downloadBtn.type = "button";
         downloadBtn.dataset.downloadUrl = DOWNLOAD_URL;
@@ -35,21 +33,19 @@
         downloadBtn.dataset.filename = String(item.name);
         wrap.appendChild(downloadBtn);
 
-        // Edit (modal)
         const editBtn = AppElManager.createEl("button", "btn btn-outline-primary btn-sm", "Upravit");
         editBtn.type = "button";
         editBtn.setAttribute("data-bs-toggle", "modal");
         editBtn.setAttribute("data-bs-target", "#editTimeSeriesModal");
         editBtn.dataset.id = String(item.id);
         editBtn.dataset.name = item.name ?? "";
+        editBtn.dataset.visibility = item.visibility ?? "Private";
         wrap.appendChild(editBtn);
-
 
         const delBtn = AppElManager.createEl("button", "btn btn-outline-danger btn-sm js-delete", "Smazat");
         delBtn.type = "button";
         delBtn.dataset.deleteUrl = DELETE_URL;
         delBtn.dataset.deleteId = String(item.id);
-
         wrap.appendChild(delBtn);
 
         return wrap;
@@ -113,9 +109,13 @@
 
             currentId = button.getAttribute("data-id");
             const name = button.getAttribute("data-name");
+            const visibility = button.getAttribute("data-visibility");
 
             const nameInput = document.getElementById("timeSeriesName");
+            const visibilityInput = document.getElementById("timeSeriesVisibility");
+
             if (nameInput) nameInput.value = name ?? "";
+            if (visibilityInput) visibilityInput.checked = (visibility === "Public");
         });
 
         const form = document.getElementById("editTimeSeriesForm");
@@ -126,14 +126,23 @@
             if (!currentId) return;
 
             const name = document.getElementById("timeSeriesName")?.value?.trim();
+            const visibilityChecked = document.getElementById("timeSeriesVisibility")?.checked;
+
+            const visibility = visibilityChecked ? "Public" : "Private";
+
             if (!name) {
                 alert("Název nesmí být prázdný.");
                 return;
             }
 
+            if (!visibility) {
+                alert("Viditelnost musí být vybrána.");
+                return;
+            }
+
             const res = await AppHttp.apiFetch(`/time-series/${currentId}`, {
                 method: "PUT",
-                json: { name }
+                json: { name, visibility }
             });
 
             if (!res) return;
@@ -153,7 +162,7 @@
                 input: searchEl,
                 itemsSelector: "#timeSeriesCards [data-name]",
                 itemDatasetKey: "name",
-                emptyDisplay: "" ,
+                emptyDisplay: "",
                 hiddenDisplay: "none"
             });
         }

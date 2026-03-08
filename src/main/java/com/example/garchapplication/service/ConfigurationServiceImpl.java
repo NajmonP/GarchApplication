@@ -2,9 +2,11 @@ package com.example.garchapplication.service;
 
 import com.example.garchapplication.exception.*;
 import com.example.garchapplication.helper.CellStylesBuilder;
+import com.example.garchapplication.mapper.ConfigurationMapper;
 import com.example.garchapplication.model.dto.XlsxFileDTO;
 import com.example.garchapplication.model.dto.GarchModelCalculationDTO;
 import com.example.garchapplication.model.dto.GarchModelDTO;
+import com.example.garchapplication.model.dto.api.ConfigurationListItemDTO;
 import com.example.garchapplication.model.entity.*;
 import com.example.garchapplication.model.enums.CellStyleNames;
 import com.example.garchapplication.model.enums.EntityType;
@@ -46,13 +48,13 @@ public class ConfigurationServiceImpl implements ConfigurationService {
      * {@inheritDoc}
      */
     @Override
-    public List<Configuration> getAllConfigurationsByUser() {
+    public List<ConfigurationListItemDTO> getAllConfigurationsByUser() {
         User user = authenticationHandler.getUserEntity();
 
         if (user == null) {
             return Collections.emptyList();
         }
-        return configurationRepository.getConfigurationsByUser(user);
+        return ConfigurationMapper.toListItemDTOs(configurationRepository.getConfigurationsByUser(user));
     }
 
     /**
