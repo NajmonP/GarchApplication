@@ -2,15 +2,13 @@ package com.example.garchapplication.controller;
 
 import com.example.garchapplication.model.dto.CalculationDetailDTO;
 import com.example.garchapplication.model.dto.api.CalculationListItemDTO;
+import com.example.garchapplication.model.dto.api.CalculationPageDTO;
 import com.example.garchapplication.service.CalculationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -30,8 +28,10 @@ public class CalculationController {
 
     @GetMapping("/calculation/data")
     @ResponseBody
-    public List<CalculationListItemDTO> calculationData() {
-        return calculationService.getAllCalculationsByUser();
+    public CalculationPageDTO calculationData(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return calculationService.getCalculationPageByUser(page, size);
     }
 
     @GetMapping("/calculation/{calculationId}")

@@ -69,6 +69,8 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
     public TimeSeriesPageDTO getTimeSeriesPageByUser(int page, int size) {
         User user = authenticationHandler.getUserEntity();
 
+        List<TimeSeriesListItemDTO> usersTimeSeriesList = getTimeSeriesByUser(user);
+
         Pageable pageable = PageRequest.of(page, size, Sort.by("name").descending());
 
         Page<TimeSeries> publicTimeSeriesList;
@@ -81,13 +83,14 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
 
         PageResponse<TimeSeriesListItemDTO> timeSeriesListItemDTOS = PageResponse.responseFromPage(publicTimeSeriesList.map(TimeSeriesMapper::toListItemDTO));
 
-        if (user == null) {
-            return new TimeSeriesPageDTO(Collections.emptyList(), timeSeriesListItemDTOS);
-        }
-
-        List<TimeSeriesListItemDTO> usersTimeSeriesList = TimeSeriesMapper.toListItemDTOs(timeSeriesRepository.getTimeSeriesByUser(user));
-
         return new TimeSeriesPageDTO(usersTimeSeriesList, timeSeriesListItemDTOS);
+    }
+
+    private List<TimeSeriesListItemDTO> getTimeSeriesByUser(User user) {
+        if (user == null) {
+            return Collections.emptyList();
+        }
+        return TimeSeriesMapper.toListItemDTOs(timeSeriesRepository.getTimeSeriesByUser(user));
     }
 
     /**

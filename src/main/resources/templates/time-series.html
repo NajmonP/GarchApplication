@@ -27,7 +27,8 @@
 
 <div class="container mb-3">
     <div class="row align-items-center">
-        <div class="col-6">
+        <div class="col-6"
+             th:if="${#authorization.expression('isAuthenticated()')}">
             <input type="text"
                    id="searchInput"
                    class="form-control"

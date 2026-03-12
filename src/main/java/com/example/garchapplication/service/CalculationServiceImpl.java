@@ -5,25 +5,29 @@ import com.example.garchapplication.exception.*;
 import com.example.garchapplication.mapper.CalculationMapper;
 import com.example.garchapplication.model.dto.*;
 import com.example.garchapplication.model.dto.api.CalculationListItemDTO;
+import com.example.garchapplication.model.dto.api.CalculationPageDTO;
+import com.example.garchapplication.model.dto.api.PageResponse;
 import com.example.garchapplication.model.dto.api.TimeSeriesDetailDTO;
 import com.example.garchapplication.model.entity.*;
 import com.example.garchapplication.model.enums.CalculationStatus;
 import com.example.garchapplication.model.enums.EntityType;
+import com.example.garchapplication.model.enums.RoleType;
 import com.example.garchapplication.repository.CalculationRepository;
 import com.example.garchapplication.repository.RunShockWeightRepository;
 import com.example.garchapplication.repository.RunVarianceWeightRepository;
 import com.example.garchapplication.security.AuthenticationHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Implementation of {@link CalculationService}.
@@ -192,13 +196,26 @@ public class CalculationServiceImpl implements CalculationService {
     }
 
     @Override
-    public List<CalculationListItemDTO> getAllCalculationsByUser() {
+    public CalculationPageDTO getCalculationPageByUser(int page, int size) {
         User user = authenticationHandler.getUserEntity();
 
         if (user == null) {
-            return Collections.emptyList();
+            return new CalculationPageDTO(Collections.emptyList(), null);
         }
-        return CalculationMapper.toListItemDTOs(calculationRepository.getCalculationsByUser(user));
+
+        List<CalculationListItemDTO> usersCalculationsList = CalculationMapper.toListItemDTOs(calculationRepository.getCalculationsByUser(user));
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+
+        Page<Calculation> calculationList = calculationRepository.findAll(pageable);
+
+        PageResponse<CalculationListItemDTO> calculationListItemDTOPageResponse = null;
+
+        if (user.getRole() == RoleType.ADMIN) {
+            calculationListItemDTOPageResponse = PageResponse.responseFromPage(calculationList.map(CalculationMapper::toListItemDTO));
+        }
+
+        return new CalculationPageDTO(usersCalculationsList, calculationListItemDTOPageResponse);
     }
 
     @Override

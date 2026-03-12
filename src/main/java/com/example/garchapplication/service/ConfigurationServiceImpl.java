@@ -13,6 +13,7 @@ import com.example.garchapplication.model.dto.api.TimeSeriesPageDTO;
 import com.example.garchapplication.model.entity.*;
 import com.example.garchapplication.model.enums.CellStyleNames;
 import com.example.garchapplication.model.enums.EntityType;
+import com.example.garchapplication.model.enums.RoleType;
 import com.example.garchapplication.repository.ConfigurationRepository;
 import com.example.garchapplication.security.AuthenticationHandler;
 import org.apache.poi.ss.usermodel.*;
@@ -66,15 +67,27 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     @Override
     public ConfigurationPageDTO getConfigurationPageByUser(int page, int size) {
+        User user = authenticationHandler.getUserEntity();
+
         Pageable pageable = PageRequest.of(page, size, Sort.by("name").descending());
 
         Page<Configuration> configurationList = configurationRepository.findAll(pageable);
 
-        PageResponse<ConfigurationListItemDTO> configurationListItemDTOPageResponse = PageResponse.responseFromPage(configurationList.map(ConfigurationMapper::toListItemDTO));
+        List<ConfigurationListItemDTO> usersConfigurationList = getAllConfigurationsByUser(user);
 
-        List<ConfigurationListItemDTO> usersConfigurationList = getAllConfigurationsByUser();
+        PageResponse<ConfigurationListItemDTO> configurationListItemDTOPageResponse = null;
 
+        if (user.getRole() == RoleType.ADMIN) {
+            configurationListItemDTOPageResponse = PageResponse.responseFromPage(configurationList.map(ConfigurationMapper::toListItemDTO));
+        }
         return new ConfigurationPageDTO(usersConfigurationList, configurationListItemDTOPageResponse);
+    }
+
+    private List<ConfigurationListItemDTO> getAllConfigurationsByUser(User user) {
+        if (user == null) {
+            return Collections.emptyList();
+        }
+        return ConfigurationMapper.toListItemDTOs(configurationRepository.getConfigurationsByUser(user));
     }
 
     /**
