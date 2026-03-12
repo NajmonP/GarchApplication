@@ -11,6 +11,7 @@ public final class ConfigurationMapper {
         return new ConfigurationListItemDTO(
                 configuration.getId(),
                 configuration.getName(),
+                configuration.getUser().getUsername(),
                 configuration.getCreated()
         );
     }

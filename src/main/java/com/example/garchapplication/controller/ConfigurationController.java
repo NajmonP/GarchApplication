@@ -3,6 +3,7 @@ package com.example.garchapplication.controller;
 import com.example.garchapplication.helper.DownloadHeaderUtil;
 import com.example.garchapplication.model.dto.XlsxFileDTO;
 import com.example.garchapplication.model.dto.GarchModelDTO;
+import com.example.garchapplication.model.dto.api.ConfigurationPageDTO;
 import com.example.garchapplication.model.dto.api.UpdateNameRequest;
 import com.example.garchapplication.model.dto.api.ConfigurationListItemDTO;
 import com.example.garchapplication.service.ConfigurationService;
@@ -38,6 +39,14 @@ class ConfigurationController {
     }
 
     @GetMapping("/configuration/data")
+    @ResponseBody
+    public ConfigurationPageDTO configurationPage(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return configurationService.getConfigurationPageByUser(page, size);
+    }
+
+    @GetMapping("/configuration/select/data")
     @ResponseBody
     public List<ConfigurationListItemDTO> configurationData() {
         return configurationService.getAllConfigurationsByUser();

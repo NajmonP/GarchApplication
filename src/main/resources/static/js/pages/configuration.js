@@ -3,36 +3,61 @@
 
     const API_URL = "/configuration/data";
     const DOWNLOAD_URL = "/configuration/download";
-    const DELETE_URL = "/configuration"
-    const DELETE_MODEL_URL = "/model"
+    const DELETE_URL = "/configuration";
+    const DELETE_MODEL_URL = "/model";
+
     const cardsEl = document.getElementById("configurationCards");
+    const secondaryCardsEl = document.getElementById("secondaryConfigurationCards");
     const searchEl = document.getElementById("searchInput");
     const paginationEl = document.getElementById("pagination");
 
     const isAuthenticated = (document.body.dataset.authenticated === "true");
+    const isAdmin = (document.body.dataset.admin === "true");
 
-    let allItems = [];
-    let currentPage = 0;
     const pageSize = 10;
 
-    function renderActions(item) {
+    let myItems = [];
+    let allConfigurationsPage = {
+        content: [],
+        page: 0,
+        size: pageSize,
+        totalElements: 0,
+        totalPages: 0
+    };
+    let currentEditedModelContext = null;
+
+    function renderActions(item, section) {
         const wrap = AppElManager.createEl("div", "d-flex gap-2 mt-3");
 
-        const showModelsBtn = AppElManager.createEl("button", "btn btn-outline-secondary btn-sm js-show-models-btn", "Zobrazit modely");
+        const showModelsBtn = AppElManager.createEl(
+            "button",
+            "btn btn-outline-secondary btn-sm js-show-models-btn",
+            "Zobrazit modely"
+        );
         showModelsBtn.type = "button";
         showModelsBtn.dataset.configurationId = String(item.id);
         wrap.appendChild(showModelsBtn);
 
         if (!isAuthenticated) return wrap;
 
-        const downloadBtn = AppElManager.createEl("button", "btn btn-outline-success btn-sm js-download-config-btn", "Stáhnout");
+        const downloadBtn = AppElManager.createEl(
+            "button",
+            "btn btn-outline-success btn-sm js-download-config-btn",
+            "Stáhnout"
+        );
         downloadBtn.type = "button";
         downloadBtn.dataset.downloadUrl = DOWNLOAD_URL;
         downloadBtn.dataset.downloadId = String(item.id);
         downloadBtn.dataset.filename = String(item.name);
         wrap.appendChild(downloadBtn);
 
-        const editBtn = AppElManager.createEl("button", "btn btn-outline-primary btn-sm js-edit-config-btn", "Upravit");
+
+
+        const editBtn = AppElManager.createEl(
+            "button",
+            "btn btn-outline-primary btn-sm js-edit-config-btn",
+            "Upravit"
+        );
         editBtn.type = "button";
         editBtn.setAttribute("data-bs-toggle", "modal");
         editBtn.setAttribute("data-bs-target", "#editConfigurationModal");
@@ -40,7 +65,11 @@
         editBtn.dataset.name = item.name ?? "";
         wrap.appendChild(editBtn);
 
-        const deleteBtn = AppElManager.createEl("button", "btn btn-outline-danger btn-sm js-delete-config-btn", "Smazat");
+        const deleteBtn = AppElManager.createEl(
+            "button",
+            "btn btn-outline-danger btn-sm js-delete-config-btn",
+            "Smazat"
+        );
         deleteBtn.type = "button";
         deleteBtn.dataset.deleteUrl = DELETE_URL;
         deleteBtn.dataset.deleteId = String(item.id);
@@ -49,8 +78,7 @@
         return wrap;
     }
 
-
-    function renderCard(item) {
+    function renderCard(item, section) {
         const col = AppElManager.createEl("div", "col-12 col-md-6");
         col.dataset.name = (item.name ?? "").toLowerCase();
 
@@ -60,13 +88,14 @@
         body.appendChild(AppElManager.createInfoRow("Id:", item.id ?? "-"));
         body.appendChild(AppElManager.createInfoRow("Název:", item.name ?? "-"));
         body.appendChild(AppElManager.createInfoRow("Vytvořeno:", AppFormatter.formatInstant(item.created)));
+        body.appendChild(AppElManager.createInfoRow("Vytvořil:", item.username ?? "-"));
 
         const footer = AppElManager.createEl(
             "div",
             "card-footer d-flex justify-content-between align-items-center flex-wrap gap-2"
         );
 
-        footer.appendChild(renderActions(item));
+        footer.appendChild(renderActions(item, section));
 
         const modelsWrap = AppElManager.createEl("div", "px-3 pb-3");
         const modelsContainer = AppElManager.createEl("div", "models-container d-none");
@@ -80,29 +109,90 @@
         return col;
     }
 
-    function renderList(list) {
-        AppElManager.clear(cardsEl);
+    function renderList(list, targetEl, section) {
+        if (!targetEl) return;
+
+        AppElManager.clear(targetEl);
 
         if (!list || list.length === 0) {
             const empty = AppElManager.createEl("div", "text-muted", "Žádné konfigurace nebyly nalezeny.");
-            cardsEl.appendChild(empty);
+            targetEl.appendChild(empty);
             return;
         }
 
         const frag = document.createDocumentFragment();
-        list.forEach(item => frag.appendChild(renderCard(item)));
-        cardsEl.appendChild(frag);
+        list.forEach(item => frag.appendChild(renderCard(item, section)));
+        targetEl.appendChild(frag);
     }
 
-    async function load() {
+    function renderMyList(list = myItems) {
+        renderList(list, cardsEl, "my");
+    }
 
-        const res = await AppHttp.apiFetch(API_URL, { method: "GET" });
+    function renderAllConfigurationsPage(pageData = allConfigurationsPage) {
+        if (!secondaryCardsEl) return;
+
+        const content = Array.isArray(pageData?.content) ? pageData.content : [];
+        const pageNumber = Number.isInteger(pageData?.page) ? pageData.page : 0;
+        const totalPages = Number.isInteger(pageData?.totalPages) ? pageData.totalPages : 0;
+
+        renderList(content, secondaryCardsEl, "all");
+
+        if (paginationEl) {
+            window.AppPagination?.renderPagination?.(
+                paginationEl,
+                totalPages,
+                pageNumber,
+                (p) => load(p)
+            );
+        }
+    }
+
+    function filterMyItems(term) {
+        const normalized = (term ?? "").trim().toLowerCase();
+
+        if (!normalized) {
+            renderMyList(myItems);
+            return;
+        }
+
+        const filtered = myItems.filter(item =>
+            (item.name ?? "").toLowerCase().includes(normalized)
+        );
+
+        renderMyList(filtered);
+    }
+
+    function bindDynamicCardButtons() {
+        window.InitButtons?.initDeleteButtons?.(".js-delete-config-btn");
+        window.InitButtons?.initDeleteButtons?.(".js-delete-model-btn");
+        window.InitButtons?.initDownloadButtons?.(".js-download-config-btn");
+        initModelListingForConfigCards();
+    }
+
+    async function load(page = 0) {
+        const params = new URLSearchParams({
+            page: String(page),
+            size: String(pageSize)
+        });
+
+        const res = await AppHttp.apiFetch(`${API_URL}?${params.toString()}`, { method: "GET" });
         if (!res) return;
 
         const data = await res.json();
 
-        allItems = Array.isArray(data) ? data : (data?.content ?? []);
-        renderList(allItems);
+        myItems = Array.isArray(data?.myConfigurations) ? data.myConfigurations : [];
+        allConfigurationsPage = data?.allConfigurations ?? {
+            content: [],
+            page: 0,
+            size: pageSize,
+            totalElements: 0,
+            totalPages: 0
+        };
+
+        filterMyItems(searchEl?.value?.trim() ?? "");
+        renderAllConfigurationsPage(allConfigurationsPage);
+        bindDynamicCardButtons();
     }
 
     function initEditModal() {
@@ -158,6 +248,9 @@
         }
 
         buttons.forEach(btn => {
+            if (btn.dataset.bound === "true") return;
+            btn.dataset.bound = "true";
+
             btn.addEventListener("click", async function () {
                 const configurationId = this.dataset.configurationId;
                 if (!configurationId) return;
@@ -168,7 +261,7 @@
 
                 if (container.dataset.loaded === "true") {
                     const hidden = container.classList.toggle("d-none");
-                    this.textContent = hidden ? "Zobraz modely" : "Skrýt modely";
+                    this.textContent = hidden ? "Zobrazit modely" : "Skrýt modely";
                     return;
                 }
 
@@ -185,37 +278,39 @@
         const originalText = toggleBtn.textContent;
         toggleBtn.textContent = "Načítám...";
 
-            const response = await AppHttp.apiFetch(`/configuration/${configurationId}`, { method: "GET" });
-            if (!response) {
-                toggleBtn.textContent = originalText;
-                toggleBtn.disabled = false;
-                return;
-                }
-
-            const models = await response.json();
-
-            if (!models || models.length === 0) {
-                container.appendChild(createParagraph("Žádné modely pro tuto konfiguraci.", "text-muted mt-2 mb-0"));
-            } else {
-                const title = AppElManager.createEl("div");
-                title.classList.add("fw-semibold", "mt-2");
-                title.textContent = "Modely:";
-                container.appendChild(title);
-
-                const list = AppElManager.createEl("ul");
-                list.classList.add("list-group", "mt-2");
-
-                models.forEach(model => {
-                    const li = buildModelListItem(template, model, configurationId);
-                    list.appendChild(li);
-                });
-
-                container.appendChild(list);
-            }
-
-            container.dataset.loaded = "true";
-            toggleBtn.textContent = "Skrýt modely";
+        const response = await AppHttp.apiFetch(`/configuration/${configurationId}`, { method: "GET" });
+        if (!response) {
+            toggleBtn.textContent = originalText;
             toggleBtn.disabled = false;
+            return;
+        }
+
+        const models = await response.json();
+
+        if (!models || models.length === 0) {
+            container.appendChild(createParagraph("Žádné modely pro tuto konfiguraci.", "text-muted mt-2 mb-0"));
+        } else {
+            const title = AppElManager.createEl("div");
+            title.classList.add("fw-semibold", "mt-2");
+            title.textContent = "Modely:";
+            container.appendChild(title);
+
+            const list = AppElManager.createEl("ul");
+            list.classList.add("list-group", "mt-2");
+
+            models.forEach(model => {
+                const li = buildModelListItem(template, model, configurationId);
+                list.appendChild(li);
+            });
+
+            container.appendChild(list);
+        }
+
+        container.dataset.loaded = "true";
+        toggleBtn.textContent = "Skrýt modely";
+        toggleBtn.disabled = false;
+
+        window.InitButtons?.initDeleteButtons?.(".js-delete-model-btn");
     }
 
     function buildModelListItem(template, model, configurationId) {
@@ -248,6 +343,12 @@
     }
 
     function openEditModelModal(li) {
+        currentEditedModelContext = {
+            modelId: li.dataset.modelId ?? "",
+            configurationId: li.dataset.configurationId ?? "",
+            li
+        };
+
         document.getElementById("editModelError")?.classList.add("d-none");
         document.getElementById("editModelSuccess")?.classList.add("d-none");
 
@@ -259,7 +360,7 @@
         document.getElementById("editLastShocks").value = li.dataset.lastShocks ?? "";
     }
 
-    function initEditGarchModelModal(){
+    function initEditGarchModelModal() {
         const saveBtn = document.getElementById("btnSaveModelChanges");
         if (!saveBtn) return;
 
@@ -294,8 +395,7 @@
                 lastShocks: parseWeights(lastShocksStr)
             };
 
-            const li = document.querySelector(`li[data-model-id="${id}"]`);
-            const configurationId = li?.dataset.configurationId;
+            const configurationId = currentEditedModelContext?.configurationId;
 
             try {
                 const response = await AppHttp.apiFetch(`/model/${id}`, {
@@ -323,16 +423,20 @@
     }
 
     async function refreshModels(configurationId) {
-        const btn = document.querySelector(`.js-show-models-btn[data-configuration-id="${configurationId}"]`);
-        if (!btn) return;
-
-        const card = btn.closest(".card");
-        const container = card ? card.querySelector(".models-container") : null;
+        const buttons = document.querySelectorAll(`.js-show-models-btn[data-configuration-id="${configurationId}"]`);
         const template = document.getElementById("tpl-model-item");
-        if (!container || !template) return;
+        if (!buttons.length || !template) return;
 
-        container.dataset.loaded = "false";
-        await loadModelsIntoContainer(configurationId, container, btn, template);
+        for (const btn of buttons) {
+            const card = btn.closest(".card");
+            const container = card ? card.querySelector(".models-container") : null;
+            if (!container) continue;
+
+            if (container.dataset.loaded !== "true") continue;
+
+            container.dataset.loaded = "false";
+            await loadModelsIntoContainer(configurationId, container, btn, template);
+        }
     }
 
     function parseWeights(str) {
@@ -361,14 +465,9 @@
 
     document.addEventListener("DOMContentLoaded", async () => {
         initEditModal();
-        initEditGarchModelModal()
+        initEditGarchModelModal();
         window.InitButtons?.initUploadForm?.("#uploadForm");
         await load();
-
-        window.InitButtons?.initDeleteButtons?.(".js-delete-config-btn");
-        window.InitButtons?.initDeleteButtons?.(".js-delete-model-btn");
-        window.InitButtons?.initDownloadButtons?.(".js-download-config-btn");
-        initModelListingForConfigCards();
 
         if (searchEl && window.AppSearch?.filterByDatasetContains) {
             window.AppSearch.filterByDatasetContains({

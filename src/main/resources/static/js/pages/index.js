@@ -28,7 +28,7 @@
     }
 
     async function loadConfigurations() {
-        const response = await AppHttp.apiFetch("/configuration/data");
+        const response = await AppHttp.apiFetch("/configuration/select/data");
         if (!response) return [];
         return await response.json();
     }

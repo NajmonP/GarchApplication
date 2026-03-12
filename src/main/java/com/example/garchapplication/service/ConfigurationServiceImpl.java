@@ -7,6 +7,9 @@ import com.example.garchapplication.model.dto.XlsxFileDTO;
 import com.example.garchapplication.model.dto.GarchModelCalculationDTO;
 import com.example.garchapplication.model.dto.GarchModelDTO;
 import com.example.garchapplication.model.dto.api.ConfigurationListItemDTO;
+import com.example.garchapplication.model.dto.api.ConfigurationPageDTO;
+import com.example.garchapplication.model.dto.api.PageResponse;
+import com.example.garchapplication.model.dto.api.TimeSeriesPageDTO;
 import com.example.garchapplication.model.entity.*;
 import com.example.garchapplication.model.enums.CellStyleNames;
 import com.example.garchapplication.model.enums.EntityType;
@@ -18,6 +21,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -55,6 +62,19 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             return Collections.emptyList();
         }
         return ConfigurationMapper.toListItemDTOs(configurationRepository.getConfigurationsByUser(user));
+    }
+
+    @Override
+    public ConfigurationPageDTO getConfigurationPageByUser(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("name").descending());
+
+        Page<Configuration> configurationList = configurationRepository.findAll(pageable);
+
+        PageResponse<ConfigurationListItemDTO> configurationListItemDTOPageResponse = PageResponse.responseFromPage(configurationList.map(ConfigurationMapper::toListItemDTO));
+
+        List<ConfigurationListItemDTO> usersConfigurationList = getAllConfigurationsByUser();
+
+        return new ConfigurationPageDTO(usersConfigurationList, configurationListItemDTOPageResponse);
     }
 
     /**
