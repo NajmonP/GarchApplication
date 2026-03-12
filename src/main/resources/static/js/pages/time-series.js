@@ -4,27 +4,38 @@
     const API_URL = "/time-series/data";
     const DOWNLOAD_URL = "/time-series/download";
     const DELETE_URL = "/time-series";
+
     const cardsEl = document.getElementById("timeSeriesCards");
+    const secondaryCardsEl = document.getElementById("secondaryTimeSeriesCards");
+    const paginationEl = document.getElementById("pagination");
     const searchEl = document.getElementById("searchInput");
     const uploadForm = document.getElementById("uploadForm");
 
     const isAuthenticated = (document.body.dataset.authenticated === "true");
+    const isAdmin = (document.body.dataset.admin === "true");
 
-    let allItems = [];
+    const pageSize = 10;
+
+    let myItems = [];
+    let publicPage = {
+        content: [],
+        page: 0,
+        size: pageSize,
+        totalElements: 0,
+        totalPages: 0
+    };
 
     function setUploadVisibility() {
         if (!uploadForm) return;
         uploadForm.style.display = isAuthenticated ? "" : "none";
     }
 
-    function renderActions(item) {
+    function renderActions(item, section) {
         const wrap = AppElManager.createEl("div", "d-flex gap-2 mt-3");
 
         const detail = AppElManager.createEl("a", "btn btn-outline-secondary btn-sm", "Zobrazit detaily");
         detail.href = `/time-series/${item.id}`;
         wrap.appendChild(detail);
-
-        if (!isAuthenticated) return wrap;
 
         const downloadBtn = AppElManager.createEl("button", "btn btn-outline-success btn-sm js-download", "Stáhnout");
         downloadBtn.type = "button";
@@ -32,6 +43,18 @@
         downloadBtn.dataset.downloadId = String(item.id);
         downloadBtn.dataset.filename = String(item.name);
         wrap.appendChild(downloadBtn);
+
+        if (!isAuthenticated) return wrap;
+
+        let canModify = false;
+
+        if (section === "my") {
+            canModify = true;
+        } else if (section === "public") {
+            canModify = isAdmin;
+        }
+
+        if (!canModify) return wrap;
 
         const editBtn = AppElManager.createEl("button", "btn btn-outline-primary btn-sm", "Upravit");
         editBtn.type = "button";
@@ -51,7 +74,7 @@
         return wrap;
     }
 
-    function renderCard(item) {
+    function renderCard(item, section) {
         const col = AppElManager.createEl("div", "col-12 col-md-6");
         col.dataset.name = (item.name ?? "").toLowerCase();
 
@@ -64,37 +87,95 @@
         body.appendChild(AppElManager.createInfoRow("Vytvořil:", item.username));
         body.appendChild(AppElManager.createInfoRow("Viditelnost:", item.visibility));
 
-        body.appendChild(renderActions(item));
+        body.appendChild(renderActions(item, section));
 
         card.appendChild(body);
         col.appendChild(card);
         return col;
     }
 
-    function renderList(list) {
-        AppElManager.clear(cardsEl);
+    function renderList(list, targetEl, section) {
+        if (!targetEl) return;
+
+        AppElManager.clear(targetEl);
 
         if (!list || list.length === 0) {
             const empty = AppElManager.createEl("div", "text-muted", "Žádné časové řady nebyly nalezeny.");
-            cardsEl.appendChild(empty);
+            targetEl.appendChild(empty);
             return;
         }
 
         const frag = document.createDocumentFragment();
-        list.forEach(item => frag.appendChild(renderCard(item)));
-        cardsEl.appendChild(frag);
+        list.forEach(item => frag.appendChild(renderCard(item, section)));
+        targetEl.appendChild(frag);
     }
 
-    async function load() {
+    function renderMyList(list = myItems) {
+        renderList(list, cardsEl, "my");
+    }
+
+    function renderPublicPage(pageData = publicPage) {
+        if (!secondaryCardsEl) return;
+
+        const content = Array.isArray(pageData?.content) ? pageData.content : [];
+        const pageNumber = Number.isInteger(pageData?.page) ? pageData.page : 0;
+        const totalPages = Number.isInteger(pageData?.totalPages) ? pageData.totalPages : 0;
+
+        renderList(content, secondaryCardsEl, "public");
+
+        if (paginationEl) {
+            window.AppPagination?.renderPagination?.(
+                paginationEl,
+                totalPages,
+                pageNumber,
+                (p) => load(p, searchEl?.value?.trim() ?? "")
+            );
+        }
+    }
+
+    function filterMyItems(term) {
+        const normalized = (term ?? "").trim().toLowerCase();
+
+        if (!normalized) {
+            renderMyList(myItems);
+            return;
+        }
+
+        const filtered = myItems.filter(item =>
+            (item.name ?? "").toLowerCase().includes(normalized)
+        );
+
+        renderMyList(filtered);
+    }
+
+    async function load(page = 0, searchTerm = "") {
         setUploadVisibility();
 
-        const res = await AppHttp.apiFetch(API_URL, { method: "GET" });
+        const params = new URLSearchParams({
+            page: String(page),
+            size: String(pageSize)
+        });
+
+        if (searchTerm) {
+            params.set("search", searchTerm);
+        }
+
+        const res = await AppHttp.apiFetch(`${API_URL}?${params.toString()}`, { method: "GET" });
         if (!res) return;
 
         const data = await res.json();
 
-        allItems = Array.isArray(data) ? data : (data?.content ?? []);
-        renderList(allItems);
+        myItems = Array.isArray(data?.myTimeSeries) ? data.myTimeSeries : [];
+        publicPage = data?.publicTimeSeries ?? {
+            content: [],
+            page: 0,
+            size: pageSize,
+            totalElements: 0,
+            totalPages: 0
+        };
+
+        filterMyItems(searchTerm);
+        renderPublicPage(publicPage);
     }
 
     function initEditModal() {
@@ -127,16 +208,10 @@
 
             const name = document.getElementById("timeSeriesName")?.value?.trim();
             const visibilityChecked = document.getElementById("timeSeriesVisibility")?.checked;
-
             const visibility = visibilityChecked ? "Public" : "Private";
 
             if (!name) {
                 alert("Název nesmí být prázdný.");
-                return;
-            }
-
-            if (!visibility) {
-                alert("Viditelnost musí být vybrána.");
                 return;
             }
 

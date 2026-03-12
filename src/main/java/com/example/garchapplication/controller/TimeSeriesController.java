@@ -4,6 +4,7 @@ import com.example.garchapplication.helper.DownloadHeaderUtil;
 import com.example.garchapplication.model.dto.*;
 import com.example.garchapplication.model.dto.api.TimeSeriesDetailDTO;
 import com.example.garchapplication.model.dto.api.TimeSeriesListItemDTO;
+import com.example.garchapplication.model.dto.api.TimeSeriesPageDTO;
 import com.example.garchapplication.model.dto.api.UpdateTimeSeriesRequest;
 import com.example.garchapplication.service.TimeSeriesService;
 import org.springframework.core.io.Resource;
@@ -34,6 +35,14 @@ public class TimeSeriesController {
     }
 
     @GetMapping("/time-series/data")
+    @ResponseBody
+    public TimeSeriesPageDTO timeSeriesData(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return timeSeriesService.getTimeSeriesPageByUser(page, size);
+    }
+
+    @GetMapping("/time-series/select/data")
     @ResponseBody
     public List<TimeSeriesListItemDTO> timeSeriesData() {
         return timeSeriesService.getTimeSeriesByUser();

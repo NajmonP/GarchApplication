@@ -6,15 +6,14 @@ import com.example.garchapplication.mapper.TimeSeriesChartMapper;
 import com.example.garchapplication.mapper.TimeSeriesMapper;
 import com.example.garchapplication.model.dto.ChartOfTimeSeriesDTO;
 import com.example.garchapplication.model.dto.TimeSeriesDTO;
-import com.example.garchapplication.model.dto.api.TimeSeriesDetailDTO;
+import com.example.garchapplication.model.dto.api.*;
 import com.example.garchapplication.model.dto.XlsxFileDTO;
-import com.example.garchapplication.model.dto.api.TimeSeriesListItemDTO;
-import com.example.garchapplication.model.dto.api.UpdateTimeSeriesRequest;
 import com.example.garchapplication.model.entity.TimeSeries;
 import com.example.garchapplication.model.entity.TimeSeriesValue;
 import com.example.garchapplication.model.entity.User;
 import com.example.garchapplication.model.enums.CellStyleNames;
 import com.example.garchapplication.model.enums.EntityType;
+import com.example.garchapplication.model.enums.RoleType;
 import com.example.garchapplication.repository.CalculationRepository;
 import com.example.garchapplication.repository.TimeSeriesRepository;
 import com.example.garchapplication.repository.TimeSeriesValueRepository;
@@ -25,6 +24,10 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -62,6 +65,31 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
         return TimeSeriesMapper.toListItemDTOs(timeSeriesRepository.getTimeSeriesByUser(user));
     }
 
+    @Override
+    public TimeSeriesPageDTO getTimeSeriesPageByUser(int page, int size) {
+        User user = authenticationHandler.getUserEntity();
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("name").descending());
+
+        Page<TimeSeries> publicTimeSeriesList;
+
+        if (user != null && user.getRole() == RoleType.ADMIN){
+            publicTimeSeriesList = timeSeriesRepository.findAll(pageable);
+        } else{
+            publicTimeSeriesList = timeSeriesRepository.findPublicTimeSeries(pageable);
+        }
+
+        PageResponse<TimeSeriesListItemDTO> timeSeriesListItemDTOS = PageResponse.responseFromPage(publicTimeSeriesList.map(TimeSeriesMapper::toListItemDTO));
+
+        if (user == null) {
+            return new TimeSeriesPageDTO(Collections.emptyList(), timeSeriesListItemDTOS);
+        }
+
+        List<TimeSeriesListItemDTO> usersTimeSeriesList = TimeSeriesMapper.toListItemDTOs(timeSeriesRepository.getTimeSeriesByUser(user));
+
+        return new TimeSeriesPageDTO(usersTimeSeriesList, timeSeriesListItemDTOS);
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -77,7 +105,7 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
                 double value = sheet.getRow(i).getCell(0).getNumericCellValue();
                 saveTimeSeriesValue(timeSeries, value, i - 1);
             }
-        } catch(IllegalStateException | NullPointerException ex){
+        } catch (IllegalStateException | NullPointerException ex) {
             throw new WrongFileStructureException(EntityType.TIME_SERIES, ex);
         }
     }

@@ -4,6 +4,7 @@ import com.example.garchapplication.model.dto.TimeSeriesDTO;
 import com.example.garchapplication.model.dto.api.TimeSeriesDetailDTO;
 import com.example.garchapplication.model.dto.XlsxFileDTO;
 import com.example.garchapplication.model.dto.api.TimeSeriesListItemDTO;
+import com.example.garchapplication.model.dto.api.TimeSeriesPageDTO;
 import com.example.garchapplication.model.dto.api.UpdateTimeSeriesRequest;
 import com.example.garchapplication.model.entity.TimeSeries;
 import org.springframework.core.io.Resource;
@@ -36,6 +37,8 @@ public interface TimeSeriesService {
     TimeSeries addTimeSeriesFromDTO(TimeSeriesDTO timeSeriesDTO);
 
     List<TimeSeriesListItemDTO> getTimeSeriesByUser();
+
+    TimeSeriesPageDTO getTimeSeriesPageByUser(int page, int size);
 
     /**
      * Loads time series data from uploaded time series file.

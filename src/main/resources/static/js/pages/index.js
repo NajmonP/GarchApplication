@@ -22,7 +22,7 @@
     }
 
     async function loadTimeSeries() {
-        const response = await AppHttp.apiFetch("/time-series/data");
+        const response = await AppHttp.apiFetch("/time-series/select/data");
         if (!response) return [];
         return await response.json();
     }
