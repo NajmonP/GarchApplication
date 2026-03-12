@@ -17,6 +17,10 @@
     }
 
     function renderInto(canvasId, data, prev) {
+        const points = data?.points ?? [];
+        const maxX = points.length ? Math.max(...points.map(p => p.x)) : 0;
+        const pointRadiusSetup = points.length < 250 ? 3 : 0;
+
         const canvas = document.getElementById(canvasId);
         if (!canvas) return prev ?? null;
 
@@ -27,9 +31,9 @@
             data: {
                 datasets: [{
                     label: data?.name ?? "Výsledek",
-                    data: data?.points ?? [],
+                    data: points,
                     borderWidth: 2,
-                    pointRadius: 0
+                    pointRadius: pointRadiusSetup
                 }]
             },
             options: {
@@ -37,7 +41,13 @@
                 animation: false,
                 responsive: true,
                 maintainAspectRatio: false,
-                scales: { x: { type: "linear" } }
+                scales: {
+                    x: {
+                        type: "linear",
+                        min: 1,
+                        max: maxX
+                    }
+                }
             }
         });
     }

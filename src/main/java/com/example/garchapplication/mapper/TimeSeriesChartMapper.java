@@ -7,7 +7,7 @@ public final class TimeSeriesChartMapper {
     public static ChartOfTimeSeriesDTO toChart(TimeSeriesDTO ts) {
         var points = ts.timeSeries().entrySet().stream()
                 .sorted(java.util.Map.Entry.comparingByKey())
-                .map(e -> new ChartOfTimeSeriesDTO.PointDTO(e.getKey(), e.getValue()))
+                .map(e -> new ChartOfTimeSeriesDTO.PointDTO(e.getKey() + 1, e.getValue()))
                 .toList();
         return new ChartOfTimeSeriesDTO(ts.name(), points);
     }
