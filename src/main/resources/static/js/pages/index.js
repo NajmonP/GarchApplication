@@ -214,9 +214,58 @@
         }
     })();
 
+    function initModeSwitcher() {
+        const manualRadio = document.getElementById("mode-manual");
+        const configRadio = document.getElementById("mode-config");
+
+        const manualForm = document.querySelector(".form-manual");
+        const configForm = document.querySelector(".form-config");
+
+        function updateMode() {
+            if (manualRadio.checked) {
+                manualForm.style.display = "block";
+                configForm.style.display = "none";
+            } else {
+                manualForm.style.display = "none";
+                configForm.style.display = "block";
+            }
+        }
+
+        manualRadio.addEventListener("change", updateMode);
+        configRadio.addEventListener("change", updateMode);
+
+        updateMode();
+    }
+
+    function initCalculationDescriptionToggle() {
+        const button = document.getElementById("toggleCalculationDescription");
+        const description = document.getElementById("calculationDescription");
+
+        if (!button || !description) return;
+
+        function updateButtonState() {
+            const isOpen = description.classList.contains("show");
+            button.setAttribute("aria-expanded", String(isOpen));
+            button.textContent = isOpen ? "Skrýt popis" : "Zobrazit popis";
+        }
+
+        const collapseInstance = new bootstrap.Collapse(description, {
+            toggle: false
+        });
+
+        button.addEventListener("click", () => {
+            collapseInstance.toggle();
+        });
+
+        description.addEventListener("shown.bs.collapse", updateButtonState);
+        description.addEventListener("hidden.bs.collapse", updateButtonState);
+    }
+
     document.addEventListener("DOMContentLoaded", async () => {
         await init();
         initModelPickerForCalculation();
         initCalculationSubmit();
+        initModeSwitcher();
+        initCalculationDescriptionToggle();
     });
 })();
