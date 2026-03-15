@@ -35,10 +35,7 @@
 
     async function init() {
         try {
-            const [timeSeriesList, configurationList] = await Promise.all([
-                loadTimeSeries(),
-                loadConfigurations()
-            ]);
+            const timeSeriesList = await loadTimeSeries();
 
             fillSelect(
                 document.getElementById("timeSeriesIdManual"),
@@ -52,11 +49,15 @@
                 "— vyber —"
             );
 
-            fillSelect(
-                document.getElementById("configurationId"),
-                configurationList,
-                "— vyber —"
-            );
+            const configurationSelect = document.getElementById("configurationId");
+            if (configurationSelect) {
+                const configurationList = await loadConfigurations();
+                fillSelect(
+                    configurationSelect,
+                    configurationList,
+                    "— vyber —"
+                );
+            }
 
         } catch (error) {
             console.error("Nepodařilo se načíst data pro formulář.", error);
@@ -220,6 +221,13 @@
 
         const manualForm = document.querySelector(".form-manual");
         const configForm = document.querySelector(".form-config");
+
+        if (!manualForm) return;
+
+        if (!manualRadio || !configRadio || !configForm) {
+            manualForm.style.display = "block";
+            return;
+        }
 
         function updateMode() {
             if (manualRadio.checked) {

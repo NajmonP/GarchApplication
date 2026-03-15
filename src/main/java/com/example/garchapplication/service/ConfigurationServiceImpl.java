@@ -111,8 +111,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             for (GarchModelCalculationDTO garchModelCalculationDTO : garchModelCalculationDTOS) {
                 garchModelService.saveModel(garchModelCalculationDTO, configuration);
             }
-        } catch (DataIntegrityViolationException ex) {
-            throw new DuplicateNameException(EntityType.CONFIGURATION, ex);
         }
     }
 
@@ -124,14 +122,17 @@ public class ConfigurationServiceImpl implements ConfigurationService {
      */
     private Configuration saveConfiguration(String configurationName) {
         User user = authenticationHandler.getUserEntity();
-
-        Configuration configuration = new Configuration();
-        configuration.setName(configurationName);
-        configuration.setUser(user);
-        configuration.setCreated(Instant.now());
-        configurationRepository.save(configuration);
-        auditLogService.logCreateEvent(EntityType.CONFIGURATION, configuration.getId(), configurationName);
-        return configuration;
+        try {
+            Configuration configuration = new Configuration();
+            configuration.setName(configurationName);
+            configuration.setUser(user);
+            configuration.setCreated(Instant.now());
+            configurationRepository.saveAndFlush(configuration);
+            auditLogService.logCreateEvent(EntityType.CONFIGURATION, configuration.getId(), configurationName);
+            return configuration;
+        } catch (DataIntegrityViolationException ex) {
+            throw new DuplicateNameException(EntityType.CONFIGURATION, ex);
+        }
     }
 
     /**
@@ -140,9 +141,14 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateConfigurationName(long configurationId, String newName) {
-        Configuration configuration = configurationRepository.findById(configurationId).orElseThrow(() -> new EntityNotFoundException(configurationId, EntityType.CONFIGURATION));
-        configuration.setName(newName);
-        auditLogService.logUpdateEvent(EntityType.CONFIGURATION, configuration.getId(), newName);
+        try {
+            Configuration configuration = configurationRepository.findById(configurationId).orElseThrow(() -> new EntityNotFoundException(configurationId, EntityType.CONFIGURATION));
+            configuration.setName(newName);
+            configurationRepository.flush();
+            auditLogService.logUpdateEvent(EntityType.CONFIGURATION, configuration.getId(), newName);
+        } catch (DataIntegrityViolationException ex) {
+            throw new DuplicateNameException(EntityType.CONFIGURATION, ex);
+        }
     }
 
     /**

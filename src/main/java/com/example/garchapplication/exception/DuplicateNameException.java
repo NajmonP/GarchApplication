@@ -13,7 +13,7 @@ public class DuplicateNameException extends GarchApplicationException {
 
         switch (entityType) {
             case CONFIGURATION -> errorMessage = "V systému už konfiguraci s tímto názvem máte.";
-            case GARCH_MODEL -> errorMessage = "Soubor s konfigurací obsahuje duplicitní názvy GARCH modelů.";
+            case GARCH_MODEL -> errorMessage = "Konfigurace nemůže obsahovat dva modely se stejným názvem.";
             case TIME_SERIES -> errorMessage = "V systému už časovou řadu s tímto názvem máte.";
         }
 

@@ -24,6 +24,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -75,9 +76,9 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
 
         Page<TimeSeries> publicTimeSeriesList;
 
-        if (user != null && user.getRole() == RoleType.ADMIN){
+        if (user != null && user.getRole() == RoleType.ADMIN) {
             publicTimeSeriesList = timeSeriesRepository.findAll(pageable);
-        } else{
+        } else {
             publicTimeSeriesList = timeSeriesRepository.findPublicTimeSeries(pageable);
         }
 
@@ -138,16 +139,19 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
      */
     public TimeSeries saveTimeSeries(String timeSeriesName) {
         User user = authenticationHandler.getUserEntity();
+        try {
+            TimeSeries timeSeries = new TimeSeries();
+            timeSeries.setUser(user);
+            timeSeries.setName(timeSeriesName);
+            timeSeries.setCreated(Instant.now());
+            timeSeries.setVisibility("Private");
 
-        TimeSeries timeSeries = new TimeSeries();
-        timeSeries.setUser(user);
-        timeSeries.setName(timeSeriesName);
-        timeSeries.setCreated(Instant.now());
-        timeSeries.setVisibility("Private");
-
-        timeSeriesRepository.save(timeSeries);
-        auditLogService.logCreateEvent(EntityType.TIME_SERIES, timeSeries.getId(), timeSeriesName);
-        return timeSeries;
+            timeSeriesRepository.saveAndFlush(timeSeries);
+            auditLogService.logCreateEvent(EntityType.TIME_SERIES, timeSeries.getId(), timeSeriesName);
+            return timeSeries;
+        } catch (DataIntegrityViolationException ex) {
+            throw new DuplicateNameException(EntityType.TIME_SERIES, ex);
+        }
     }
 
     /**
@@ -180,6 +184,8 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
                 double value = sheet.getRow(i).getCell(0).getNumericCellValue();
                 loadedTimeSeries.put((long) (i - 2), value);
             }
+        } catch (IllegalStateException | NullPointerException ex) {
+            throw new WrongFileStructureException(EntityType.TIME_SERIES, ex);
         }
         return new TimeSeriesDTO(timeSeriesName, loadedTimeSeries);
     }
@@ -219,11 +225,15 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
         if (newName == null || newName.isBlank()) {
             throw new EmptyNameException(EntityType.TIME_SERIES);
         }
-
-        TimeSeries timeSeries = timeSeriesRepository.findById(timeSeriesId).orElseThrow(() -> new EntityNotFoundException(timeSeriesId, EntityType.TIME_SERIES));
-        timeSeries.setName(newName);
-        timeSeries.setVisibility(visibility);
-        auditLogService.logUpdateEvent(EntityType.TIME_SERIES, timeSeries.getId(), newName);
+        try {
+            TimeSeries timeSeries = timeSeriesRepository.findById(timeSeriesId).orElseThrow(() -> new EntityNotFoundException(timeSeriesId, EntityType.TIME_SERIES));
+            timeSeries.setName(newName);
+            timeSeries.setVisibility(visibility);
+            timeSeriesRepository.flush();
+            auditLogService.logUpdateEvent(EntityType.TIME_SERIES, timeSeries.getId(), newName);
+        } catch (DataIntegrityViolationException ex) {
+            throw new DuplicateNameException(EntityType.TIME_SERIES, ex);
+        }
     }
 
     /**

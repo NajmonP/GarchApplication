@@ -14,7 +14,7 @@ public class ApplicationExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> Exception() {
+    public ResponseEntity<String> Exception(Exception ex) {
         return ResponseEntity.status(HttpStatusCode.valueOf(500)).body("Došlo k nečekané chybě");
     }
 }

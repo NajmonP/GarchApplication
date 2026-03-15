@@ -1,5 +1,6 @@
 package com.example.garchapplication.service;
 
+import com.example.garchapplication.exception.DuplicateNameException;
 import com.example.garchapplication.exception.EntityNotFoundException;
 import com.example.garchapplication.exception.WrongFileStructureException;
 import com.example.garchapplication.mapper.GarchModelMapper;
@@ -20,6 +21,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -133,23 +135,27 @@ public class GarchModelServiceImpl implements GarchModelService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void saveModel(GarchModelCalculationDTO garchModelCalculationDTO, Configuration configuration) {
-        GarchModel garchModel = new GarchModel();
-        garchModel.setConfiguration(configuration);
-        garchModel.setName(garchModelCalculationDTO.name());
-        garchModel.setStartVariance(garchModelCalculationDTO.startVariance());
-        garchModel.setConstantVariance(garchModelCalculationDTO.constantVariance());
-        garchModelRepository.save(garchModel);
+        try {
+            GarchModel garchModel = new GarchModel();
+            garchModel.setConfiguration(configuration);
+            garchModel.setName(garchModelCalculationDTO.name());
+            garchModel.setStartVariance(garchModelCalculationDTO.startVariance());
+            garchModel.setConstantVariance(garchModelCalculationDTO.constantVariance());
+            garchModelRepository.saveAndFlush(garchModel);
 
-        for (int i = 0; i < garchModelCalculationDTO.lastVariances().size(); i++) {
-            double value = garchModelCalculationDTO.lastVariances().get(i);
-            saveModelVarianceWeight(garchModel, value, i);
-        }
+            for (int i = 0; i < garchModelCalculationDTO.lastVariances().size(); i++) {
+                double value = garchModelCalculationDTO.lastVariances().get(i);
+                saveModelVarianceWeight(garchModel, value, i);
+            }
 
-        for (int i = 0; i < garchModelCalculationDTO.lastShocks().size(); i++) {
-            double value = garchModelCalculationDTO.lastShocks().get(i);
-            saveModelShockWeight(garchModel, value, i);
+            for (int i = 0; i < garchModelCalculationDTO.lastShocks().size(); i++) {
+                double value = garchModelCalculationDTO.lastShocks().get(i);
+                saveModelShockWeight(garchModel, value, i);
+            }
+            auditLogService.logCreateEvent(EntityType.GARCH_MODEL, garchModel.getId(), garchModel.getName());
+        } catch (DataIntegrityViolationException ex) {
+            throw new DuplicateNameException(EntityType.GARCH_MODEL, ex);
         }
-        auditLogService.logCreateEvent(EntityType.GARCH_MODEL, garchModel.getId(), garchModel.getName());
     }
 
     /**
@@ -188,17 +194,22 @@ public class GarchModelServiceImpl implements GarchModelService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateGarchModel(long modelId, GarchModelCalculationDTO garchModelCalculationDTO) {
-        GarchModel garchModel = garchModelRepository.findById(modelId).orElseThrow(() -> new EntityNotFoundException(modelId, EntityType.GARCH_MODEL));
-        garchModel.setName(garchModelCalculationDTO.name());
-        garchModel.setStartVariance(garchModelCalculationDTO.startVariance());
-        garchModel.setConstantVariance(garchModelCalculationDTO.constantVariance());
+        try {
+            GarchModel garchModel = garchModelRepository.findById(modelId).orElseThrow(() -> new EntityNotFoundException(modelId, EntityType.GARCH_MODEL));
+            garchModel.setName(garchModelCalculationDTO.name());
+            garchModel.setStartVariance(garchModelCalculationDTO.startVariance());
+            garchModel.setConstantVariance(garchModelCalculationDTO.constantVariance());
 
-        List<ModelVarianceWeight> modelVarianceWeightList = modelVarianceWeightRepository.findAllByGarchModelIdOrderByOrderNoAsc(modelId);
-        updateVarianceWeights(garchModel, modelVarianceWeightList, garchModelCalculationDTO.lastVariances());
 
-        List<ModelShockWeight> modelShockWeightList = modelShockWeightRepository.findAllByGarchModelIdOrderByOrderNoAsc(modelId);
-        updateShockWeights(garchModel, modelShockWeightList, garchModelCalculationDTO.lastShocks());
-        auditLogService.logUpdateEvent(EntityType.GARCH_MODEL, modelId, garchModelCalculationDTO.name());
+            List<ModelVarianceWeight> modelVarianceWeightList = modelVarianceWeightRepository.findAllByGarchModelIdOrderByOrderNoAsc(modelId);
+            updateVarianceWeights(garchModel, modelVarianceWeightList, garchModelCalculationDTO.lastVariances());
+
+            List<ModelShockWeight> modelShockWeightList = modelShockWeightRepository.findAllByGarchModelIdOrderByOrderNoAsc(modelId);
+            updateShockWeights(garchModel, modelShockWeightList, garchModelCalculationDTO.lastShocks());
+            auditLogService.logUpdateEvent(EntityType.GARCH_MODEL, modelId, garchModelCalculationDTO.name());
+        } catch (DataIntegrityViolationException ex) {
+            throw new DuplicateNameException(EntityType.GARCH_MODEL, ex);
+        }
     }
 
 
