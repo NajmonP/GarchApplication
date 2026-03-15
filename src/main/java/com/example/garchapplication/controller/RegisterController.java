@@ -1,5 +1,6 @@
 package com.example.garchapplication.controller;
 
+import com.example.garchapplication.exception.InvalidRegisterException;
 import com.example.garchapplication.model.dto.api.RegisterRequest;
 import com.example.garchapplication.service.RegisterService;
 import jakarta.validation.Valid;
@@ -27,13 +28,25 @@ public class RegisterController {
         return "register";
     }
 
+
     @PostMapping("/register")
-    public String registerSubmit(@ModelAttribute("form") @Valid RegisterRequest form, BindingResult br) {
-        if (br.hasErrors()) {
+    public String register(@Valid @ModelAttribute("form") RegisterRequest form,
+                           BindingResult bindingResult,
+                           Model model
+    ) {
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("form", form);
+            model.addAttribute("modalError", "Neplatné údaje pro registraci");
             return "register";
         }
 
-        registerService.register(form);
-        return "redirect:/login?registered";
+        try {
+            registerService.register(form);
+            return "redirect:/login";
+        } catch (InvalidRegisterException e) {
+            model.addAttribute("form", form);
+            model.addAttribute("modalError", e.getMessage());
+            return "register";
+        }
     }
 }

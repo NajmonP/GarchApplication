@@ -28,13 +28,13 @@ public class RegisterServiceImpl implements RegisterService {
     @Transactional(rollbackFor = Exception.class)
     public void register(RegisterRequest registerRequest) {
         if (!registerRequest.password().equals(registerRequest.confirmPassword())) {
-            throw new InvalidRegisterException("Passwords do not match");
+            throw new InvalidRegisterException("Hesla se neshodují.");
         }
         if (userRepository.existsByUsername(registerRequest.username())) {
-            throw new InvalidRegisterException("Username already exists");
+            throw new InvalidRegisterException("Uživatelské jméno již existuje.");
         }
         if (userRepository.existsByEmail(registerRequest.email())) {
-            throw new InvalidRegisterException("Email already exists");
+            throw new InvalidRegisterException("Účet s emailovou adresou již existuje.");
         }
 
         User user = new User();
