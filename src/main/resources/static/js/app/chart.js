@@ -19,7 +19,7 @@
     function renderInto(canvasId, data, prev) {
         const points = data?.points ?? [];
         const maxX = points.length ? Math.max(...points.map(p => p.x)) : 0;
-        const pointRadiusSetup = points.length < 250 ? 3 : 0;
+        const pointRadiusSetup = points.length < 150 ? 3 : 0;
 
         const canvas = document.getElementById(canvasId);
         if (!canvas) return prev ?? null;

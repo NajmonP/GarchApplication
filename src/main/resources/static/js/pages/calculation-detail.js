@@ -4,6 +4,7 @@
     const SELECTORS = {
         pageData: "#pageData",
         reloadBtn: "#reloadBtn",
+        rerunBtn: "#rerunBtn",
         calcStatsBox: "#calcStatsBox",
         inputStatsBox: "#inputStatsBox",
         outputStatsBox: "#outputStatsBox"
@@ -19,6 +20,27 @@
         return pageDataEl?.dataset?.calculationId || pageDataEl?.getAttribute("data-calculation-id") || null;
     }
 
+    function canRerunCalculation(status) {
+        return status === "MISSING_OUTPUT_SERIES";
+    }
+
+    function updateRerunButton(data) {
+        const rerunBtn = document.querySelector(SELECTORS.rerunBtn);
+        if (!rerunBtn) return;
+
+        const visible = canRerunCalculation(data?.status);
+
+        rerunBtn.classList.toggle("d-none", !visible);
+
+        if (visible) {
+            rerunBtn.dataset.calculationId = data?.id ?? "";
+            rerunBtn.dataset.timeSeriesId = data?.input?.id ?? "";
+        } else {
+            delete rerunBtn.dataset.calculationId;
+            delete rerunBtn.dataset.timeSeriesId;
+        }
+    }
+
     async function load(calculationId) {
 
         try {
@@ -31,6 +53,7 @@
 
             // STATISTIKY / BLOKY
             renderCalculationStats(data)
+            updateRerunButton(data);
             AppElManager.renderTimeSeriesStats(data?.input, SELECTORS.inputStatsBox);
             AppElManager.renderTimeSeriesStats(data?.output, SELECTORS.outputStatsBox);
 
@@ -94,6 +117,25 @@
         btn.classList.remove("d-none");
     }
 
+    async function rerunCalculation(calculationId, timeSeriesId) {
+        try {
+            const res = await AppHttp.apiFetch(`/calculation/${calculationId}/rerun`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(timeSeriesId)
+            });
+
+            if (!res) return;
+
+            await load(calculationId);
+
+        } catch (e) {
+            AppModal?.showError?.("Nepodařilo se spustit kalkulaci znovu.");
+        }
+    }
+
 
     document.addEventListener("DOMContentLoaded", () => {
         window.InitButtons?.initDownloadButtons?.(".js-download");
@@ -107,6 +149,17 @@
         const reloadBtn = document.querySelector(SELECTORS.reloadBtn);
         if (reloadBtn) {
             reloadBtn.addEventListener("click", () => load(calculationId));
+        }
+
+        const rerunBtn = document.querySelector(SELECTORS.rerunBtn);
+        if (rerunBtn) {
+            rerunBtn.addEventListener("click", () => {
+
+                const calculationId = rerunBtn.dataset.calculationId;
+                const timeSeriesId = rerunBtn.dataset.timeSeriesId;
+
+                rerunCalculation(calculationId, timeSeriesId);
+            });
         }
 
         load(calculationId);

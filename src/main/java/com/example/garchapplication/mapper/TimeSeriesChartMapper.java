@@ -1,6 +1,6 @@
 package com.example.garchapplication.mapper;
 
-import com.example.garchapplication.model.dto.ChartOfTimeSeriesDTO;
+import com.example.garchapplication.model.dto.api.ChartOfTimeSeriesDTO;
 import com.example.garchapplication.model.dto.TimeSeriesDTO;
 
 public final class TimeSeriesChartMapper {

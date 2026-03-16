@@ -4,7 +4,7 @@ import com.example.garchapplication.exception.*;
 import com.example.garchapplication.helper.CellStylesBuilder;
 import com.example.garchapplication.mapper.TimeSeriesChartMapper;
 import com.example.garchapplication.mapper.TimeSeriesMapper;
-import com.example.garchapplication.model.dto.ChartOfTimeSeriesDTO;
+import com.example.garchapplication.model.dto.api.ChartOfTimeSeriesDTO;
 import com.example.garchapplication.model.dto.TimeSeriesDTO;
 import com.example.garchapplication.model.dto.api.*;
 import com.example.garchapplication.model.dto.XlsxFileDTO;

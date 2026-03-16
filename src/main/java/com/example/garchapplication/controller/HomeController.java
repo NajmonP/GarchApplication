@@ -1,7 +1,7 @@
 package com.example.garchapplication.controller;
 
 import com.example.garchapplication.mapper.TimeSeriesChartMapper;
-import com.example.garchapplication.model.dto.ChartOfTimeSeriesDTO;
+import com.example.garchapplication.model.dto.api.ChartOfTimeSeriesDTO;
 import com.example.garchapplication.model.dto.GarchModelCalculationDTO;
 import com.example.garchapplication.model.dto.TimeSeriesDTO;
 import com.example.garchapplication.service.CalculationService;
@@ -58,7 +58,7 @@ class HomeController {
     ) throws IOException {
         GarchModelCalculationDTO garchModelCalculationDTO = new GarchModelCalculationDTO( "name", startVariance, constantVariance, lastVariance, lastShock);
 
-        TimeSeriesDTO result = calculationService.calculate(garchModelCalculationDTO, forecast, timeSeriesFile, timeSeriesId);
+        TimeSeriesDTO result = calculationService.calculate(garchModelCalculationDTO, forecast, timeSeriesFile, timeSeriesId, null);
         return TimeSeriesChartMapper.toChart(result);
     }
 

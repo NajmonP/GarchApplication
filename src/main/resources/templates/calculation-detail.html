@@ -9,6 +9,11 @@
 </head>
 <body>
 
+<form id="csrfForm" style="display:none;">
+  <input type="hidden" id="csrfToken" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+  <input type="hidden" id="csrfHeaderName" th:value="${_csrf.headerName}"/>
+</form>
+
 <div th:replace="~{fragments/navbar :: navbar}"></div>
 
 <div class="container my-4"
@@ -38,6 +43,9 @@
         <div class="card-body">
           <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
             <h5 class="card-title mb-0">Kalkulace</h5>
+            <button id="rerunBtn" class="btn btn-outline-success btn-sm d-none" type="button">
+              Spustit kalkulaci znovu
+            </button>
             <button id="reloadBtn" class="btn btn-outline-primary btn-sm" type="button">
               Načíst znovu
             </button>

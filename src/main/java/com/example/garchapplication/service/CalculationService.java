@@ -3,10 +3,9 @@ package com.example.garchapplication.service;
 import com.example.garchapplication.exception.InvalidConstantVarianceException;
 import com.example.garchapplication.exception.InvalidLastValueException;
 import com.example.garchapplication.exception.MaxThresholdExceededException;
-import com.example.garchapplication.model.dto.CalculationDetailDTO;
+import com.example.garchapplication.model.dto.api.CalculationDetailDTO;
 import com.example.garchapplication.model.dto.GarchModelCalculationDTO;
 import com.example.garchapplication.model.dto.TimeSeriesDTO;
-import com.example.garchapplication.model.dto.api.CalculationListItemDTO;
 import com.example.garchapplication.model.dto.api.CalculationPageDTO;
 import com.example.garchapplication.model.entity.Calculation;
 import com.example.garchapplication.model.entity.User;
@@ -17,7 +16,6 @@ import com.example.garchapplication.Processes.CalculationProcess;
 import com.example.garchapplication.exception.MissingTimeSeriesException;
 
 import java.io.IOException;
-import java.util.List;
 
 /**
  * Service interface responsible for performing GARCH model calculations.
@@ -41,7 +39,7 @@ public interface CalculationService {
      * @throws MaxThresholdExceededException    if the total sum exceeds SUM_MAXIMUM_THRESHOLD
      */
     @Transactional(rollbackFor = Exception.class)
-    TimeSeriesDTO calculate(GarchModelCalculationDTO garchModelCalculationDTO, int forecast, MultipartFile timeSeriesFile, Long timeSeriesId) throws IOException;
+    TimeSeriesDTO calculate(GarchModelCalculationDTO garchModelCalculationDTO, int forecast, MultipartFile timeSeriesFile, Long timeSeriesId, Long calculationId) throws IOException;
 
     /**
      * Starting point of calculation based on selected GARCH model.
@@ -55,6 +53,9 @@ public interface CalculationService {
     @Transactional(rollbackFor = Exception.class)
     TimeSeriesDTO calculateFromSelectedModel(Long modelId, int forecast, MultipartFile timeSeriesFile, Long timeSeriesId) throws IOException;
 
+    @Transactional(rollbackFor = Exception.class)
+    void rerunCalculation(Long calculationId, Long timeSeriesId) throws IOException;
+
     /**
      * Starts calculation process by creating new instance of {@link CalculationProcess}
      *
@@ -66,7 +67,7 @@ public interface CalculationService {
      * @throws MissingTimeSeriesException if timeSeriesFile and timeSeriesId are both null
      * @throws IOException                if reading the uploaded time series file fails
      */
-    TimeSeriesDTO startCalculationBasedOnInput(GarchModelCalculationDTO garchModelCalculationDTO, int forecast, MultipartFile timeSeriesFile, Long timeSeriesId) throws IOException;
+    TimeSeriesDTO startCalculationBasedOnInput(GarchModelCalculationDTO garchModelCalculationDTO, int forecast, MultipartFile timeSeriesFile, Long timeSeriesId, Long calculationId) throws IOException;
 
     /**
      * Saves result of the calculation for logged user into database.

@@ -1,6 +1,6 @@
 package com.example.garchapplication.mapper;
 
-import com.example.garchapplication.model.dto.CalculationDetailDTO;
+import com.example.garchapplication.model.dto.api.CalculationDetailDTO;
 import com.example.garchapplication.model.dto.api.TimeSeriesDetailDTO;
 import com.example.garchapplication.model.dto.api.CalculationListItemDTO;
 import com.example.garchapplication.model.entity.*;

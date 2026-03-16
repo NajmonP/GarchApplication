@@ -1,6 +1,5 @@
-package com.example.garchapplication.model.dto;
+package com.example.garchapplication.model.dto.api;
 
-import com.example.garchapplication.model.dto.api.TimeSeriesDetailDTO;
 import com.example.garchapplication.model.enums.CalculationStatus;
 
 import java.util.List;

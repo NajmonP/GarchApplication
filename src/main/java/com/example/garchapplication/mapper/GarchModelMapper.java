@@ -2,9 +2,7 @@ package com.example.garchapplication.mapper;
 
 import com.example.garchapplication.model.dto.GarchModelDTO;
 import com.example.garchapplication.model.dto.GarchModelCalculationDTO;
-import com.example.garchapplication.model.entity.GarchModel;
-import com.example.garchapplication.model.entity.ModelShockWeight;
-import com.example.garchapplication.model.entity.ModelVarianceWeight;
+import com.example.garchapplication.model.entity.*;
 
 import java.util.List;
 
@@ -28,6 +26,29 @@ public final class GarchModelMapper {
                 model.getName(),
                 model.getStartVariance(),
                 model.getConstantVariance(),
+                lastVariances,
+                lastShocks
+        );
+    }
+
+    public static GarchModelCalculationDTO toGarchModelCalculationDTO(
+            Calculation calculation,
+            List<RunVarianceWeight> varianceWeights,
+            List<RunShockWeight> shockWeights
+    ) {
+
+        List<Double> lastVariances = varianceWeights.stream()
+                .map(RunVarianceWeight::getValue)
+                .toList();
+
+        List<Double> lastShocks = shockWeights.stream()
+                .map(RunShockWeight::getValue)
+                .toList();
+
+        return new GarchModelCalculationDTO(
+                "Rerun",
+                calculation.getStartVariance(),
+                calculation.getConstantVariance(),
                 lastVariances,
                 lastShocks
         );

@@ -13,6 +13,7 @@ public class EntityNotFoundException extends GarchApplicationException {
             case CONFIGURATION -> "Konfigurace s id={" + id + "} nebyla nalezena.";
             case GARCH_MODEL -> "Garch model s id={" + id + "} nebyl nalezen.";
             case TIME_SERIES -> "Časová řada s id={" + id + "} nebyla nalezena.";
+            case CALCULATION -> "Kalkulace s id={" + id + "} nebyla nalezena.";
             default -> "Entita s id={" + id + "} nebyla nalezena.";
         };
     }
