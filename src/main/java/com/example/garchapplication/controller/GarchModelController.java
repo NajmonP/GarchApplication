@@ -1,6 +1,6 @@
 package com.example.garchapplication.controller;
 
-import com.example.garchapplication.model.dto.GarchModelCalculationDTO;
+import com.example.garchapplication.model.dto.api.GarchModelCalculationDTO;
 import com.example.garchapplication.service.GarchModelService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

@@ -1,7 +1,7 @@
 package com.example.garchapplication.service;
 
 import com.example.garchapplication.exception.InvalidDateRangeException;
-import com.example.garchapplication.model.dto.AuditLogDTO;
+import com.example.garchapplication.model.dto.api.AuditLogDTO;
 import com.example.garchapplication.model.entity.AuditLog;
 import com.example.garchapplication.model.enums.EntityType;
 import com.example.garchapplication.model.enums.OperationType;

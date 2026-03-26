@@ -1,6 +1,6 @@
 package com.example.garchapplication.service;
 
-import com.example.garchapplication.model.dto.AuditLogDTO;
+import com.example.garchapplication.model.dto.api.AuditLogDTO;
 import com.example.garchapplication.model.enums.EntityType;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;

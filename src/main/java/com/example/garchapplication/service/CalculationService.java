@@ -4,15 +4,16 @@ import com.example.garchapplication.exception.InvalidConstantVarianceException;
 import com.example.garchapplication.exception.InvalidLastValueException;
 import com.example.garchapplication.exception.MaxThresholdExceededException;
 import com.example.garchapplication.model.dto.api.CalculationDetailDTO;
-import com.example.garchapplication.model.dto.GarchModelCalculationDTO;
+import com.example.garchapplication.model.dto.api.GarchModelCalculationDTO;
 import com.example.garchapplication.model.dto.TimeSeriesDTO;
 import com.example.garchapplication.model.dto.api.CalculationPageDTO;
+import com.example.garchapplication.model.dto.api.ChartOfTimeSeriesDTO;
 import com.example.garchapplication.model.entity.Calculation;
 import com.example.garchapplication.model.entity.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import com.example.garchapplication.Processes.CalculationProcess;
+import com.example.garchapplication.process.CalculationProcess;
 import com.example.garchapplication.exception.MissingTimeSeriesException;
 
 import java.io.IOException;
@@ -24,6 +25,8 @@ import java.io.IOException;
  */
 @Service
 public interface CalculationService {
+    ChartOfTimeSeriesDTO calculateAndPrepareGraph(GarchModelCalculationDTO garchModelCalculationDTO, int forecast, MultipartFile timeSeriesFile, Long timeSeriesId, Long calculationId) throws IOException;
+
     /**
      * Starting point of calculation based on user input.
      * <br>
@@ -51,7 +54,7 @@ public interface CalculationService {
      * @throws IOException if reading the uploaded time series file fails
      */
     @Transactional(rollbackFor = Exception.class)
-    TimeSeriesDTO calculateFromSelectedModel(Long modelId, int forecast, MultipartFile timeSeriesFile, Long timeSeriesId) throws IOException;
+    ChartOfTimeSeriesDTO calculateFromSelectedModel(Long modelId, int forecast, MultipartFile timeSeriesFile, Long timeSeriesId) throws IOException;
 
     @Transactional(rollbackFor = Exception.class)
     void rerunCalculation(Long calculationId, Long timeSeriesId) throws IOException;

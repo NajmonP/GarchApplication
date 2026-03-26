@@ -1,7 +1,7 @@
 package com.example.garchapplication.service;
 
-import com.example.garchapplication.model.dto.GarchModelCalculationDTO;
-import com.example.garchapplication.model.dto.GarchModelDTO;
+import com.example.garchapplication.model.dto.api.GarchModelCalculationDTO;
+import com.example.garchapplication.model.dto.api.GarchModelDTO;
 import com.example.garchapplication.model.entity.Configuration;
 import com.example.garchapplication.model.entity.GarchModel;
 import org.apache.poi.ss.usermodel.CellStyle;

@@ -309,8 +309,6 @@
         container.dataset.loaded = "true";
         toggleBtn.textContent = "Skrýt modely";
         toggleBtn.disabled = false;
-
-        window.InitButtons?.initDeleteButtons?.(".js-delete-model-btn");
     }
 
     function buildModelListItem(template, model, configurationId) {

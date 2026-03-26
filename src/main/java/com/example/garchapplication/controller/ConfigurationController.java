@@ -1,8 +1,8 @@
 package com.example.garchapplication.controller;
 
 import com.example.garchapplication.helper.DownloadHeaderUtil;
-import com.example.garchapplication.model.dto.XlsxFileDTO;
-import com.example.garchapplication.model.dto.GarchModelDTO;
+import com.example.garchapplication.model.dto.api.XlsxFileDTO;
+import com.example.garchapplication.model.dto.api.GarchModelDTO;
 import com.example.garchapplication.model.dto.api.ConfigurationPageDTO;
 import com.example.garchapplication.model.dto.api.UpdateNameRequest;
 import com.example.garchapplication.model.dto.api.ConfigurationListItemDTO;

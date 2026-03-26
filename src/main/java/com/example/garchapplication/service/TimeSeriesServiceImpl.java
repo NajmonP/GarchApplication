@@ -7,7 +7,7 @@ import com.example.garchapplication.mapper.TimeSeriesMapper;
 import com.example.garchapplication.model.dto.api.ChartOfTimeSeriesDTO;
 import com.example.garchapplication.model.dto.TimeSeriesDTO;
 import com.example.garchapplication.model.dto.api.*;
-import com.example.garchapplication.model.dto.XlsxFileDTO;
+import com.example.garchapplication.model.dto.api.XlsxFileDTO;
 import com.example.garchapplication.model.entity.TimeSeries;
 import com.example.garchapplication.model.entity.TimeSeriesValue;
 import com.example.garchapplication.model.entity.User;

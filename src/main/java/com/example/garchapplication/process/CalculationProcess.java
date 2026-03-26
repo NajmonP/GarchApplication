@@ -1,4 +1,4 @@
-package com.example.garchapplication.Processes;
+package com.example.garchapplication.process;
 
 import com.example.garchapplication.model.dto.CalculationSetupDTO;
 

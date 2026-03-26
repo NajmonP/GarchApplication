@@ -1,6 +1,6 @@
 package com.example.garchapplication.controller;
 
-import com.example.garchapplication.model.dto.AuditLogDTO;
+import com.example.garchapplication.model.dto.api.AuditLogDTO;
 import com.example.garchapplication.model.dto.api.PageResponse;
 import com.example.garchapplication.service.AuditLogService;
 import org.springframework.beans.factory.annotation.Autowired;

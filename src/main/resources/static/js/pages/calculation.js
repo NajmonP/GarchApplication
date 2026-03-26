@@ -140,10 +140,6 @@
         window.InitButtons?.initDeleteButtons?.(".js-delete");
     }
 
-    function bindDynamicCardButtons() {
-        window.InitButtons?.initDeleteButtons?.(".js-delete");
-    }
-
     async function load(page = 0) {
         const params = new URLSearchParams({
             page: String(page),
@@ -169,8 +165,6 @@
         if (isAdmin) {
             renderAllCalculationsPage(allCalculationsPage);
         }
-
-        bindDynamicCardButtons();
     }
 
     function initSearch() {

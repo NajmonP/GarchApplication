@@ -2,7 +2,7 @@ package com.example.garchapplication.service;
 
 import com.example.garchapplication.model.dto.TimeSeriesDTO;
 import com.example.garchapplication.model.dto.api.TimeSeriesDetailDTO;
-import com.example.garchapplication.model.dto.XlsxFileDTO;
+import com.example.garchapplication.model.dto.api.XlsxFileDTO;
 import com.example.garchapplication.model.dto.api.TimeSeriesListItemDTO;
 import com.example.garchapplication.model.dto.api.TimeSeriesPageDTO;
 import com.example.garchapplication.model.dto.api.UpdateTimeSeriesRequest;

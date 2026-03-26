@@ -1,4 +1,4 @@
-package com.example.garchapplication.model.dto;
+package com.example.garchapplication.model.dto.api;
 
 import com.example.garchapplication.model.enums.EntityType;
 import com.example.garchapplication.model.enums.OperationType;

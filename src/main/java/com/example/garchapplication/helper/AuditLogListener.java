@@ -1,6 +1,6 @@
 package com.example.garchapplication.helper;
 
-import com.example.garchapplication.model.dto.AuditLogDTO;
+import com.example.garchapplication.model.dto.api.AuditLogDTO;
 import com.example.garchapplication.model.entity.AuditLog;
 import com.example.garchapplication.repository.AuditLogRepository;
 import com.example.garchapplication.repository.UserRepository;

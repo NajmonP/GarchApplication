@@ -1,6 +1,7 @@
 package com.example.garchapplication.service;
 
-import com.example.garchapplication.Processes.CalculationProcess;
+import com.example.garchapplication.mapper.TimeSeriesChartMapper;
+import com.example.garchapplication.process.CalculationProcess;
 import com.example.garchapplication.exception.*;
 import com.example.garchapplication.mapper.CalculationMapper;
 import com.example.garchapplication.mapper.GarchModelMapper;
@@ -26,6 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of {@link CalculationService}.
@@ -55,6 +57,13 @@ public class CalculationServiceImpl implements CalculationService {
         this.runVarianceWeightRepository = runVarianceWeightRepository;
         this.runShockWeightRepository = runShockWeightRepository;
         this.calculationRepository = calculationRepository;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public ChartOfTimeSeriesDTO calculateAndPrepareGraph(GarchModelCalculationDTO garchModelCalculationDTO, int forecast, MultipartFile timeSeriesFile, Long timeSeriesId, Long calculationId) throws IOException {
+        TimeSeriesDTO result = calculate(garchModelCalculationDTO, forecast, timeSeriesFile, timeSeriesId, calculationId);
+        return TimeSeriesChartMapper.toChart(result);
     }
 
     /**
@@ -115,9 +124,10 @@ public class CalculationServiceImpl implements CalculationService {
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public TimeSeriesDTO calculateFromSelectedModel(Long modelId, int forecast, MultipartFile timeSeriesFile, Long timeSeriesId) throws IOException {
+    public ChartOfTimeSeriesDTO calculateFromSelectedModel(Long modelId, int forecast, MultipartFile timeSeriesFile, Long timeSeriesId) throws IOException {
         GarchModelCalculationDTO garchModelCalculationDTO = garchModelService.extractGarchModelCalculationDTO(modelId);
-        return calculate(garchModelCalculationDTO, forecast, timeSeriesFile, timeSeriesId, null);
+        TimeSeriesDTO result = calculate(garchModelCalculationDTO, forecast, timeSeriesFile, timeSeriesId, null);
+        return TimeSeriesChartMapper.toChart(result);
     }
 
     @Override
@@ -164,7 +174,8 @@ public class CalculationServiceImpl implements CalculationService {
             name = RESULT_NAME;
         }
 
-        return new TimeSeriesDTO(name, predictedVolatility);
+        Map<Long, Double> standardDeviation = toStandardDeviation(predictedVolatility);
+        return new TimeSeriesDTO(name, standardDeviation);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -287,5 +298,14 @@ public class CalculationServiceImpl implements CalculationService {
     public void deleteCalculation(long calculationId) {
         calculationRepository.deleteById(calculationId);
         auditLogService.logDeleteEvent(EntityType.CALCULATION, calculationId, null);
+    }
+
+    private Map<Long, Double> toStandardDeviation(Map<Long, Double> calculatedVolatility) {
+        return calculatedVolatility.entrySet()
+                .stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> Math.sqrt(entry.getValue())
+                ));
     }
 }

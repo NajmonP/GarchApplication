@@ -1,11 +1,7 @@
 package com.example.garchapplication.controller;
 
 import com.example.garchapplication.helper.DownloadHeaderUtil;
-import com.example.garchapplication.model.dto.*;
-import com.example.garchapplication.model.dto.api.TimeSeriesDetailDTO;
-import com.example.garchapplication.model.dto.api.TimeSeriesListItemDTO;
-import com.example.garchapplication.model.dto.api.TimeSeriesPageDTO;
-import com.example.garchapplication.model.dto.api.UpdateTimeSeriesRequest;
+import com.example.garchapplication.model.dto.api.*;
 import com.example.garchapplication.service.TimeSeriesService;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ContentDisposition;
