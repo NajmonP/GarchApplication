@@ -199,6 +199,7 @@ public class CalculationServiceImpl implements CalculationService {
         calculation.setUser(user);
         calculation.setStartVariance(garchModelCalculationDTO.startVariance());
         calculation.setConstantVariance(garchModelCalculationDTO.constantVariance());
+        calculation.setForecast(forecast);
 
         if (timeSeriesFile != null && !timeSeriesFile.isEmpty()) {
             calculation.setStatus(CalculationStatus.MISSING_INPUT_SERIES);
@@ -215,7 +216,6 @@ public class CalculationServiceImpl implements CalculationService {
 
         TimeSeries resultTimeSeries = timeSeriesService.addTimeSeriesFromDTO(renamed);
         calculation.setResultTimeSeries(resultTimeSeries);
-        calculation.setForecast(forecast);
 
         // update
         calculationRepository.save(calculation);

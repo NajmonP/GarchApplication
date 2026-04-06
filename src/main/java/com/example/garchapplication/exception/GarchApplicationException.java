@@ -2,7 +2,7 @@ package com.example.garchapplication.exception;
 
 import org.springframework.http.HttpStatusCode;
 
-public class GarchApplicationException extends RuntimeException {
+public abstract class GarchApplicationException extends RuntimeException {
     private final HttpStatusCode httpStatusCode;
 
     public GarchApplicationException(HttpStatusCode httpStatusCode, String message) {

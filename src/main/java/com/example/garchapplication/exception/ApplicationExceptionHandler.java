@@ -2,10 +2,10 @@ package com.example.garchapplication.exception;
 
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-@ControllerAdvice
+@RestControllerAdvice
 public class ApplicationExceptionHandler {
 
     @ExceptionHandler(GarchApplicationException.class)
@@ -14,7 +14,7 @@ public class ApplicationExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> Exception(Exception ex) {
+    public ResponseEntity<String> handleUnexpectedException(Exception ex) {
         return ResponseEntity.status(HttpStatusCode.valueOf(500)).body("Došlo k nečekané chybě");
     }
 }

@@ -338,6 +338,7 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
         standardDeviation = Math.sqrt(standardDeviation);
 
         values.add(mean);
+
         double skewness = 0;
         for (Double value : timeSeries.values()) {
             skewness += Math.pow((value - mean) / standardDeviation, 3);
