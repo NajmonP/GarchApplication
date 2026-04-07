@@ -13,7 +13,7 @@ public class CalculationProcess {
     private final double constantVariance;
     private final List<Double> lastVariancesList;
     private final List<Double> lastShocksList;
-    private int forecast;
+    private final int forecast;
     private final Map<Long, Double> timeSeries;
 
     public CalculationProcess(CalculationSetupDTO calculationSetupDTO) {
@@ -32,7 +32,7 @@ public class CalculationProcess {
      */
     public Map<Long, Double> startCalculation() {
         prepareResidues();
-        return calculateVolatility();
+        return calculateConditionalVariances();
     }
 
     /**
@@ -54,70 +54,35 @@ public class CalculationProcess {
 
     /**
      * calculates volatility from given residues.
-     * <br>
-     * Performs first call of recursive function calculateNextVolatility.
      *
      * @return time series of calculated and forecasted variances
      */
-    private Map<Long, Double> calculateVolatility() {
-        Map<Long, Double> calculatedVolatility = new HashMap<>();
-        long startIndex = Math.max(lastVariancesList.size(), lastShocksList.size());
+    private Map<Long, Double> calculateConditionalVariances() {
+        Map<Long, Double> conditionalVariances = new HashMap<>();
+        int startIndex = Math.max(lastVariancesList.size(), lastShocksList.size());
         for (int i = 0; i < startIndex; i++) {
-            calculatedVolatility.put((long) i, startVariance);
+            conditionalVariances.put((long) i, startVariance);
         }
-        calculateNextVolatility(calculatedVolatility, startIndex);
-        return calculatedVolatility;
-    }
 
-    /**
-     * Recursive function that adds new value to calculated and forecasted variances map.
-     * <br>
-     * Recursion is stopped when size of calculatedVolatility map reaches the size of time series in class attribute
-     * and forecast attribute drops to 0.
-     *
-     * @param calculatedVolatility calculated variances map
-     * @param index                tracks the recursion and represents new key to calculated variances map
-     */
-    private void calculateNextVolatility(Map<Long, Double> calculatedVolatility, Long index) {
-        double nextVariance = constantVariance;
-        long currentIndex = index;
-        int missingVariances = 0;
-        int forecastIndex = 0;
-        for (int i = 0; i < lastVariancesList.size(); i++) {
-            if (timeSeries.containsKey(currentIndex - 1)) {
-                nextVariance += lastVariancesList.get(i) * Math.pow(timeSeries.get(currentIndex - 1), 2);
-            } else {
-                if(missingVariances == 0) {
-                    forecastIndex = i;
+        for (int i = startIndex; i < timeSeries.size() + forecast; i++) {
+            double variancesValue = 0;
+            double shocksValue = 0;
+            for (int j = 0; j < lastVariancesList.size(); j++) {
+                long lagIndex = (long) i - (j + 1);
+                if (timeSeries.containsKey(lagIndex)) {
+                    variancesValue += lastVariancesList.get(j) * Math.pow(timeSeries.get(lagIndex), 2);
+                } else {
+                    variancesValue += lastVariancesList.get(j) * conditionalVariances.get(lagIndex);
                 }
-                missingVariances++;
             }
-            currentIndex--;
+            for (int j = 0; j < lastShocksList.size(); j++) {
+                long lagIndex = (long) i - (j + 1);
+                shocksValue += lastShocksList.get(j) * conditionalVariances.get(lagIndex);
+            }
+            double nextVariance = constantVariance + variancesValue + shocksValue;
+            conditionalVariances.put((long) i, nextVariance);
         }
 
-        currentIndex = index;
-
-        for (int i = forecastIndex; i < forecastIndex + missingVariances; i++) {
-            nextVariance += lastVariancesList.get(i) * calculatedVolatility.get(currentIndex - 1);
-            currentIndex--;
-        }
-
-        currentIndex = index;
-
-        for (Double lastShock : lastShocksList) {
-            nextVariance += lastShock * calculatedVolatility.get(currentIndex - 1);
-            currentIndex--;
-        }
-
-        calculatedVolatility.put(index, nextVariance);
-
-        if (timeSeries.containsKey(index + 1)) {
-            calculateNextVolatility(calculatedVolatility, index + 1);
-            return;
-        }
-
-        if (forecast-- > 0) {
-            calculateNextVolatility(calculatedVolatility, index + 1);
-        }
+        return conditionalVariances;
     }
 }
