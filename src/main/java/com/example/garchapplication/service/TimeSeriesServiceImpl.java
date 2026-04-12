@@ -341,17 +341,18 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
 
         double skewness = 0;
         for (Double value : timeSeries.values()) {
-            skewness += Math.pow((value - mean) / standardDeviation, 3);
+            skewness += Math.pow(value - mean, 3);
         }
-        skewness = skewness * ((double) numberOfValues / ((numberOfValues - 1) * (numberOfValues - 2)));
+        skewness = skewness / ((numberOfValues - 1) * Math.pow(standardDeviation, 3));
         values.add(skewness);
 
         double kurtosis = 0;
         for (Double value : timeSeries.values()) {
-            kurtosis += Math.pow((value - mean) / standardDeviation, 4);
+            kurtosis += Math.pow(value - mean, 4);
         }
-        kurtosis /= numberOfValues;
+        kurtosis = kurtosis / ((numberOfValues - 1) * Math.pow(standardDeviation, 4));
         values.add(kurtosis);
+
         values.add(Collections.min(timeSeries.values()));
         values.add(Collections.max(timeSeries.values()));
         return values;

@@ -89,7 +89,7 @@
             AppElManager.createInfoRow("Status:", data?.status),
             AppElManager.createInfoRow("Předpověď:", AppFormatter.formatValue(data?.forecast)),
             AppElManager.createInfoRow("Počáteční rozptyl:", AppFormatter.formatValue(data?.startVariance)),
-            AppElManager.createInfoRow("Konstantní rozptyl:", AppFormatter.formatValue(data?.constantVariance)),
+            AppElManager.createInfoRow("konstantní člen:", AppFormatter.formatValue(data?.constantVariance)),
             AppElManager.createInfoRow("Váhy minulých rozptylů:", data?.lastVariances),
             AppElManager.createInfoRow("Váhy minulých šoků:", data?.lastShocks)
         ];

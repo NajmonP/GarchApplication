@@ -281,7 +281,7 @@ public class GarchModelServiceImpl implements GarchModelService {
 
         row = sheet.createRow(index++);
         cell = row.createCell(0);
-        cell.setCellValue("Konstantní rozptyl:");
+        cell.setCellValue("konstantní člen:");
         cell.setCellStyle(styles.get(CellStyleNames.PARAMETER_NAME.toString()));
         row.createCell(1).setCellValue(garchModelDTO.constantVariance());
 

@@ -16,7 +16,6 @@ CREATE TABLE users
     username        TEXT            NOT NULL UNIQUE,
     password_hash   TEXT            NOT NULL,
     email           TEXT            NOT NULL UNIQUE,
-    profile_pic_url TEXT,
     role            garch.role_type NOT NULL DEFAULT 'USER',
     created_at      TIMESTAMPTZ     NOT NULL DEFAULT now()
 );
