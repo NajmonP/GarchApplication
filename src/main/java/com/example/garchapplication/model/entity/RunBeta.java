@@ -3,11 +3,11 @@ package com.example.garchapplication.model.entity;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "run_shock_weight", schema = "garch")
-public class RunShockWeight {
+@Table(name = "run_beta", schema = "garch")
+public class RunBeta {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "run_shock_weight_id", unique = true, nullable = false)
+    @Column(name = "run_beta_id", unique = true, nullable = false)
     private Long id;
 
     @ManyToOne

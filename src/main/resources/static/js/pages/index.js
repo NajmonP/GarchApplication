@@ -115,7 +115,7 @@
                     lbl.htmlFor = input.id;
                     lbl.classList.add("form-check-label");
                     //lbl.textContent = model.name ?? "Model";
-                    lbl.textContent = model.name + ": [" + "Počáteční rozptyl: " + model.startVariance + ", konstantní člen: " + model.constantVariance + ", Váhy minulých rozptylů: " + model.lastVariances + ", Váhy minulých šoků: " + model.lastShocks + "]";
+                    lbl.textContent = model.name + ": [" + "Počáteční rozptyl: " + model.startVariance + ", konstantní člen: " + model.constantVariance + ", Alfa koeficienty: " + model.lastVariances + ", Beta koeficienty: " + model.lastShocks + "]";
 
                     wrapper.appendChild(input);
                     wrapper.appendChild(lbl);

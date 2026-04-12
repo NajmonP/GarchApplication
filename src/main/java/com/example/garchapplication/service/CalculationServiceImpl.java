@@ -12,8 +12,8 @@ import com.example.garchapplication.model.enums.CalculationStatus;
 import com.example.garchapplication.model.enums.EntityType;
 import com.example.garchapplication.model.enums.RoleType;
 import com.example.garchapplication.repository.CalculationRepository;
-import com.example.garchapplication.repository.RunShockWeightRepository;
-import com.example.garchapplication.repository.RunVarianceWeightRepository;
+import com.example.garchapplication.repository.RunBetaRepository;
+import com.example.garchapplication.repository.RunAlphaRepository;
 import com.example.garchapplication.security.AuthenticationHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -40,8 +40,8 @@ public class CalculationServiceImpl implements CalculationService {
     private final TimeSeriesService timeSeriesService;
     private final GarchModelService garchModelService;
     private final AuthenticationHandler authenticationHandler;
-    private final RunVarianceWeightRepository runVarianceWeightRepository;
-    private final RunShockWeightRepository runShockWeightRepository;
+    private final RunAlphaRepository runAlphaRepository;
+    private final RunBetaRepository runBetaRepository;
     private final CalculationRepository calculationRepository;
 
     private static final double SUM_MAXIMUM_THRESHOLD = 1.0;
@@ -49,13 +49,13 @@ public class CalculationServiceImpl implements CalculationService {
     private static final String RESULT_NAME = "result";
 
     @Autowired
-    public CalculationServiceImpl(AuditLogService auditLogService, TimeSeriesService timeSeriesService, GarchModelService garchModelService, AuthenticationHandler authenticationHandler, RunVarianceWeightRepository runVarianceWeightRepository, RunShockWeightRepository runShockWeightRepository, CalculationRepository calculationRepository) {
+    public CalculationServiceImpl(AuditLogService auditLogService, TimeSeriesService timeSeriesService, GarchModelService garchModelService, AuthenticationHandler authenticationHandler, RunAlphaRepository runAlphaRepository, RunBetaRepository runBetaRepository, CalculationRepository calculationRepository) {
         this.auditLogService = auditLogService;
         this.timeSeriesService = timeSeriesService;
         this.garchModelService = garchModelService;
         this.authenticationHandler = authenticationHandler;
-        this.runVarianceWeightRepository = runVarianceWeightRepository;
-        this.runShockWeightRepository = runShockWeightRepository;
+        this.runAlphaRepository = runAlphaRepository;
+        this.runBetaRepository = runBetaRepository;
         this.calculationRepository = calculationRepository;
     }
 
@@ -142,10 +142,10 @@ public class CalculationServiceImpl implements CalculationService {
     }
 
     private GarchModelCalculationDTO extractGarchModelCalculationDTO(Calculation calculation) {
-        List<RunVarianceWeight> runVarianceWeightList = runVarianceWeightRepository.findAllByCalculationIdOrderByOrderNoAsc(calculation.getId());
-        List<RunShockWeight> runShockWeightList = runShockWeightRepository.findAllByCalculationIdOrderByOrderNoAsc(calculation.getId());
+        List<RunAlpha> runAlphaList = runAlphaRepository.findAllByCalculationIdOrderByOrderNoAsc(calculation.getId());
+        List<RunBeta> runBetaList = runBetaRepository.findAllByCalculationIdOrderByOrderNoAsc(calculation.getId());
 
-        return GarchModelMapper.toGarchModelCalculationDTO(calculation, runVarianceWeightList, runShockWeightList);
+        return GarchModelMapper.toGarchModelCalculationDTO(calculation, runAlphaList, runBetaList);
     }
 
     /**
@@ -231,19 +231,19 @@ public class CalculationServiceImpl implements CalculationService {
     }
 
     private void saveRunVarianceWeight(Calculation calculation, double value, int index) {
-        RunVarianceWeight runVarianceWeight = new RunVarianceWeight();
-        runVarianceWeight.setCalculation(calculation);
-        runVarianceWeight.setOrderNo(index + 1);
-        runVarianceWeight.setValue(value);
-        runVarianceWeightRepository.save(runVarianceWeight);
+        RunAlpha runAlpha = new RunAlpha();
+        runAlpha.setCalculation(calculation);
+        runAlpha.setOrderNo(index + 1);
+        runAlpha.setValue(value);
+        runAlphaRepository.save(runAlpha);
     }
 
     private void saveRunShockWeight(Calculation calculation, double value, int index) {
-        RunShockWeight runShockWeight = new RunShockWeight();
-        runShockWeight.setCalculation(calculation);
-        runShockWeight.setOrderNo(index + 1);
-        runShockWeight.setValue(value);
-        runShockWeightRepository.save(runShockWeight);
+        RunBeta runBeta = new RunBeta();
+        runBeta.setCalculation(calculation);
+        runBeta.setOrderNo(index + 1);
+        runBeta.setValue(value);
+        runBetaRepository.save(runBeta);
     }
 
     @Override
@@ -277,8 +277,8 @@ public class CalculationServiceImpl implements CalculationService {
     @Override
     public CalculationDetailDTO getCalculationDetails(long calculationId) {
         Calculation calculation = getCalculationById(calculationId);
-        List<RunVarianceWeight> runVarianceWeightList = runVarianceWeightRepository.findAllByCalculationIdOrderByOrderNoAsc(calculationId);
-        List<RunShockWeight> runShockWeightList = runShockWeightRepository.findAllByCalculationIdOrderByOrderNoAsc(calculationId);
+        List<RunAlpha> runAlphaList = runAlphaRepository.findAllByCalculationIdOrderByOrderNoAsc(calculationId);
+        List<RunBeta> runBetaList = runBetaRepository.findAllByCalculationIdOrderByOrderNoAsc(calculationId);
         Optional<TimeSeries> optionalTimeSeriesInput = Optional.ofNullable(calculation.getInputTimeSeries());
         Optional<TimeSeries> optionalTimeSeriesResult = Optional.ofNullable(calculation.getResultTimeSeries());
         TimeSeriesDetailDTO timeSeriesDetailDTOInput = null;
@@ -290,7 +290,7 @@ public class CalculationServiceImpl implements CalculationService {
             timeSeriesDetailDTOResult = timeSeriesService.getTimeSeriesDetails(calculation.getResultTimeSeries().getId());
         }
 
-        return CalculationMapper.toDetailDTO(calculation, timeSeriesDetailDTOInput, timeSeriesDetailDTOResult, runVarianceWeightList, runShockWeightList);
+        return CalculationMapper.toDetailDTO(calculation, timeSeriesDetailDTOInput, timeSeriesDetailDTOResult, runAlphaList, runBetaList);
     }
 
     @Override

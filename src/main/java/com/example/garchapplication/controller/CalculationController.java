@@ -76,7 +76,7 @@ public class CalculationController {
     @ResponseBody
     public ChartOfTimeSeriesDTO startCalculationManual(
             @RequestParam("start_variance") double startVariance,
-            @RequestParam("constant_variance") double constantVariance,
+            @RequestParam("omega") double constantVariance,
             @RequestParam("last_variance[]") List<Double> lastVariance,
             @RequestParam("last_shock[]") List<Double> lastShock,
             @RequestParam(value = "time_series_file", required = false) MultipartFile timeSeriesFile,

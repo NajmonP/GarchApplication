@@ -41,7 +41,7 @@ public class Calculation {
     @Column(name = "start_variance", nullable = false)
     private double startVariance;
 
-    @Column(name = "constant_variance", nullable = false)
+    @Column(name = "omega", nullable = false)
     private double constantVariance;
 
     public Long getId() {

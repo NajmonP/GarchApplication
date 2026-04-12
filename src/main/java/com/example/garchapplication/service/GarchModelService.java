@@ -23,8 +23,8 @@ public interface GarchModelService {
     /**
      * Loads GARCH model and its parameters from database based on given ID.
      * <br>
-     * Data is loaded from {@code garch_model} entity and its parameters from {@code model_variance_weight}
-     * and {@code model_shock_weight} entities.
+     * Data is loaded from {@code garch_model} entity and its parameters from {@code model_alpha}
+     * and {@code model_beta} entities.
      *
      * @param modelId ID of selected GARCH model
      * @return CalculationDTO of selected GARCH model
@@ -34,8 +34,8 @@ public interface GarchModelService {
     /**
      * Loads GARCH model and its parameters from database based on given ID.
      * <br>
-     * Data is loaded from {@code garch_model} entity and its parameters from {@code model_variance_weight}
-     * and {@code model_shock_weight} entities.
+     * Data is loaded from {@code garch_model} entity and its parameters from {@code model_alpha}
+     * and {@code model_beta} entities.
      *
      * @param modelId ID of selected GARCH model
      * @return DTO of selected GARCH model
@@ -45,8 +45,8 @@ public interface GarchModelService {
     /**
      * Loads GARCH models and its parameters from database based on given configuration ID.
      * <br>
-     * Data is loaded from {@code garch_model} entity and its parameters from {@code model_variance_weight}
-     * and {@code model_shock_weight} entities.
+     * Data is loaded from {@code garch_model} entity and its parameters from {@code model_alpha}
+     * and {@code model_beta} entities.
      *
      * @param configurationId ID of selected configuration
      * @return DTOs of corresponding GARCH models

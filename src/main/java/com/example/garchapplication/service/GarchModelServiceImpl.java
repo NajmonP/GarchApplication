@@ -8,13 +8,13 @@ import com.example.garchapplication.model.dto.api.GarchModelCalculationDTO;
 import com.example.garchapplication.model.dto.api.GarchModelDTO;
 import com.example.garchapplication.model.entity.Configuration;
 import com.example.garchapplication.model.entity.GarchModel;
-import com.example.garchapplication.model.entity.ModelShockWeight;
-import com.example.garchapplication.model.entity.ModelVarianceWeight;
+import com.example.garchapplication.model.entity.ModelBeta;
+import com.example.garchapplication.model.entity.ModelAlpha;
 import com.example.garchapplication.model.enums.CellStyleNames;
 import com.example.garchapplication.model.enums.EntityType;
 import com.example.garchapplication.repository.GarchModelRepository;
-import com.example.garchapplication.repository.ModelShockWeightRepository;
-import com.example.garchapplication.repository.ModelVarianceWeightRepository;
+import com.example.garchapplication.repository.ModelBetaRepository;
+import com.example.garchapplication.repository.ModelAlphaRepository;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Row;
@@ -34,17 +34,17 @@ public class GarchModelServiceImpl implements GarchModelService {
 
     private final AuditLogService auditLogService;
     private final GarchModelRepository garchModelRepository;
-    private final ModelVarianceWeightRepository modelVarianceWeightRepository;
-    private final ModelShockWeightRepository modelShockWeightRepository;
+    private final ModelAlphaRepository modelAlphaRepository;
+    private final ModelBetaRepository modelBetaRepository;
 
     private static final int MODEL_ROWS = 5;
 
     @Autowired
-    public GarchModelServiceImpl(AuditLogService auditLogService, GarchModelRepository garchModelRepository, ModelVarianceWeightRepository modelVarianceWeightRepository, ModelShockWeightRepository modelShockWeightRepository) {
+    public GarchModelServiceImpl(AuditLogService auditLogService, GarchModelRepository garchModelRepository, ModelAlphaRepository modelAlphaRepository, ModelBetaRepository modelBetaRepository) {
         this.auditLogService = auditLogService;
         this.garchModelRepository = garchModelRepository;
-        this.modelVarianceWeightRepository = modelVarianceWeightRepository;
-        this.modelShockWeightRepository = modelShockWeightRepository;
+        this.modelAlphaRepository = modelAlphaRepository;
+        this.modelBetaRepository = modelBetaRepository;
     }
 
     @Override
@@ -59,10 +59,10 @@ public class GarchModelServiceImpl implements GarchModelService {
     public GarchModelCalculationDTO extractGarchModelCalculationDTO(Long modelId) {
         GarchModel garchModel = garchModelRepository.findById(modelId).orElseThrow(() -> new EntityNotFoundException(modelId, EntityType.GARCH_MODEL));
 
-        List<ModelVarianceWeight> modelVarianceWeightList = modelVarianceWeightRepository.findAllByGarchModelIdOrderByOrderNoAsc(garchModel.getId());
-        List<ModelShockWeight> modelShockWeightList = modelShockWeightRepository.findAllByGarchModelIdOrderByOrderNoAsc(garchModel.getId());
+        List<ModelAlpha> modelAlphaList = modelAlphaRepository.findAllByGarchModelIdOrderByOrderNoAsc(garchModel.getId());
+        List<ModelBeta> modelBetaList = modelBetaRepository.findAllByGarchModelIdOrderByOrderNoAsc(garchModel.getId());
 
-        return GarchModelMapper.toGarchModelCalculationDTO(garchModel, modelVarianceWeightList, modelShockWeightList);
+        return GarchModelMapper.toGarchModelCalculationDTO(garchModel, modelAlphaList, modelBetaList);
     }
 
     /**
@@ -72,10 +72,10 @@ public class GarchModelServiceImpl implements GarchModelService {
     public GarchModelDTO extractGarchModelDTO(Long modelId) {
         GarchModel garchModel = garchModelRepository.findById(modelId).orElseThrow(() -> new EntityNotFoundException(modelId, EntityType.GARCH_MODEL));
 
-        List<ModelVarianceWeight> modelVarianceWeightList = modelVarianceWeightRepository.findAllByGarchModelIdOrderByOrderNoAsc(garchModel.getId());
-        List<ModelShockWeight> modelShockWeightList = modelShockWeightRepository.findAllByGarchModelIdOrderByOrderNoAsc(garchModel.getId());
+        List<ModelAlpha> modelAlphaList = modelAlphaRepository.findAllByGarchModelIdOrderByOrderNoAsc(garchModel.getId());
+        List<ModelBeta> modelBetaList = modelBetaRepository.findAllByGarchModelIdOrderByOrderNoAsc(garchModel.getId());
 
-        return GarchModelMapper.toGarchModelDTO(garchModel, modelVarianceWeightList, modelShockWeightList);
+        return GarchModelMapper.toGarchModelDTO(garchModel, modelAlphaList, modelBetaList);
     }
 
     @Override
@@ -166,11 +166,11 @@ public class GarchModelServiceImpl implements GarchModelService {
      * @param index      order of the variance weight
      */
     private void saveModelVarianceWeight(GarchModel garchModel, double value, int index) {
-        ModelVarianceWeight modelVarianceWeight = new ModelVarianceWeight();
-        modelVarianceWeight.setGarchModel(garchModel);
-        modelVarianceWeight.setOrderNo(index + 1);
-        modelVarianceWeight.setValue(value);
-        modelVarianceWeightRepository.save(modelVarianceWeight);
+        ModelAlpha modelAlpha = new ModelAlpha();
+        modelAlpha.setGarchModel(garchModel);
+        modelAlpha.setOrderNo(index + 1);
+        modelAlpha.setValue(value);
+        modelAlphaRepository.save(modelAlpha);
     }
 
     /**
@@ -181,11 +181,11 @@ public class GarchModelServiceImpl implements GarchModelService {
      * @param index      order of the shock weight
      */
     private void saveModelShockWeight(GarchModel garchModel, double value, int index) {
-        ModelShockWeight modelShockWeight = new ModelShockWeight();
-        modelShockWeight.setGarchModel(garchModel);
-        modelShockWeight.setOrderNo(index + 1);
-        modelShockWeight.setValue(value);
-        modelShockWeightRepository.save(modelShockWeight);
+        ModelBeta modelBeta = new ModelBeta();
+        modelBeta.setGarchModel(garchModel);
+        modelBeta.setOrderNo(index + 1);
+        modelBeta.setValue(value);
+        modelBetaRepository.save(modelBeta);
     }
 
     /**
@@ -201,11 +201,11 @@ public class GarchModelServiceImpl implements GarchModelService {
             garchModel.setConstantVariance(garchModelCalculationDTO.constantVariance());
 
 
-            List<ModelVarianceWeight> modelVarianceWeightList = modelVarianceWeightRepository.findAllByGarchModelIdOrderByOrderNoAsc(modelId);
-            updateVarianceWeights(garchModel, modelVarianceWeightList, garchModelCalculationDTO.lastVariances());
+            List<ModelAlpha> modelAlphaList = modelAlphaRepository.findAllByGarchModelIdOrderByOrderNoAsc(modelId);
+            updateVarianceWeights(garchModel, modelAlphaList, garchModelCalculationDTO.lastVariances());
 
-            List<ModelShockWeight> modelShockWeightList = modelShockWeightRepository.findAllByGarchModelIdOrderByOrderNoAsc(modelId);
-            updateShockWeights(garchModel, modelShockWeightList, garchModelCalculationDTO.lastShocks());
+            List<ModelBeta> modelBetaList = modelBetaRepository.findAllByGarchModelIdOrderByOrderNoAsc(modelId);
+            updateShockWeights(garchModel, modelBetaList, garchModelCalculationDTO.lastShocks());
             auditLogService.logUpdateEvent(EntityType.GARCH_MODEL, modelId, garchModelCalculationDTO.name());
         } catch (DataIntegrityViolationException ex) {
             throw new DuplicateNameException(EntityType.GARCH_MODEL, ex);
@@ -213,7 +213,7 @@ public class GarchModelServiceImpl implements GarchModelService {
     }
 
 
-    private void updateVarianceWeights(GarchModel garchModel, List<ModelVarianceWeight> existingValues, List<Double> newValues) {
+    private void updateVarianceWeights(GarchModel garchModel, List<ModelAlpha> existingValues, List<Double> newValues) {
         int common = Math.min(existingValues.size(), newValues.size());
 
         for (int i = 0; i < common; i++) {
@@ -227,12 +227,12 @@ public class GarchModelServiceImpl implements GarchModelService {
         }
 
         if (existingValues.size() > newValues.size()) {
-            List<ModelVarianceWeight> extra = existingValues.subList(newValues.size(), existingValues.size());
-            modelVarianceWeightRepository.deleteAll(extra);
+            List<ModelAlpha> extra = existingValues.subList(newValues.size(), existingValues.size());
+            modelAlphaRepository.deleteAll(extra);
         }
     }
 
-    private void updateShockWeights(GarchModel garchModel, List<ModelShockWeight> existingValues, List<Double> newValues) {
+    private void updateShockWeights(GarchModel garchModel, List<ModelBeta> existingValues, List<Double> newValues) {
         int common = Math.min(existingValues.size(), newValues.size());
 
         for (int i = 0; i < common; i++) {
@@ -246,8 +246,8 @@ public class GarchModelServiceImpl implements GarchModelService {
         }
 
         if (existingValues.size() > newValues.size()) {
-            List<ModelShockWeight> extra = existingValues.subList(newValues.size(), existingValues.size());
-            modelShockWeightRepository.deleteAll(extra);
+            List<ModelBeta> extra = existingValues.subList(newValues.size(), existingValues.size());
+            modelBetaRepository.deleteAll(extra);
         }
     }
 
@@ -287,7 +287,7 @@ public class GarchModelServiceImpl implements GarchModelService {
 
         row = sheet.createRow(index++);
         cell = row.createCell(0);
-        cell.setCellValue("Váhy minulých rozptylů:");
+        cell.setCellValue("Alfa koeficienty:");
         cell.setCellStyle(styles.get(CellStyleNames.PARAMETER_NAME.toString()));
         for (int i = 0; i < garchModelDTO.lastVariances().size(); i++) {
             double value = garchModelDTO.lastVariances().get(i);
@@ -296,7 +296,7 @@ public class GarchModelServiceImpl implements GarchModelService {
 
         row = sheet.createRow(index++);
         cell = row.createCell(0);
-        cell.setCellValue("Váhy minulých odhadů:");
+        cell.setCellValue("Beta koeficienty:");
         cell.setCellStyle(styles.get(CellStyleNames.PARAMETER_NAME.toString()));
         for (int i = 0; i < garchModelDTO.lastShocks().size(); i++) {
             double value = garchModelDTO.lastShocks().get(i);

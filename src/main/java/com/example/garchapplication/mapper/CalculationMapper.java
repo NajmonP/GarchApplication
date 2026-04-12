@@ -30,14 +30,14 @@ public final class CalculationMapper {
     public static CalculationDetailDTO toDetailDTO(Calculation calculation,
                                                    TimeSeriesDetailDTO timeSeriesDetailDTOInput,
                                                    TimeSeriesDetailDTO timeSeriesDetailDTOResult,
-                                                   List<RunVarianceWeight> varianceWeights,
-                                                   List<RunShockWeight> shockWeights) {
+                                                   List<RunAlpha> varianceWeights,
+                                                   List<RunBeta> shockWeights) {
         List<Double> lastVariances = varianceWeights.stream()
-                .map(RunVarianceWeight::getValue)
+                .map(RunAlpha::getValue)
                 .toList();
 
         List<Double> lastShocks = shockWeights.stream()
-                .map(RunShockWeight::getValue)
+                .map(RunBeta::getValue)
                 .toList();
 
         return new CalculationDetailDTO(

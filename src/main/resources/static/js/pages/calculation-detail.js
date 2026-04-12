@@ -90,8 +90,8 @@
             AppElManager.createInfoRow("Předpověď:", AppFormatter.formatValue(data?.forecast)),
             AppElManager.createInfoRow("Počáteční rozptyl:", AppFormatter.formatValue(data?.startVariance)),
             AppElManager.createInfoRow("konstantní člen:", AppFormatter.formatValue(data?.constantVariance)),
-            AppElManager.createInfoRow("Váhy minulých rozptylů:", data?.lastVariances),
-            AppElManager.createInfoRow("Váhy minulých šoků:", data?.lastShocks)
+            AppElManager.createInfoRow("Alfa koeficienty:", data?.lastVariances),
+            AppElManager.createInfoRow("Beta koeficienty:", data?.lastShocks)
         ];
 
         const frag = document.createDocumentFragment();

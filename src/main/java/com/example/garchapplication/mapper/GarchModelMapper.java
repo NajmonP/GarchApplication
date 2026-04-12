@@ -10,16 +10,16 @@ public final class GarchModelMapper {
 
     public static GarchModelCalculationDTO toGarchModelCalculationDTO(
             GarchModel model,
-            List<ModelVarianceWeight> varianceWeights,
-            List<ModelShockWeight> shockWeights
+            List<ModelAlpha> varianceWeights,
+            List<ModelBeta> shockWeights
     ) {
 
         List<Double> lastVariances = varianceWeights.stream()
-                .map(ModelVarianceWeight::getValue)
+                .map(ModelAlpha::getValue)
                 .toList();
 
         List<Double> lastShocks = shockWeights.stream()
-                .map(ModelShockWeight::getValue)
+                .map(ModelBeta::getValue)
                 .toList();
 
         return new GarchModelCalculationDTO(
@@ -33,16 +33,16 @@ public final class GarchModelMapper {
 
     public static GarchModelCalculationDTO toGarchModelCalculationDTO(
             Calculation calculation,
-            List<RunVarianceWeight> varianceWeights,
-            List<RunShockWeight> shockWeights
+            List<RunAlpha> varianceWeights,
+            List<RunBeta> shockWeights
     ) {
 
         List<Double> lastVariances = varianceWeights.stream()
-                .map(RunVarianceWeight::getValue)
+                .map(RunAlpha::getValue)
                 .toList();
 
         List<Double> lastShocks = shockWeights.stream()
-                .map(RunShockWeight::getValue)
+                .map(RunBeta::getValue)
                 .toList();
 
         return new GarchModelCalculationDTO(
@@ -56,16 +56,16 @@ public final class GarchModelMapper {
 
     public static GarchModelDTO toGarchModelDTO(
             GarchModel model,
-            List<ModelVarianceWeight> varianceWeights,
-            List<ModelShockWeight> shockWeights
+            List<ModelAlpha> varianceWeights,
+            List<ModelBeta> shockWeights
     ) {
 
         List<Double> lastVariances = varianceWeights.stream()
-                .map(ModelVarianceWeight::getValue)
+                .map(ModelAlpha::getValue)
                 .toList();
 
         List<Double> lastShocks = shockWeights.stream()
-                .map(ModelShockWeight::getValue)
+                .map(ModelBeta::getValue)
                 .toList();
 
         return new GarchModelDTO(

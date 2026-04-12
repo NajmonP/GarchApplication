@@ -57,24 +57,24 @@ CREATE TABLE garch_model
     configuration_id  BIGINT           NOT NULL REFERENCES configuration (configuration_id) ON DELETE CASCADE,
     name              TEXT             NOT NULL,
     start_variance    DOUBLE PRECISION NOT NULL,
-    constant_variance DOUBLE PRECISION NOT NULL,
+    omega DOUBLE PRECISION NOT NULL,
     UNIQUE (configuration_id, name)
 );
 
----------- model_shock_weight ----------
-CREATE TABLE model_shock_weight
+---------- model_beta ----------
+CREATE TABLE model_beta
 (
-    model_shock_weight_id BIGSERIAL PRIMARY KEY,
+    model_beta_id BIGSERIAL PRIMARY KEY,
     model_id              BIGINT           NOT NULL REFERENCES garch_model (model_id) ON DELETE CASCADE,
     order_no              INTEGER          NOT NULL,
     value                 DOUBLE PRECISION NOT NULL,
     UNIQUE (model_id, order_no)
 );
 
----------- model_variance_weight ----------
-CREATE TABLE model_variance_weight
+---------- model_alpha ----------
+CREATE TABLE model_alpha
 (
-    model_variance_weight_id BIGSERIAL PRIMARY KEY,
+    model_alpha_id BIGSERIAL PRIMARY KEY,
     model_id                 BIGINT           NOT NULL REFERENCES garch_model (model_id) ON DELETE CASCADE,
     order_no                 INTEGER          NOT NULL,
     value                    DOUBLE PRECISION NOT NULL,
@@ -92,23 +92,23 @@ CREATE TABLE calculation
     result_time_series_id BIGINT                   REFERENCES time_series (time_series_id) ON DELETE SET NULL,
     forecast              BIGINT                   NOT NULL,
     start_variance        DOUBLE PRECISION         NOT NULL,
-    constant_variance     DOUBLE PRECISION         NOT NULL
+    omega     DOUBLE PRECISION         NOT NULL
 );
 
----------- run_shock_weight ----------
-CREATE TABLE run_shock_weight
+---------- run_beta ----------
+CREATE TABLE run_beta
 (
-    run_shock_weight_id BIGSERIAL PRIMARY KEY,
+    run_beta_id BIGSERIAL PRIMARY KEY,
     calculation_id      BIGINT           NOT NULL REFERENCES calculation (calculation_id) ON DELETE CASCADE,
     order_no            INTEGER          NOT NULL,
     value               DOUBLE PRECISION NOT NULL,
     UNIQUE (calculation_id, order_no)
 );
 
----------- run_variance_weight ----------
-CREATE TABLE run_variance_weight
+---------- run_alpha ----------
+CREATE TABLE run_alpha
 (
-    run_variance_weight_id BIGSERIAL PRIMARY KEY,
+    run_alpha_id BIGSERIAL PRIMARY KEY,
     calculation_id         BIGINT           NOT NULL REFERENCES calculation (calculation_id) ON DELETE CASCADE,
     order_no               INTEGER          NOT NULL,
     value                  DOUBLE PRECISION NOT NULL,
