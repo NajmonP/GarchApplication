@@ -22,4 +22,8 @@ public interface TimeSeriesRepository extends JpaRepository<TimeSeries,Long> {
     Page<TimeSeries> findPublicTimeSeries(Pageable pageable);
 
     List<TimeSeries> getTimeSeriesByUser(User user);
+
+    boolean existsByIdAndUserId(Long id, Long userId);
+
+    boolean existsByIdAndVisibility(Long id, String visibility);
 }

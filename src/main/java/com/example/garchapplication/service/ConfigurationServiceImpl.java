@@ -25,6 +25,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -139,6 +140,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @PreAuthorize("@authorization.canAccessConfiguration(#configurationId, authentication)")
     public void updateConfigurationName(long configurationId, String newName) {
         try {
             Configuration configuration = configurationRepository.findById(configurationId).orElseThrow(() -> new EntityNotFoundException(configurationId, EntityType.CONFIGURATION));
@@ -155,6 +157,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @PreAuthorize("@authorization.canAccessConfiguration(#configurationId, authentication)")
     public void deleteConfiguration(long configurationId) {
         String name = configurationRepository.findNameById(configurationId).orElseThrow(() -> new EntityNotFoundException(configurationId, EntityType.CONFIGURATION));
 
@@ -170,6 +173,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
      * {@inheritDoc}
      */
     @Override
+    @PreAuthorize("@authorization.canAccessConfiguration(#configurationId, authentication)")
     public XlsxFileDTO exportConfiguration(Long configurationId) {
         Configuration configuration = configurationRepository.findById(configurationId).orElseThrow(() -> new EntityNotFoundException(configurationId, EntityType.CONFIGURATION));
         List<GarchModelDTO> garchModelDTOList = garchModelService.extractGarchModelDTOsByConfigurationId(configurationId);

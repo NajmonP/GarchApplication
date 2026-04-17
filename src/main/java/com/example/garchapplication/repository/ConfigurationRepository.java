@@ -17,4 +17,6 @@ public interface ConfigurationRepository extends JpaRepository<Configuration, Lo
     Optional<String> findNameById(@Param("id") long id);
 
     List<Configuration> getConfigurationsByUser(User user);
+
+    boolean existsByIdAndUserId(Long id, Long userId);
 }

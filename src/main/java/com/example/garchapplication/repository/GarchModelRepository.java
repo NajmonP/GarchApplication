@@ -16,4 +16,6 @@ public interface GarchModelRepository extends JpaRepository<GarchModel,Long> {
     Optional<String> findNameById(@Param("id") long id);
 
     List<GarchModel> findAllByConfigurationId(Long configurationId);
+
+    boolean existsByIdAndConfigurationUserId(Long id, Long userId);
 }

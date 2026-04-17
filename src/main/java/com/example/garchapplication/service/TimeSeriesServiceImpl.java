@@ -29,6 +29,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -194,6 +195,7 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
      * {@inheritDoc}
      */
     @Override
+    @PreAuthorize("@authorization.canAccessTimeSeries(#timeSeriesId, authentication)")
     public TimeSeriesDTO getTimeSeriesDTOFromDatabase(Long timeSeriesId) {
         String name = timeSeriesRepository.findById(timeSeriesId).orElseThrow(() -> new EntityNotFoundException(timeSeriesId, EntityType.TIME_SERIES)).getName();
 
@@ -209,6 +211,7 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
      * {@inheritDoc}
      */
     @Override
+    @PreAuthorize("@authorization.canAccessTimeSeries(#timeSeriesId, authentication)")
     public TimeSeries getTimeSeriesFromDatabase(Long timeSeriesId) {
         return timeSeriesRepository.findById(timeSeriesId).orElseThrow(() -> new EntityNotFoundException(timeSeriesId, EntityType.TIME_SERIES));
     }
@@ -218,6 +221,7 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @PreAuthorize("@authorization.canAccessTimeSeries(#timeSeriesId, authentication)")
     public void updateTimeSeries(Long timeSeriesId, UpdateTimeSeriesRequest updateTimeSeriesRequest) {
         String newName = updateTimeSeriesRequest.name();
         String visibility = updateTimeSeriesRequest.visibility();
@@ -241,6 +245,7 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
      */
     @Override
     @Transactional
+    @PreAuthorize("@authorization.canAccessTimeSeries(#timeSeriesId, authentication)")
     public void deleteTimeSeries(long timeSeriesId) {
         String name = timeSeriesRepository.findNameById(timeSeriesId).orElseThrow(() -> new EntityNotFoundException(timeSeriesId, EntityType.TIME_SERIES));
 
@@ -258,6 +263,7 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
      * {@inheritDoc}
      */
     @Override
+    @PreAuthorize("@authorization.canAccessTimeSeriesDetails(#timeSeriesId, authentication)")
     public XlsxFileDTO exportTimeSeries(long timeSeriesId) {
         TimeSeriesDTO timeSeriesDTO = getTimeSeriesDTOFromDatabase(timeSeriesId);
 
@@ -300,6 +306,7 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
     }
 
     @Override
+    @PreAuthorize("@authorization.canAccessTimeSeriesDetails(#timeSeriesId, authentication)")
     public TimeSeriesDetailDTO getTimeSeriesDetails(Long timeSeriesId) {
         TimeSeriesDTO timeSeriesDTO = getTimeSeriesDTOFromDatabase(timeSeriesId);
         ChartOfTimeSeriesDTO chartOfTimeSeriesDTO = TimeSeriesChartMapper.toChart(timeSeriesDTO);

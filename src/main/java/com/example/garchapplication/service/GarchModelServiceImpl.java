@@ -22,6 +22,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -79,6 +80,7 @@ public class GarchModelServiceImpl implements GarchModelService {
     }
 
     @Override
+    @PreAuthorize("@authorization.canAccessConfiguration(#configurationId, authentication)")
     public List<GarchModelDTO> extractGarchModelDTOsByConfigurationId(Long configurationId) {
         List<GarchModel> garchModelList = findAllGarchModelsByConfigurationId(configurationId);
         List<GarchModelDTO> garchModelDTOList = new ArrayList<>();
@@ -193,6 +195,7 @@ public class GarchModelServiceImpl implements GarchModelService {
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @PreAuthorize("@authorization.canAccessGarchModel(#modelId, authentication)")
     public void updateGarchModel(long modelId, GarchModelCalculationDTO garchModelCalculationDTO) {
         try {
             GarchModel garchModel = garchModelRepository.findById(modelId).orElseThrow(() -> new EntityNotFoundException(modelId, EntityType.GARCH_MODEL));
@@ -256,6 +259,7 @@ public class GarchModelServiceImpl implements GarchModelService {
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @PreAuthorize("@authorization.canAccessGarchModel(#modelId, authentication)")
     public void deleteGarchModel(Long modelId) {
         String name = garchModelRepository.findNameById(modelId).orElseThrow(() -> new EntityNotFoundException(modelId, EntityType.GARCH_MODEL));
         garchModelRepository.deleteById(modelId);

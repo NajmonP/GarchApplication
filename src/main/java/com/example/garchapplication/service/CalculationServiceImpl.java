@@ -20,6 +20,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -132,6 +133,7 @@ public class CalculationServiceImpl implements CalculationService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @PreAuthorize("@authorization.canAccessCalculation(#calculationId, authentication)")
     public void rerunCalculation(Long calculationId, Long timeSeriesId) throws IOException {
         Calculation calculation = calculationRepository.findById(calculationId).orElseThrow(() -> new EntityNotFoundException(calculationId, EntityType.CALCULATION));
 
@@ -275,6 +277,7 @@ public class CalculationServiceImpl implements CalculationService {
     }
 
     @Override
+    @PreAuthorize("@authorization.canAccessCalculation(#calculationId, authentication)")
     public CalculationDetailDTO getCalculationDetails(long calculationId) {
         Calculation calculation = getCalculationById(calculationId);
         List<RunAlpha> runAlphaList = runAlphaRepository.findAllByCalculationIdOrderByOrderNoAsc(calculationId);
@@ -295,6 +298,7 @@ public class CalculationServiceImpl implements CalculationService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @PreAuthorize("@authorization.canAccessCalculation(#calculationId, authentication)")
     public void deleteCalculation(long calculationId) {
         calculationRepository.deleteById(calculationId);
         auditLogService.logDeleteEvent(EntityType.CALCULATION, calculationId, null);
