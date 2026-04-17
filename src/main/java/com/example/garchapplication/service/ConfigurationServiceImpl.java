@@ -96,6 +96,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void addConfiguration(MultipartFile configurationFile) throws IOException {
+        validateXlsxFile(configurationFile);
+
         try (Workbook workbook = new XSSFWorkbook(configurationFile.getInputStream())) {
             Sheet sheet = workbook.getSheetAt(0);
 
@@ -111,6 +113,17 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             for (GarchModelCalculationDTO garchModelCalculationDTO : garchModelCalculationDTOS) {
                 garchModelService.saveModel(garchModelCalculationDTO, configuration);
             }
+        }
+    }
+
+    private void validateXlsxFile(MultipartFile multipartFile) {
+        if (multipartFile == null || multipartFile.isEmpty()) {
+            throw new WrongFileStructureException("Soubor je prázdný.");
+        }
+
+        String filename = multipartFile.getOriginalFilename();
+        if (filename == null || !filename.toLowerCase().endsWith(".xlsx")) {
+            throw new WrongFileStructureException("Soubor není typu .xlsx.");
         }
     }
 

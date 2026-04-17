@@ -101,6 +101,8 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void addTimeSeriesFromFile(MultipartFile timeSeriesFile) throws IOException {
+        validateXlsxFile(timeSeriesFile);
+
         try (Workbook workbook = new XSSFWorkbook(timeSeriesFile.getInputStream())) {
             Sheet sheet = workbook.getSheetAt(0);
             String timeSeriesName = sheet.getRow(0).getCell(1).getStringCellValue();
@@ -112,6 +114,17 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
             }
         } catch (IllegalStateException | NullPointerException ex) {
             throw new WrongFileStructureException(EntityType.TIME_SERIES, ex);
+        }
+    }
+
+    private void validateXlsxFile(MultipartFile multipartFile) {
+        if (multipartFile == null || multipartFile.isEmpty()) {
+            throw new WrongFileStructureException("Soubor je prázdný");
+        }
+
+        String filename = multipartFile.getOriginalFilename();
+        if (filename == null || !filename.toLowerCase().endsWith(".xlsx")) {
+            throw new WrongFileStructureException("Soubor není typu .xlsx");
         }
     }
 
@@ -175,6 +188,8 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
      */
     @Override
     public TimeSeriesDTO getTimeSeriesFromFile(MultipartFile timeSeriesFile) throws IOException {
+        validateXlsxFile(timeSeriesFile);
+
         Map<Long, Double> loadedTimeSeries = new HashMap<>();
         String timeSeriesName;
         try (Workbook workbook = new XSSFWorkbook(timeSeriesFile.getInputStream())) {

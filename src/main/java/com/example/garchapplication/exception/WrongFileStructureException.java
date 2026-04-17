@@ -8,6 +8,10 @@ public class WrongFileStructureException extends GarchApplicationException {
         super(HttpStatusCode.valueOf(400), buildMessage(entityType), cause);
     }
 
+    public WrongFileStructureException(String message) {
+        super(HttpStatusCode.valueOf(400), message);
+    }
+
     private static String buildMessage(EntityType entityType) {
         String errorMessage = "Špatná struktura souboru ";
 
