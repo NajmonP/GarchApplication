@@ -47,6 +47,7 @@ public class CalculationServiceImpl implements CalculationService {
 
     private static final double SUM_MAXIMUM_THRESHOLD = 1.0;
     private static final double MINIMUM_VALUE = 0.0;
+    private static final int MINIMAL_FORECAST = 0;
     private static final String RESULT_NAME = "result";
 
     @Autowired
@@ -73,7 +74,7 @@ public class CalculationServiceImpl implements CalculationService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public TimeSeriesDTO calculate(GarchModelCalculationDTO garchModelCalculationDTO, int forecast, MultipartFile timeSeriesFile, Long timeSeriesId, Long calculationId) throws IOException {
-        validateInput(garchModelCalculationDTO.constantVariance(), garchModelCalculationDTO.lastVariances(), garchModelCalculationDTO.lastShocks());
+        validateInput(garchModelCalculationDTO.constantVariance(), garchModelCalculationDTO.lastVariances(), garchModelCalculationDTO.lastShocks(), forecast);
         TimeSeriesDTO result = startCalculationBasedOnInput(garchModelCalculationDTO, forecast, timeSeriesFile, timeSeriesId, calculationId);
         User user = authenticationHandler.getUserEntity();
         if (user != null) {
@@ -94,29 +95,33 @@ public class CalculationServiceImpl implements CalculationService {
      * @param constantVariance the constant variance
      * @param lastVariance     list of last variances weight
      * @param lastShock        list of last shocks weight
+     * @param forecast         number of observations that are going to forecasted
      * @throws InvalidConstantVarianceException if the constant variance is below the minimum allowed value
      * @throws InvalidLastValueException        if any of the previous values are non-positive
      * @throws MaxThresholdExceededException    if the total sum exceeds {@link #SUM_MAXIMUM_THRESHOLD}
      */
-    private void validateInput(double constantVariance, List<Double> lastVariance, List<Double> lastShock) {
+    private void validateInput(double constantVariance, List<Double> lastVariance, List<Double> lastShock, int forecast) {
+        if (forecast < MINIMAL_FORECAST) {
+            throw new InvalidForecastException(MINIMAL_FORECAST);
+        }
         if (constantVariance < MINIMUM_VALUE) {
-            throw new InvalidConstantVarianceException();
+            throw new InvalidConstantVarianceException(MINIMUM_VALUE);
         }
         double sum = 0.0;
         for (double variance : lastVariance) {
             if (variance <= MINIMUM_VALUE) {
-                throw new InvalidLastValueException();
+                throw new InvalidLastValueException(MINIMUM_VALUE);
             }
             sum += variance;
         }
         for (double shock : lastShock) {
             if (shock <= MINIMUM_VALUE) {
-                throw new InvalidLastValueException();
+                throw new InvalidLastValueException(MINIMUM_VALUE);
             }
             sum += shock;
         }
         if (sum > SUM_MAXIMUM_THRESHOLD) {
-            throw new MaxThresholdExceededException(sum);
+            throw new MaxThresholdExceededException(SUM_MAXIMUM_THRESHOLD, sum);
         }
     }
 
