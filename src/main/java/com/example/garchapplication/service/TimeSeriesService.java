@@ -7,6 +7,7 @@ import com.example.garchapplication.model.dto.api.TimeSeriesListItemDTO;
 import com.example.garchapplication.model.dto.api.TimeSeriesPageDTO;
 import com.example.garchapplication.model.dto.api.UpdateTimeSeriesRequest;
 import com.example.garchapplication.model.entity.TimeSeries;
+import com.example.garchapplication.model.entity.User;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

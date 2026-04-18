@@ -17,6 +17,7 @@ import com.example.garchapplication.process.CalculationProcess;
 import com.example.garchapplication.exception.MissingTimeSeriesException;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Service interface responsible for performing GARCH model calculations.

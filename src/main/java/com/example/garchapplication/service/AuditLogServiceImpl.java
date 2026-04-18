@@ -63,7 +63,7 @@ public class AuditLogServiceImpl implements AuditLogService {
         Page<AuditLog> result = auditLogRepository.findByOccuredAtGreaterThanEqualAndOccuredAtLessThan(fromInstant, toInstant, pageable);
         return result.map(a -> new AuditLogDTO(
                 a.getOccuredAt(),
-                a.getUser().getId(),
+                a.getUser() != null ? a.getUser().getId() : null,
                 a.getUsername(),
                 a.getEntityId(),
                 a.getEntityType(),

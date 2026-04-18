@@ -16,7 +16,6 @@ class AuthenticationController {
         if (error != null) {
             model.addAttribute("modalError", "Neplatné uživatelské jméno nebo heslo.");
         }
-
         return "login";
     }
 

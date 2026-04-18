@@ -1,6 +1,10 @@
 package com.example.garchapplication.service;
 
+import com.example.garchapplication.model.dto.api.ChangePasswordRequest;
+import com.example.garchapplication.model.dto.api.UpdateUserRequest;
+import com.example.garchapplication.model.dto.api.UserProfileDTO;
 import com.example.garchapplication.model.entity.User;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,10 +17,18 @@ public interface UserService extends UserDetailsService {
 
     void saveUser(User user);
 
-    User getUser(long id);
+    @Transactional
+    void updateUser(UpdateUserRequest updateUserRequest);
 
-    void deleteUser(long id);
+    @Transactional
+    void changePassword(ChangePasswordRequest changePasswordRequest);
+
+    @Transactional
+    void deleteUser();
 
     @Transactional
     User getUserById(Long id);
+
+    UserProfileDTO getUserProfile();
+
 }

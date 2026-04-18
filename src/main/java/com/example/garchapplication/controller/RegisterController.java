@@ -1,6 +1,6 @@
 package com.example.garchapplication.controller;
 
-import com.example.garchapplication.exception.InvalidRegisterException;
+import com.example.garchapplication.exception.InvalidCredentialsException;
 import com.example.garchapplication.model.dto.api.RegisterRequest;
 import com.example.garchapplication.service.RegisterService;
 import jakarta.validation.Valid;
@@ -43,7 +43,7 @@ public class RegisterController {
         try {
             registerService.register(form);
             return "redirect:/login";
-        } catch (InvalidRegisterException e) {
+        } catch (InvalidCredentialsException e) {
             model.addAttribute("form", form);
             model.addAttribute("modalError", e.getMessage());
             return "register";

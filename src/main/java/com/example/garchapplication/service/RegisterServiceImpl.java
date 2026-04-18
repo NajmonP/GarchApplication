@@ -1,6 +1,6 @@
 package com.example.garchapplication.service;
 
-import com.example.garchapplication.exception.InvalidRegisterException;
+import com.example.garchapplication.exception.InvalidCredentialsException;
 import com.example.garchapplication.model.dto.api.RegisterRequest;
 import com.example.garchapplication.model.entity.User;
 import com.example.garchapplication.model.enums.RoleType;
@@ -28,13 +28,13 @@ public class RegisterServiceImpl implements RegisterService {
     @Transactional(rollbackFor = Exception.class)
     public void register(RegisterRequest registerRequest) {
         if (!registerRequest.password().equals(registerRequest.confirmPassword())) {
-            throw new InvalidRegisterException("Hesla se neshodují.");
+            throw new InvalidCredentialsException("Hesla se neshodují.");
         }
         if (userRepository.existsByUsername(registerRequest.username())) {
-            throw new InvalidRegisterException("Uživatelské jméno již existuje.");
+            throw new InvalidCredentialsException("Uživatelské jméno již existuje.");
         }
         if (userRepository.existsByEmail(registerRequest.email())) {
-            throw new InvalidRegisterException("Účet s emailovou adresou již existuje.");
+            throw new InvalidCredentialsException("Účet s emailovou adresou již existuje.");
         }
 
         User user = new User();

@@ -43,7 +43,7 @@
             const tr = document.createElement("tr");
 
             const tdUserId = document.createElement("td");
-            tdUserId.textContent = a.userId ?? "";
+            tdUserId.textContent = a.userId ?? "-";
             tr.appendChild(tdUserId);
 
             const tdUsername = document.createElement("td");

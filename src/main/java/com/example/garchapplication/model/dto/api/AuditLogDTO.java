@@ -5,5 +5,5 @@ import com.example.garchapplication.model.enums.OperationType;
 
 import java.time.Instant;
 
-public record AuditLogDTO(Instant occurredAt, long userId, String username, long entityId, EntityType entityType, String entityName, OperationType operationType) {
+public record AuditLogDTO(Instant occurredAt, Long userId, String username, long entityId, EntityType entityType, String entityName, OperationType operationType) {
 }

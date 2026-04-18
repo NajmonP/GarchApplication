@@ -33,6 +33,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests((requests) -> requests
                         .requestMatchers("/configuration/**").authenticated()
                         .requestMatchers("/calculation/**").authenticated()
+                        .requestMatchers("/profile/**").authenticated()
                         .requestMatchers("/log/**").hasRole("ADMIN")
                         .anyRequest().permitAll()
                 )
