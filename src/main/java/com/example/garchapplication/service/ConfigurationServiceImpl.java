@@ -3,17 +3,13 @@ package com.example.garchapplication.service;
 import com.example.garchapplication.exception.*;
 import com.example.garchapplication.helper.CellStylesBuilder;
 import com.example.garchapplication.mapper.ConfigurationMapper;
-import com.example.garchapplication.model.dto.api.XlsxFileDTO;
-import com.example.garchapplication.model.dto.api.GarchModelCalculationDTO;
-import com.example.garchapplication.model.dto.api.GarchModelDTO;
-import com.example.garchapplication.model.dto.api.ConfigurationListItemDTO;
-import com.example.garchapplication.model.dto.api.ConfigurationPageDTO;
-import com.example.garchapplication.model.dto.api.PageResponse;
+import com.example.garchapplication.model.dto.api.*;
 import com.example.garchapplication.model.entity.*;
 import com.example.garchapplication.model.enums.CellStyleNames;
 import com.example.garchapplication.model.enums.EntityType;
 import com.example.garchapplication.model.enums.RoleType;
 import com.example.garchapplication.repository.ConfigurationRepository;
+import com.example.garchapplication.repository.UserRepository;
 import com.example.garchapplication.security.AuthenticationHandler;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
@@ -43,13 +39,15 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private final GarchModelService garchModelService;
     private final ConfigurationRepository configurationRepository;
     private final AuthenticationHandler authenticationHandler;
+    private final UserRepository userRepository;
 
     @Autowired
-    public ConfigurationServiceImpl(ConfigurationRepository configurationRepository, GarchModelServiceImpl garchModelService, AuditLogService auditLogService, AuthenticationHandler authenticationHandler) {
+    public ConfigurationServiceImpl(ConfigurationRepository configurationRepository, GarchModelServiceImpl garchModelService, AuditLogService auditLogService, AuthenticationHandler authenticationHandler, UserRepository userRepository) {
         this.configurationRepository = configurationRepository;
         this.garchModelService = garchModelService;
         this.auditLogService = auditLogService;
         this.authenticationHandler = authenticationHandler;
+        this.userRepository = userRepository;
     }
 
     /**
@@ -57,27 +55,27 @@ public class ConfigurationServiceImpl implements ConfigurationService {
      */
     @Override
     public List<ConfigurationListItemDTO> getAllConfigurationsByUser() {
-        User user = authenticationHandler.getUserEntity();
+        Optional<User> optionalUser = userRepository.findById(authenticationHandler.getUserId());
 
-        if (user == null) {
+        if (optionalUser.isEmpty()) {
             return Collections.emptyList();
         }
-        return ConfigurationMapper.toListItemDTOs(configurationRepository.getConfigurationsByUser(user));
+        return ConfigurationMapper.toListItemDTOs(configurationRepository.getConfigurationsByUser(optionalUser.get()));
     }
 
     @Override
     public ConfigurationPageDTO getConfigurationPageByUser(int page, int size) {
-        User user = authenticationHandler.getUserEntity();
+        Optional<User> optionalUser = userRepository.findById(authenticationHandler.getUserId());
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("name").descending());
 
         Page<Configuration> configurationList = configurationRepository.findAll(pageable);
 
-        List<ConfigurationListItemDTO> usersConfigurationList = getAllConfigurationsByUser(user);
+        List<ConfigurationListItemDTO> usersConfigurationList = getAllConfigurationsByUser(optionalUser.get());
 
         PageResponse<ConfigurationListItemDTO> configurationListItemDTOPageResponse = null;
 
-        if (user.getRole() == RoleType.ADMIN) {
+        if (optionalUser.get().getRole() == RoleType.ADMIN) {
             configurationListItemDTOPageResponse = PageResponse.responseFromPage(configurationList.map(ConfigurationMapper::toListItemDTO));
         }
         return new ConfigurationPageDTO(usersConfigurationList, configurationListItemDTOPageResponse);
@@ -134,11 +132,11 @@ public class ConfigurationServiceImpl implements ConfigurationService {
      * @return instance of saved configuration for purpose of saving related GARCH models
      */
     private Configuration saveConfiguration(String configurationName) {
-        User user = authenticationHandler.getUserEntity();
+        Optional<User> optionalUser = userRepository.findById(authenticationHandler.getUserId());
         try {
             Configuration configuration = new Configuration();
             configuration.setName(configurationName);
-            configuration.setUser(user);
+            configuration.setUser(optionalUser.get());
             configuration.setCreated(Instant.now());
             configurationRepository.saveAndFlush(configuration);
             auditLogService.logCreateEvent(EntityType.CONFIGURATION, configuration.getId(), configurationName);
@@ -174,11 +172,12 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     public void deleteConfiguration(long configurationId) {
         String name = configurationRepository.findNameById(configurationId).orElseThrow(() -> new EntityNotFoundException(configurationId, EntityType.CONFIGURATION));
 
-        List<GarchModel> garchModelList = garchModelService.findAllGarchModelsByConfigurationId(configurationId);
-        for (GarchModel garchModel : garchModelList) {
-            garchModelService.deleteGarchModel(garchModel.getId());
-        }
+        List<AuditInfoDTO> auditInfoDTOList = garchModelService.findAllAuditInfoByConfigurationId(configurationId);
+
         configurationRepository.deleteById(configurationId);
+        for (AuditInfoDTO auditInfoDTO : auditInfoDTOList) {
+            auditLogService.logDeleteEvent(auditInfoDTO.type(), auditInfoDTO.id(), auditInfoDTO.name());
+        }
         auditLogService.logDeleteEvent(EntityType.CONFIGURATION, configurationId, name);
     }
 
@@ -228,5 +227,10 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         }
 
         return resource;
+    }
+
+    @Override
+    public List<AuditInfoDTO> findAllAuditInfoByUserId(Long userId) {
+        return configurationRepository.findAllAuditInfoByUserId(userId);
     }
 }

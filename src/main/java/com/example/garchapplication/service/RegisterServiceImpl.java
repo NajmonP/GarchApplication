@@ -3,6 +3,7 @@ package com.example.garchapplication.service;
 import com.example.garchapplication.exception.InvalidCredentialsException;
 import com.example.garchapplication.model.dto.api.RegisterRequest;
 import com.example.garchapplication.model.entity.User;
+import com.example.garchapplication.model.enums.EntityType;
 import com.example.garchapplication.model.enums.RoleType;
 import com.example.garchapplication.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,11 +18,13 @@ public class RegisterServiceImpl implements RegisterService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuditLogService auditLogService;
 
     @Autowired
-    public RegisterServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public RegisterServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, AuditLogService auditLogService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.auditLogService = auditLogService;
     }
 
     @Override
@@ -44,5 +47,7 @@ public class RegisterServiceImpl implements RegisterService {
         user.setRole(RoleType.USER);
         user.setCreated(Instant.now());
         userRepository.save(user);
+        userRepository.flush();
+        auditLogService.logCreateEvent(EntityType.USER, user.getId(), user.getUsername());
     }
 }

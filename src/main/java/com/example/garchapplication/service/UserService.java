@@ -30,5 +30,4 @@ public interface UserService extends UserDetailsService {
     User getUserById(Long id);
 
     UserProfileDTO getUserProfile();
-
 }

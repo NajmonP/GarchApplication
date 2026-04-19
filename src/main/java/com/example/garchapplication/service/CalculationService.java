@@ -3,11 +3,8 @@ package com.example.garchapplication.service;
 import com.example.garchapplication.exception.InvalidConstantVarianceException;
 import com.example.garchapplication.exception.InvalidLastValueException;
 import com.example.garchapplication.exception.MaxThresholdExceededException;
-import com.example.garchapplication.model.dto.api.CalculationDetailDTO;
-import com.example.garchapplication.model.dto.api.GarchModelCalculationDTO;
+import com.example.garchapplication.model.dto.api.*;
 import com.example.garchapplication.model.dto.TimeSeriesDTO;
-import com.example.garchapplication.model.dto.api.CalculationPageDTO;
-import com.example.garchapplication.model.dto.api.ChartOfTimeSeriesDTO;
 import com.example.garchapplication.model.entity.Calculation;
 import com.example.garchapplication.model.entity.User;
 import org.springframework.stereotype.Service;
@@ -94,4 +91,6 @@ public interface CalculationService {
 
     @Transactional(rollbackFor = Exception.class)
     void deleteCalculation(long calculationId);
+
+    List<AuditInfoDTO> findAllAuditInfoByUserId(Long userId);
 }

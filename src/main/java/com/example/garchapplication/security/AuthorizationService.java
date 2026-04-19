@@ -53,7 +53,7 @@ public class AuthorizationService {
         return authentication.isAuthenticated();
     }
 
-    private boolean isAdmin(Authentication authentication) {
+    public boolean isAdmin(Authentication authentication) {
         return authentication.getAuthorities().stream()
                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
     }

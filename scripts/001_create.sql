@@ -4,7 +4,7 @@ search_path TO garch, public;
 
 CREATE TYPE role_type AS ENUM ('USER', 'ADMIN');
 CREATE TYPE visibility_type AS ENUM ('private', 'public');
-CREATE TYPE entity_type AS ENUM ('TIME_SERIES', 'CONFIGURATION', 'GARCH_MODEL','CALCULATION');
+CREATE TYPE entity_type AS ENUM ('TIME_SERIES', 'CONFIGURATION', 'GARCH_MODEL','CALCULATION', 'USER');
 CREATE TYPE operation_type AS ENUM ('CREATE', 'UPDATE', 'DELETE');
 CREATE TYPE calculation_status AS ENUM ('OK', 'MISSING_INPUT_SERIES', 'MISSING_OUTPUT_SERIES', 'BROKEN');
 
@@ -121,7 +121,7 @@ CREATE TABLE audit_log
     audit_log_id BIGSERIAL PRIMARY KEY,
     occurred_at  TIMESTAMPTZ          NOT NULL DEFAULT now(),
     username     TEXT,
-    user_id      BIGINT               REFERENCES users (user_id) ON DELETE SET NULL,
+    user_id      BIGINT,
     entity_type  garch.entity_type    NOT NULL,
     entity_name  TEXT,
     entity_id    BIGINT               NOT NULL,

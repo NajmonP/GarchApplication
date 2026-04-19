@@ -13,11 +13,12 @@ import com.example.garchapplication.model.entity.TimeSeriesValue;
 import com.example.garchapplication.model.entity.User;
 import com.example.garchapplication.model.enums.CellStyleNames;
 import com.example.garchapplication.model.enums.EntityType;
-import com.example.garchapplication.model.enums.RoleType;
 import com.example.garchapplication.repository.CalculationRepository;
 import com.example.garchapplication.repository.TimeSeriesRepository;
 import com.example.garchapplication.repository.TimeSeriesValueRepository;
+import com.example.garchapplication.repository.UserRepository;
 import com.example.garchapplication.security.AuthenticationHandler;
+import com.example.garchapplication.security.AuthorizationService;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -30,6 +31,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -47,37 +49,41 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
     private final CalculationRepository calculationRepository;
     private final TimeSeriesValueRepository timeSeriesValueRepository;
     private final AuthenticationHandler authenticationHandler;
+    private final UserRepository userRepository;
+    private final AuthorizationService authorizationService;
 
     @Autowired
-    public TimeSeriesServiceImpl(AuditLogService auditLogService, TimeSeriesRepository timeSeriesRepository, CalculationRepository calculationRepository, TimeSeriesValueRepository timeSeriesValueRepository, AuthenticationHandler authenticationHandler) {
+    public TimeSeriesServiceImpl(AuditLogService auditLogService, TimeSeriesRepository timeSeriesRepository, CalculationRepository calculationRepository, TimeSeriesValueRepository timeSeriesValueRepository, AuthenticationHandler authenticationHandler, UserRepository userRepository, AuthorizationService authorizationService) {
         this.auditLogService = auditLogService;
         this.timeSeriesRepository = timeSeriesRepository;
         this.calculationRepository = calculationRepository;
         this.timeSeriesValueRepository = timeSeriesValueRepository;
         this.authenticationHandler = authenticationHandler;
+        this.userRepository = userRepository;
+        this.authorizationService = authorizationService;
     }
 
     @Override
     public List<TimeSeriesListItemDTO> getTimeSeriesByUser() {
-        User user = authenticationHandler.getUserEntity();
+        Long userId = authenticationHandler.getUserId();
 
-        if (user == null) {
+        if (userId == null) {
             return Collections.emptyList();
         }
-        return TimeSeriesMapper.toListItemDTOs(timeSeriesRepository.getTimeSeriesByUser(user));
+        return TimeSeriesMapper.toListItemDTOs(timeSeriesRepository.getTimeSeriesByUserId(userId));
     }
 
     @Override
     public TimeSeriesPageDTO getTimeSeriesPageByUser(int page, int size) {
-        User user = authenticationHandler.getUserEntity();
+        Long userId = authenticationHandler.getUserId();
 
-        List<TimeSeriesListItemDTO> usersTimeSeriesList = getTimeSeriesByUser(user);
+        List<TimeSeriesListItemDTO> usersTimeSeriesList = getTimeSeriesByUserId(userId);
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("name").descending());
 
         Page<TimeSeries> publicTimeSeriesList;
 
-        if (user != null && user.getRole() == RoleType.ADMIN) {
+        if (userId != null && authorizationService.isAdmin(SecurityContextHolder.getContext().getAuthentication())) {
             publicTimeSeriesList = timeSeriesRepository.findAll(pageable);
         } else {
             publicTimeSeriesList = timeSeriesRepository.findPublicTimeSeries(pageable);
@@ -88,11 +94,11 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
         return new TimeSeriesPageDTO(usersTimeSeriesList, timeSeriesListItemDTOS);
     }
 
-    private List<TimeSeriesListItemDTO> getTimeSeriesByUser(User user) {
-        if (user == null) {
+    private List<TimeSeriesListItemDTO> getTimeSeriesByUserId(Long userId) {
+        if (userId == null) {
             return Collections.emptyList();
         }
-        return TimeSeriesMapper.toListItemDTOs(timeSeriesRepository.getTimeSeriesByUser(user));
+        return TimeSeriesMapper.toListItemDTOs(timeSeriesRepository.getTimeSeriesByUserId(userId));
     }
 
     /**
@@ -152,10 +158,10 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
      * @return saved time series stored in database
      */
     public TimeSeries saveTimeSeries(String timeSeriesName) {
-        User user = authenticationHandler.getUserEntity();
+        Optional<User> optionalUser = userRepository.findById(authenticationHandler.getUserId());
         try {
             TimeSeries timeSeries = new TimeSeries();
-            timeSeries.setUser(user);
+            timeSeries.setUser(optionalUser.get());
             timeSeries.setName(timeSeriesName);
             timeSeries.setCreated(Instant.now());
             timeSeries.setVisibility("Private");
@@ -378,5 +384,10 @@ public class TimeSeriesServiceImpl implements TimeSeriesService {
         values.add(Collections.min(timeSeries.values()));
         values.add(Collections.max(timeSeries.values()));
         return values;
+    }
+
+    @Override
+    public List<AuditInfoDTO> findAllAuditInfoByUserId(Long userId) {
+        return timeSeriesRepository.findAllAuditInfoByUserId(userId);
     }
 }

@@ -1,5 +1,6 @@
 package com.example.garchapplication.service;
 
+import com.example.garchapplication.model.dto.api.AuditInfoDTO;
 import com.example.garchapplication.model.dto.api.GarchModelCalculationDTO;
 import com.example.garchapplication.model.dto.api.GarchModelDTO;
 import com.example.garchapplication.model.entity.Configuration;
@@ -19,6 +20,8 @@ import java.util.Map;
 public interface GarchModelService {
 
     List<GarchModel> findAllGarchModelsByConfigurationId(Long configurationId);
+
+    List<AuditInfoDTO> findAllAuditInfoByConfigurationId(Long configurationId);
 
     /**
      * Loads GARCH model and its parameters from database based on given ID.

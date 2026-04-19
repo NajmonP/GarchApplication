@@ -17,13 +17,6 @@ import java.util.Optional;
 @Component
 public class AuthenticationHandler {
 
-    private final UserService userService;
-
-    @Autowired
-    public AuthenticationHandler(UserService userService) {
-        this.userService = userService;
-    }
-
     /**
      * Returns the current Authentication object or empty if not authenticated.
      *
@@ -42,7 +35,7 @@ public class AuthenticationHandler {
      *
      * @return User entity
      */
-    public User getUserEntity(){
+    public Long getUserId(){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
             return null;
@@ -57,7 +50,6 @@ public class AuthenticationHandler {
         }
 
         UserDetails userDetails = (UserDetails) principal;
-        Long userId = ((UserDetailsImpl) userDetails).getId();
-        return userService.getUserById(userId);
+        return ((UserDetailsImpl) userDetails).getId();
     }
 }

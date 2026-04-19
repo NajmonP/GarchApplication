@@ -14,6 +14,7 @@ import com.example.garchapplication.model.enums.RoleType;
 import com.example.garchapplication.repository.CalculationRepository;
 import com.example.garchapplication.repository.RunBetaRepository;
 import com.example.garchapplication.repository.RunAlphaRepository;
+import com.example.garchapplication.repository.UserRepository;
 import com.example.garchapplication.security.AuthenticationHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -44,6 +45,7 @@ public class CalculationServiceImpl implements CalculationService {
     private final RunAlphaRepository runAlphaRepository;
     private final RunBetaRepository runBetaRepository;
     private final CalculationRepository calculationRepository;
+    private final UserRepository userRepository;
 
     private static final double SUM_MAXIMUM_THRESHOLD = 1.0;
     private static final double MINIMUM_VALUE = 0.0;
@@ -51,7 +53,7 @@ public class CalculationServiceImpl implements CalculationService {
     private static final String RESULT_NAME = "result";
 
     @Autowired
-    public CalculationServiceImpl(AuditLogService auditLogService, TimeSeriesService timeSeriesService, GarchModelService garchModelService, AuthenticationHandler authenticationHandler, RunAlphaRepository runAlphaRepository, RunBetaRepository runBetaRepository, CalculationRepository calculationRepository) {
+    public CalculationServiceImpl(AuditLogService auditLogService, TimeSeriesService timeSeriesService, GarchModelService garchModelService, AuthenticationHandler authenticationHandler, RunAlphaRepository runAlphaRepository, RunBetaRepository runBetaRepository, CalculationRepository calculationRepository, UserRepository userRepository) {
         this.auditLogService = auditLogService;
         this.timeSeriesService = timeSeriesService;
         this.garchModelService = garchModelService;
@@ -59,6 +61,7 @@ public class CalculationServiceImpl implements CalculationService {
         this.runAlphaRepository = runAlphaRepository;
         this.runBetaRepository = runBetaRepository;
         this.calculationRepository = calculationRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -76,12 +79,12 @@ public class CalculationServiceImpl implements CalculationService {
     public TimeSeriesDTO calculate(GarchModelCalculationDTO garchModelCalculationDTO, int forecast, MultipartFile timeSeriesFile, Long timeSeriesId, Long calculationId) throws IOException {
         validateInput(garchModelCalculationDTO.constantVariance(), garchModelCalculationDTO.lastVariances(), garchModelCalculationDTO.lastShocks(), forecast);
         TimeSeriesDTO result = startCalculationBasedOnInput(garchModelCalculationDTO, forecast, timeSeriesFile, timeSeriesId, calculationId);
-        User user = authenticationHandler.getUserEntity();
-        if (user != null) {
+        Optional<User> optionalUser = userRepository.findById(authenticationHandler.getUserId());
+        if (optionalUser.isPresent()) {
             if (calculationId != null) {
                 updateCalculation(calculationId, result, garchModelCalculationDTO);
             } else {
-                saveCalculation(result, garchModelCalculationDTO, forecast, timeSeriesFile, timeSeriesId, user);
+                saveCalculation(result, garchModelCalculationDTO, forecast, timeSeriesFile, timeSeriesId, optionalUser.get());
             }
         }
         return result;
@@ -255,13 +258,13 @@ public class CalculationServiceImpl implements CalculationService {
 
     @Override
     public CalculationPageDTO getCalculationPageByUser(int page, int size) {
-        User user = authenticationHandler.getUserEntity();
+        Optional<User> optionalUser = userRepository.findById(authenticationHandler.getUserId());
 
-        if (user == null) {
+        if (optionalUser.isEmpty()) {
             return new CalculationPageDTO(Collections.emptyList(), null);
         }
 
-        List<CalculationListItemDTO> usersCalculationsList = CalculationMapper.toListItemDTOs(calculationRepository.getCalculationsByUser(user));
+        List<CalculationListItemDTO> usersCalculationsList = CalculationMapper.toListItemDTOs(calculationRepository.getCalculationsByUser(optionalUser.get()));
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
 
@@ -269,7 +272,7 @@ public class CalculationServiceImpl implements CalculationService {
 
         PageResponse<CalculationListItemDTO> calculationListItemDTOPageResponse = null;
 
-        if (user.getRole() == RoleType.ADMIN) {
+        if (optionalUser.get().getRole() == RoleType.ADMIN) {
             calculationListItemDTOPageResponse = PageResponse.responseFromPage(calculationList.map(CalculationMapper::toListItemDTO));
         }
 
@@ -316,5 +319,10 @@ public class CalculationServiceImpl implements CalculationService {
                         Map.Entry::getKey,
                         entry -> Math.sqrt(entry.getValue())
                 ));
+    }
+
+    @Override
+    public List<AuditInfoDTO> findAllAuditInfoByUserId(Long userId) {
+        return calculationRepository.findAllAuditInfoByUserId(userId);
     }
 }

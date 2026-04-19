@@ -1,5 +1,6 @@
 package com.example.garchapplication.repository;
 
+import com.example.garchapplication.model.dto.api.AuditInfoDTO;
 import com.example.garchapplication.model.entity.Configuration;
 import com.example.garchapplication.model.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -19,4 +20,14 @@ public interface ConfigurationRepository extends JpaRepository<Configuration, Lo
     List<Configuration> getConfigurationsByUser(User user);
 
     boolean existsByIdAndUserId(Long id, Long userId);
+
+    @Query("""
+                select new com.example.garchapplication.model.dto.api.AuditInfoDTO(
+                com.example.garchapplication.model.enums.EntityType.CONFIGURATION,
+                c.id,
+                c.name)
+                from Configuration c
+                where c.user.id = :userId
+            """)
+    List<AuditInfoDTO> findAllAuditInfoByUserId(Long userId);
 }
