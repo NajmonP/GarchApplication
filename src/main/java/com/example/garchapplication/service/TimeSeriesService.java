@@ -1,9 +1,9 @@
 package com.example.garchapplication.service;
 
+import com.example.garchapplication.model.dto.AuditInfoDTO;
 import com.example.garchapplication.model.dto.TimeSeriesDTO;
 import com.example.garchapplication.model.dto.api.*;
 import com.example.garchapplication.model.entity.TimeSeries;
-import com.example.garchapplication.model.entity.User;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

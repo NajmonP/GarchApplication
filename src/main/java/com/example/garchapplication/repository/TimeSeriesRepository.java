@@ -1,6 +1,6 @@
 package com.example.garchapplication.repository;
 
-import com.example.garchapplication.model.dto.api.AuditInfoDTO;
+import com.example.garchapplication.model.dto.AuditInfoDTO;
 import com.example.garchapplication.model.entity.TimeSeries;
 import com.example.garchapplication.model.entity.User;
 import org.springframework.data.domain.Page;
@@ -31,7 +31,7 @@ public interface TimeSeriesRepository extends JpaRepository<TimeSeries, Long> {
     boolean existsByIdAndVisibility(Long id, String visibility);
 
     @Query("""
-                select new com.example.garchapplication.model.dto.api.AuditInfoDTO(
+                select new com.example.garchapplication.model.dto.AuditInfoDTO(
                 com.example.garchapplication.model.enums.EntityType.TIME_SERIES,
                 t.id,
                 t.name)

@@ -1,6 +1,6 @@
 package com.example.garchapplication.repository;
 
-import com.example.garchapplication.model.dto.api.AuditInfoDTO;
+import com.example.garchapplication.model.dto.AuditInfoDTO;
 import com.example.garchapplication.model.entity.GarchModel;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -21,7 +21,7 @@ public interface GarchModelRepository extends JpaRepository<GarchModel, Long> {
     boolean existsByIdAndConfigurationUserId(Long id, Long userId);
 
     @Query("""
-                select new com.example.garchapplication.model.dto.api.AuditInfoDTO(
+                select new com.example.garchapplication.model.dto.AuditInfoDTO(
                 com.example.garchapplication.model.enums.EntityType.GARCH_MODEL,
                 g.id,
                 g.name)

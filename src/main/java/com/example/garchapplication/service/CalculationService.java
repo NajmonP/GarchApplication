@@ -3,6 +3,7 @@ package com.example.garchapplication.service;
 import com.example.garchapplication.exception.InvalidConstantVarianceException;
 import com.example.garchapplication.exception.InvalidLastValueException;
 import com.example.garchapplication.exception.MaxThresholdExceededException;
+import com.example.garchapplication.model.dto.AuditInfoDTO;
 import com.example.garchapplication.model.dto.api.*;
 import com.example.garchapplication.model.dto.TimeSeriesDTO;
 import com.example.garchapplication.model.entity.Calculation;

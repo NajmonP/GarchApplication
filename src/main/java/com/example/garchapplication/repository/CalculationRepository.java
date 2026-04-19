@@ -1,6 +1,6 @@
 package com.example.garchapplication.repository;
 
-import com.example.garchapplication.model.dto.api.AuditInfoDTO;
+import com.example.garchapplication.model.dto.AuditInfoDTO;
 import com.example.garchapplication.model.entity.Calculation;
 import com.example.garchapplication.model.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -43,7 +43,7 @@ public interface CalculationRepository extends JpaRepository<Calculation, Long> 
     boolean existsByIdAndUserId(Long id, Long userId);
 
     @Query("""
-                select new com.example.garchapplication.model.dto.api.AuditInfoDTO(
+                select new com.example.garchapplication.model.dto.AuditInfoDTO(
                     com.example.garchapplication.model.enums.EntityType.CALCULATION,
                     c.id,
                     null

@@ -2,7 +2,7 @@ package com.example.garchapplication.service;
 
 import com.example.garchapplication.exception.InvalidCredentialsException;
 import com.example.garchapplication.mapper.UserMapper;
-import com.example.garchapplication.model.dto.api.AuditInfoDTO;
+import com.example.garchapplication.model.dto.AuditInfoDTO;
 import com.example.garchapplication.model.dto.api.ChangePasswordRequest;
 import com.example.garchapplication.model.dto.api.UpdateUserRequest;
 import com.example.garchapplication.model.dto.api.UserProfileDTO;

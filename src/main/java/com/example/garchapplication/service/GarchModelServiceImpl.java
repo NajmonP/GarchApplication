@@ -4,7 +4,7 @@ import com.example.garchapplication.exception.DuplicateNameException;
 import com.example.garchapplication.exception.EntityNotFoundException;
 import com.example.garchapplication.exception.WrongFileStructureException;
 import com.example.garchapplication.mapper.GarchModelMapper;
-import com.example.garchapplication.model.dto.api.AuditInfoDTO;
+import com.example.garchapplication.model.dto.AuditInfoDTO;
 import com.example.garchapplication.model.dto.api.GarchModelCalculationDTO;
 import com.example.garchapplication.model.dto.api.GarchModelDTO;
 import com.example.garchapplication.model.entity.Configuration;

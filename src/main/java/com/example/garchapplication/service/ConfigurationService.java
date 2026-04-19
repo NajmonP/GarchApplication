@@ -1,6 +1,6 @@
 package com.example.garchapplication.service;
 
-import com.example.garchapplication.model.dto.api.AuditInfoDTO;
+import com.example.garchapplication.model.dto.AuditInfoDTO;
 import com.example.garchapplication.model.dto.api.XlsxFileDTO;
 import com.example.garchapplication.model.dto.api.ConfigurationListItemDTO;
 import com.example.garchapplication.model.dto.api.ConfigurationPageDTO;

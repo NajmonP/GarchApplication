@@ -1,4 +1,4 @@
-package com.example.garchapplication.model.dto.api;
+package com.example.garchapplication.model.dto;
 
 import com.example.garchapplication.model.enums.EntityType;
 
