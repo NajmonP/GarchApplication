@@ -16,6 +16,17 @@ docker compose up --build
 The application will be available at: http://localhost:8080
 PostgreSQL will be running on: localhost:5432
 
+### Default Users
+
+For demonstration purposes, the application creates default users during database initialization:
+
+| Role  | Username | Email             | Password |
+|-------|----------|-------------------|----------|
+| ADMIN | admin    | admin@example.com | 123      |
+| USER  | user     | user@example.com  | 123      |
+
+These credentials are intended only for local testing and demonstration.
+
 ## Project structure
 
 - data/ - sample input data for testing and modeling
