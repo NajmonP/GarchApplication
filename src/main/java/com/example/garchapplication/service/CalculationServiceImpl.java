@@ -79,14 +79,7 @@ public class CalculationServiceImpl implements CalculationService {
     public TimeSeriesDTO calculate(GarchModelCalculationDTO garchModelCalculationDTO, int forecast, MultipartFile timeSeriesFile, Long timeSeriesId, Long calculationId) throws IOException {
         validateInput(garchModelCalculationDTO.constantVariance(), garchModelCalculationDTO.lastVariances(), garchModelCalculationDTO.lastShocks(), forecast);
         TimeSeriesDTO result = startCalculationBasedOnInput(garchModelCalculationDTO, forecast, timeSeriesFile, timeSeriesId, calculationId);
-        Optional<User> optionalUser = userRepository.findById(authenticationHandler.getUserId());
-        if (optionalUser.isPresent()) {
-            if (calculationId != null) {
-                updateCalculation(calculationId, result, garchModelCalculationDTO);
-            } else {
-                saveCalculation(result, garchModelCalculationDTO, forecast, timeSeriesFile, timeSeriesId, optionalUser.get());
-            }
-        }
+        saveCalculationIfAuthenticated(calculationId, result, garchModelCalculationDTO, forecast, timeSeriesFile, timeSeriesId);
         return result;
     }
 
@@ -144,10 +137,7 @@ public class CalculationServiceImpl implements CalculationService {
     @PreAuthorize("@authorization.canAccessCalculation(#calculationId, authentication)")
     public void rerunCalculation(Long calculationId, Long timeSeriesId) throws IOException {
         Calculation calculation = calculationRepository.findById(calculationId).orElseThrow(() -> new EntityNotFoundException(calculationId, EntityType.CALCULATION));
-
-        TimeSeriesDTO timeSeriesDTO = timeSeriesService.getTimeSeriesDTOFromDatabase(timeSeriesId);
         GarchModelCalculationDTO garchModelCalculationDTO = extractGarchModelCalculationDTO(calculation);
-        new CalculationSetupDTO(timeSeriesDTO.timeSeries(), garchModelCalculationDTO, calculation.getForecast());
         calculate(garchModelCalculationDTO, calculation.getForecast(), null, timeSeriesId, calculationId);
     }
 
@@ -189,7 +179,7 @@ public class CalculationServiceImpl implements CalculationService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    protected void updateCalculation(Long calculationId, TimeSeriesDTO result, GarchModelCalculationDTO garchModelCalculationDTO) {
+    protected void updateCalculation(Long calculationId, TimeSeriesDTO result) {
         Calculation calculation = calculationRepository.findById(calculationId).orElseThrow(() -> new EntityNotFoundException(calculationId, EntityType.CALCULATION));
         calculation.setStatus(CalculationStatus.OK);
 
@@ -324,5 +314,24 @@ public class CalculationServiceImpl implements CalculationService {
     @Override
     public List<AuditInfoDTO> findAllAuditInfoByUserId(Long userId) {
         return calculationRepository.findAllAuditInfoByUserId(userId);
+    }
+
+    @Transactional
+    protected void saveCalculationIfAuthenticated(Long calculationId, TimeSeriesDTO result, GarchModelCalculationDTO garchModelCalculationDTO, int forecast, MultipartFile timeSeriesFile, Long timeSeriesId) {
+        Long userId = authenticationHandler.getUserId();
+
+        if (userId == null) {
+            return;
+        }
+
+        if (calculationId != null) {
+            updateCalculation(calculationId, result);
+            return;
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException(userId, EntityType.USER));
+
+        saveCalculation(result, garchModelCalculationDTO, forecast, timeSeriesFile, timeSeriesId, user);
     }
 }

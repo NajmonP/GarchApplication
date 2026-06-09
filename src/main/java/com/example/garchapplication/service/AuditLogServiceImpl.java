@@ -1,6 +1,7 @@
 package com.example.garchapplication.service;
 
 import com.example.garchapplication.exception.InvalidDateRangeException;
+import com.example.garchapplication.mapper.AuditLogMapper;
 import com.example.garchapplication.model.dto.api.AuditLogDTO;
 import com.example.garchapplication.model.entity.AuditLog;
 import com.example.garchapplication.model.enums.EntityType;
@@ -62,15 +63,7 @@ public class AuditLogServiceImpl implements AuditLogService {
         Instant toInstant = to.plusDays(1).atStartOfDay(zone).toInstant();
 
         Page<AuditLog> result = auditLogRepository.findByOccuredAtGreaterThanEqualAndOccuredAtLessThan(fromInstant, toInstant, pageable);
-        return result.map(a -> new AuditLogDTO(
-                a.getOccuredAt(),
-                a.getUserId(),
-                a.getUsername(),
-                a.getEntityId(),
-                a.getEntityType(),
-                a.getEntityName(),
-                a.getOperation()
-        ));
+        return AuditLogMapper.toAuditLogDTO(result);
     }
 
     private void publish(AuditLogDTO auditLogDTO) {

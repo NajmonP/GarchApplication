@@ -33,7 +33,7 @@ public class UserServiceImpl implements UserService {
     private final CalculationService calculationService;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, ConfigurationService configurationService, GarchModelService garchModelService, TimeSeriesService timeSeriesService, AuditLogService auditLogService, CalculationService calculationService){
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, ConfigurationService configurationService, GarchModelService garchModelService, TimeSeriesService timeSeriesService, AuditLogService auditLogService, CalculationService calculationService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.configurationService = configurationService;
@@ -67,7 +67,7 @@ public class UserServiceImpl implements UserService {
 
         user.setUsername(updateUserRequest.username());
         user.setEmail(updateUserRequest.email());
-        auditLogService.logUpdateEvent(EntityType.USER, user.getId() ,user.getUsername());
+        auditLogService.logUpdateEvent(EntityType.USER, user.getId(), user.getUsername());
     }
 
     @Override
@@ -77,11 +77,11 @@ public class UserServiceImpl implements UserService {
         if (!passwordEncoder.matches(changePasswordRequest.currentPassword(), user.getHashedPassword())) {
             throw new InvalidCredentialsException("Původní heslo se neshoduje.");
         }
-        if(!changePasswordRequest.newPassword().equals(changePasswordRequest.confirmNewPassword())) {
+        if (!changePasswordRequest.newPassword().equals(changePasswordRequest.confirmNewPassword())) {
             throw new InvalidCredentialsException("Nová hesla se neshodují.");
         }
         user.setHashedPassword(passwordEncoder.encode(changePasswordRequest.newPassword()));
-        auditLogService.logUpdateEvent(EntityType.USER, user.getId() ,user.getUsername());
+        auditLogService.logUpdateEvent(EntityType.USER, user.getId(), user.getUsername());
     }
 
 
@@ -97,19 +97,19 @@ public class UserServiceImpl implements UserService {
 
     private void logUserDeletion(long userId, String username) {
         List<AuditInfoDTO> auditInfoDTOS = configurationService.findAllAuditInfoByUserId(userId);
-        for(AuditInfoDTO configurationInfoDTO : auditInfoDTOS){
+        for (AuditInfoDTO configurationInfoDTO : auditInfoDTOS) {
             List<AuditInfoDTO> modelInfoList = garchModelService.findAllAuditInfoByConfigurationId(configurationInfoDTO.id());
-            for(AuditInfoDTO modelInfoDTO : modelInfoList){
+            for (AuditInfoDTO modelInfoDTO : modelInfoList) {
                 auditLogService.logDeleteEvent(modelInfoDTO.type(), modelInfoDTO.id(), modelInfoDTO.name());
             }
         }
         auditInfoDTOS.addAll(timeSeriesService.findAllAuditInfoByUserId(userId));
         auditInfoDTOS.addAll(calculationService.findAllAuditInfoByUserId(userId));
 
-        for(AuditInfoDTO auditInfoDTO : auditInfoDTOS){
+        for (AuditInfoDTO auditInfoDTO : auditInfoDTOS) {
             auditLogService.logDeleteEvent(auditInfoDTO.type(), auditInfoDTO.id(), auditInfoDTO.name());
         }
-        auditLogService.logDeleteEvent(EntityType.USER, userId ,username);
+        auditLogService.logDeleteEvent(EntityType.USER, userId, username);
     }
 
     @Override
@@ -121,20 +121,11 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserProfileDTO getUserProfile() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated()) {
-            return null;
-        }
-
-        Object principal = auth.getPrincipal();
-        UserDetails userDetails = (UserDetails) principal;
-        Long userId = ((UserDetailsImpl) userDetails).getId();
-        User user = getUserById(userId);
-        return UserMapper.toUserProfileDTO(user);
+        return UserMapper.toUserProfileDTO(getUser());
     }
 
     @Transactional
-    public User getUser(){
+    public User getUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         Object principal = auth.getPrincipal();
         UserDetails userDetails = (UserDetails) principal;
