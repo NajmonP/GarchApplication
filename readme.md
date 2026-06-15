@@ -49,5 +49,21 @@ docker compose up
 
 NOTE: This will DELETE all stored data.
 
+## Application Screenshots
 
+### GARCH Model Configuration
+
+<img src="data/images/configuration.png" width="1416">
+
+### Calculation run
+
+<img src="data/images/calculation.png" width="1154">
+
+### Input Time Series
+
+<img src="data/images/input.png" width="1414">
+
+### Calculation Result
+
+<img src="data/images/result.png" width="1334">
 
